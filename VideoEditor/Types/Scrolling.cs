@@ -1,4 +1,4 @@
-﻿namespace VideoEditor.UI
+﻿namespace VideoEditor.Types
 {
     public class Scrolling
     {

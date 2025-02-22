@@ -14,7 +14,8 @@ public partial class TimelineControl : UserControl
     }
 
     DragAndDrop DragAndDrop { get; } = new();
-    Dragging Dragging { get; } = new();
+    Dragging SelectedClipsDragging { get; } = new();
+    Dragging MiddleDragging { get; } = new();
     Scrolling Scrolling { get; } = new();
 
     Timeline Timeline => Engine.Timeline;
@@ -387,7 +388,7 @@ public partial class TimelineControl : UserControl
         /// 1. Niets is geselecteerd en je selecteerd een clip/groep = Selecteren
         /// 2. Clip/groep is geselecteerd en daar klik je op = Dragging
         /// 3. Je klikt op het midden
-        
+
 
         var startpoint = new Point(e.X, e.Y);
         var startposition = GetTimelinePositionControl(startpoint);
@@ -397,6 +398,7 @@ public partial class TimelineControl : UserControl
 
         if (startposition.Value.TimelinePart == TimelinePart.Middle)
         {
+            MiddleDragging.Set(startpoint, startposition);
             Timeline.PlayerPosition = startposition.Value.CurrentTime;
             Invalidate();
             return;
@@ -405,15 +407,15 @@ public partial class TimelineControl : UserControl
         var selectedClips = GetSelectedClips(e);
         if (selectedClips.Any(a => Timeline.SelectedClips.Any(b => b.Equals(a))))
         {
-            Dragging.IsDragging = true;
-            Dragging.StartPoint = startpoint;
-            Dragging.StartPosition = startposition.Value;
+            SelectedClipsDragging.Set(startpoint, startposition);
             foreach (var clip in selectedClips)
             {
                 clip.OldLayer = clip.Layer;
                 clip.OldTimelineStartInSeconds = clip.TimelineStartInSeconds;
                 clip.OldTimelineEndInSeconds = clip.TimelineEndInSeconds;
             }
+            Invalidate();
+            return;
         }
 
         Timeline.SelectedClips.Clear();
@@ -423,17 +425,26 @@ public partial class TimelineControl : UserControl
     }
     private void TimelineControl_MouseMove(object sender, MouseEventArgs e)
     {
-        if (!Dragging.IsDragging) return;
-
         var endPoint = new Point(e.X, e.Y);
-        var endPosition = GetTimelinePositionForm(endPoint);
+        var endPosition = GetTimelinePositionControl(endPoint);
         if (endPosition == null) return;
 
-        if (endPosition.Value.Layer != Dragging.StartPosition.Layer ||
-            endPosition.Value.CurrentTime != Dragging.StartPosition.CurrentTime)
+        //Debug.WriteLine($"{endPosition.Value.Layer} {endPosition.Value.CurrentTime} {endPosition.Value.TimelinePart}");
+
+        if (MiddleDragging.IsDragging && endPosition.Value.TimelinePart == TimelinePart.Middle)
         {
-            var layerDiff = endPosition.Value.Layer - Dragging.StartPosition.Layer;
-            var currentTimeDiff = endPosition.Value.CurrentTime - Dragging.StartPosition.CurrentTime;
+            Timeline.PlayerPosition = endPosition.Value.CurrentTime;
+            Invalidate();
+            return;
+        }
+
+        if (!SelectedClipsDragging.IsDragging) return;
+
+        if (endPosition.Value.Layer != SelectedClipsDragging.StartPosition.Layer ||
+            endPosition.Value.CurrentTime != SelectedClipsDragging.StartPosition.CurrentTime)
+        {
+            var layerDiff = endPosition.Value.Layer - SelectedClipsDragging.StartPosition.Layer;
+            var currentTimeDiff = endPosition.Value.CurrentTime - SelectedClipsDragging.StartPosition.CurrentTime;
             foreach (var clip in Timeline.SelectedClips)
             {
                 clip.Layer = clip.OldLayer + layerDiff;
@@ -442,13 +453,14 @@ public partial class TimelineControl : UserControl
                 clip.TimelineEndInSeconds = clip.OldTimelineEndInSeconds + currentTimeDiff;
                 Debug.WriteLine($"Dragging {currentTimeDiff}x{layerDiff} {clip.OldTimelineStartInSeconds}+{currentTimeDiff.ToString("F3")}={clip.TimelineStartInSeconds}");
             }
-        }
 
-        Invalidate();
+            Invalidate();
+        }
     }
     private void TimelineControl_MouseUp(object sender, MouseEventArgs e)
     {
-        Dragging.IsDragging = false;
+        MiddleDragging.IsDragging = false;
+        SelectedClipsDragging.IsDragging = false;
     }
 
     private ITimelineClip[] GetSelectedClips(MouseEventArgs e)
@@ -493,6 +505,7 @@ public partial class TimelineControl : UserControl
             var videoLayerHeight = videoHeight / Timeline.VisibleVideoLayers;
             var relativeLayerIndex = Timeline.VisibleVideoLayers - ucPoint.Y / videoLayerHeight - 1;
             var layerIndex = Timeline.FirstVisibleVideoLayer + relativeLayerIndex;
+            if (layerIndex < 0) layerIndex = 0;
             return new TimelinePosition(currentTime, layerIndex, TimelinePart.Video);
         }
         else if (ucPoint.Y >= videoHeight && ucPoint.Y < videoHeight + middleHeight)
@@ -504,6 +517,7 @@ public partial class TimelineControl : UserControl
             var audioLayerHeight = audioHeight / Timeline.VisibleAudioLayers;
             var relativeLayerIndex = (ucPoint.Y - videoHeight) / audioLayerHeight;
             var layerIndex = Timeline.FirstVisibleAudioLayer + relativeLayerIndex;
+            if (layerIndex < 0) layerIndex = 0;
             return new TimelinePosition(currentTime, layerIndex, TimelinePart.Audio);
         }
         return null;
@@ -539,6 +553,7 @@ public partial class TimelineControl : UserControl
         if (e.KeyCode == Keys.Delete || e.KeyCode == Keys.Back)
         {
             // Delete
+
         }
     }
 }
