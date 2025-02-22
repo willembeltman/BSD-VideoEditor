@@ -22,13 +22,14 @@ public partial class TimelineControl : UserControl
         ClientRectangle.Left,
         ClientRectangle.Top,
         ClientRectangle.Width,
-        ClientRectangle.Height - scrollBarControl.Height);
+        ClientRectangle.Height - HScrollBarControl.Height);
+    int MiddleOffset => HScrollBarControl.Height / 2;
 
     private void TimelineControl_Load(object sender, EventArgs e)
     {
         SetupScrollbar();
     }
-    
+
     private void TimelineControl_Paint(object? sender, PaintEventArgs e)
     {
         var g = e.Graphics;
@@ -40,6 +41,8 @@ public partial class TimelineControl : UserControl
 
         // Teken clips
         DrawVideoClips(g);
+
+        DrawPlayerPosition(g);
     }
     private void DrawTimeMarkers(Graphics g)
     {
@@ -48,13 +51,13 @@ public partial class TimelineControl : UserControl
         using var font = new Font("Arial", Constants.TextSize);
         using var brush = new SolidBrush(Color.White);
 
-        int middle = (ClientRectangle.Height - scrollBarControl.Height) / 2;
-        int videoBlockHeight = (middle - Constants.MiddleOffset) / Timeline.VisibleVideoLayers;
-        int audioBlockHeight = (middle - Constants.MiddleOffset) / Timeline.VisibleAudioLayers;
+        int middle = TimelineRectangle.Height / 2;
+        int videoBlockHeight = (middle - MiddleOffset) / Timeline.VisibleVideoLayers;
+        int audioBlockHeight = (middle - MiddleOffset) / Timeline.VisibleAudioLayers;
 
         for (var i = 0; i < Timeline.VisibleVideoLayers; i++)
         {
-            var y = middle - i * videoBlockHeight - Constants.MiddleOffset;
+            var y = TimelineRectangle.Top + middle - i * videoBlockHeight - MiddleOffset;
             g.DrawLine(pen2, 0, y, Width, y);
 
             var text = $"{i + Timeline.FirstVisibleVideoLayer}";
@@ -64,7 +67,7 @@ public partial class TimelineControl : UserControl
         }
         for (var i = 0; i < Timeline.VisibleAudioLayers; i++)
         {
-            var y = middle + i * audioBlockHeight + Constants.MiddleOffset;
+            var y = TimelineRectangle.Top + middle + i * audioBlockHeight + MiddleOffset;
             g.DrawLine(pen2, 0, y, Width, y);
 
             var text = $"{i + Timeline.FirstVisibleAudioLayer}";
@@ -90,7 +93,7 @@ public partial class TimelineControl : UserControl
 
             var text = $"{sec.ToString("F" + decimals)}s";
             var textSize = g.MeasureString(text, font);
-            var textY = middle - (int)(textSize.Height / 2);
+            var textY = TimelineRectangle.Top + middle - (int)(textSize.Height / 2);
             g.DrawString(text, font, brush, x + 2, textY);
         }
 
@@ -105,8 +108,8 @@ public partial class TimelineControl : UserControl
             {
                 var rect = CalculateRectangle(clip);
 
-                if (rect.Left > ClientRectangle.Width || rect.Right < 0) continue; // Clip buiten zichtbare range
-                if (rect.Top > ClientRectangle.Height || rect.Bottom < 0) continue; // Clip buiten zichtbare range
+                if (rect.Left > TimelineRectangle.Width || rect.Right < 0) continue; // Clip buiten zichtbare range
+                if (rect.Top > TimelineRectangle.Height || rect.Bottom < 0) continue; // Clip buiten zichtbare range
 
                 var selected = Timeline.SelectedClips.Contains(clip);
                 var fillBrush = selected ? Brushes.Red : clip.IsVideoClip ? Brushes.DarkBlue : Brushes.Aqua;
@@ -117,11 +120,24 @@ public partial class TimelineControl : UserControl
             }
         }
     }
+    private void DrawPlayerPosition(Graphics g)
+    {
+        using var pen = new Pen(Color.Red, 2);
+
+        // Bereken de x-positie van de player marker
+        int x = Convert.ToInt32((Timeline.PlayerPosition - Timeline.VisibleStart) / Timeline.VisibleWidth * Width);
+
+        // Zorg ervoor dat de lijn binnen de zichtbare regio valt
+        if (x >= 0 && x <= Width)
+        {
+            g.DrawLine(pen, x, 0, x, Height);
+        }
+    }
 
     private void TimelineControl_MouseWheel(object? sender, MouseEventArgs e)
     {
         var scrollDelta = Scrolling.GetScrollDelta(e);
-        
+
         var applicationPoint = new Point(e.X, e.Y);
         var timelinePosition = GetTimelinePositionControl(applicationPoint);
         if (timelinePosition == null) return;
@@ -143,13 +159,13 @@ public partial class TimelineControl : UserControl
     }
     private void ScrollY(int delta, TimelinePosition timelinePosition)
     {
-        if (timelinePosition.MediaFormat == MediaFormat.Video)
+        if (timelinePosition.TimelinePart == TimelinePart.Video)
         {
             // Video
             Timeline.FirstVisibleVideoLayer += delta;
             if (Timeline.FirstVisibleVideoLayer < 0) Timeline.FirstVisibleVideoLayer = 0;
         }
-        if (timelinePosition.MediaFormat == MediaFormat.Video)
+        if (timelinePosition.TimelinePart == TimelinePart.Video)
         {
             // Audio
             Timeline.FirstVisibleAudioLayer += delta;
@@ -158,13 +174,13 @@ public partial class TimelineControl : UserControl
     }
     private void ZoomY(int delta, TimelinePosition timelinePosition)
     {
-        if (timelinePosition.MediaFormat == MediaFormat.Video)
+        if (timelinePosition.TimelinePart == TimelinePart.Video)
         {
             // Video
             Timeline.VisibleVideoLayers -= delta;
             if (Timeline.VisibleVideoLayers < 1) Timeline.VisibleVideoLayers = 1;
         }
-        if (timelinePosition.MediaFormat == MediaFormat.Audio)
+        if (timelinePosition.TimelinePart == TimelinePart.Audio)
         {
             // Audio
             Timeline.VisibleAudioLayers -= delta;
@@ -192,10 +208,10 @@ public partial class TimelineControl : UserControl
     {
         var max = Timeline.AudioClips.Any() ? Timeline.AudioClips.Max(a => a.TimelineEndInSeconds) : Timeline.VisibleStart + Timeline.VisibleWidth;
         max = Math.Max(max, Timeline.VisibleStart + Timeline.VisibleWidth);
-        scrollBarControl.Minimum = 0;
-        scrollBarControl.Maximum = Convert.ToInt32(Math.Ceiling(max));
-        scrollBarControl.SmallChange = 1;
-        scrollBarControl.LargeChange = Convert.ToInt32(Math.Floor(Timeline.VisibleWidth));
+        HScrollBarControl.Minimum = 0;
+        HScrollBarControl.Maximum = Convert.ToInt32(Math.Ceiling(max));
+        HScrollBarControl.SmallChange = 1;
+        HScrollBarControl.LargeChange = Convert.ToInt32(Math.Floor(Timeline.VisibleWidth));
     }
 
     private void ScrollBarControl_Scroll(object sender, ScrollEventArgs e)
@@ -205,9 +221,9 @@ public partial class TimelineControl : UserControl
     }
     private void TimelineControl_Resize(object sender, EventArgs e)
     {
-        scrollBarControl.Left = 0;
-        scrollBarControl.Top = ClientRectangle.Height - scrollBarControl.Height;
-        scrollBarControl.Width = ClientRectangle.Width;
+        HScrollBarControl.Left = 0;
+        HScrollBarControl.Top = ClientRectangle.Height - HScrollBarControl.Height;
+        HScrollBarControl.Width = ClientRectangle.Width;
         Invalidate();
     }
 
@@ -367,9 +383,24 @@ public partial class TimelineControl : UserControl
 
     private void TimelineControl_MouseDown(object sender, MouseEventArgs e)
     {
+        /// Er zijn 3 verschillende mogelijkheden:
+        /// 1. Niets is geselecteerd en je selecteerd een clip/groep = Selecteren
+        /// 2. Clip/groep is geselecteerd en daar klik je op = Dragging
+        /// 3. Je klikt op het midden
+        
+
         var startpoint = new Point(e.X, e.Y);
-        var startposition = GetTimelinePositionForm(startpoint);
+        var startposition = GetTimelinePositionControl(startpoint);
         if (startposition == null) return;
+
+        Debug.WriteLine($"{startposition.Value.Layer} {startposition.Value.CurrentTime} {startposition.Value.TimelinePart}");
+
+        if (startposition.Value.TimelinePart == TimelinePart.Middle)
+        {
+            Timeline.PlayerPosition = startposition.Value.CurrentTime;
+            Invalidate();
+            return;
+        }
 
         var selectedClips = GetSelectedClips(e);
         if (selectedClips.Any(a => Timeline.SelectedClips.Any(b => b.Equals(a))))
@@ -451,51 +482,63 @@ public partial class TimelineControl : UserControl
     }
     private TimelinePosition? GetTimelinePositionControl(Point ucPoint)
     {
-        var currentTime = Timeline.VisibleStart + Timeline.VisibleWidth * ucPoint.X / ClientRectangle.Width;
+        var currentTime = Timeline.VisibleStart + Timeline.VisibleWidth * ucPoint.X / TimelineRectangle.Width;
 
         var timelineHeight = TimelineRectangle.Height;
-        var videoHeight = timelineHeight / 2;
-        var audioHeight = timelineHeight - videoHeight;
+        var videoHeight = timelineHeight / 2 - MiddleOffset;
+        var middleHeight = MiddleOffset * 2;
+        var audioHeight = timelineHeight - videoHeight - middleHeight;
         if (ucPoint.Y < videoHeight)
         {
             var videoLayerHeight = videoHeight / Timeline.VisibleVideoLayers;
-            var layerIndex = Timeline.FirstVisibleVideoLayer + (Timeline.VisibleVideoLayers - ucPoint.Y / videoLayerHeight - 1); 
-            return new TimelinePosition(currentTime, layerIndex, MediaFormat.Video);
+            var relativeLayerIndex = Timeline.VisibleVideoLayers - ucPoint.Y / videoLayerHeight - 1;
+            var layerIndex = Timeline.FirstVisibleVideoLayer + relativeLayerIndex;
+            return new TimelinePosition(currentTime, layerIndex, TimelinePart.Video);
         }
-        else if (ucPoint.Y >= videoHeight && ucPoint.Y < timelineHeight)
+        else if (ucPoint.Y >= videoHeight && ucPoint.Y < videoHeight + middleHeight)
+        {
+            return new TimelinePosition(currentTime, 0, TimelinePart.Middle);
+        }
+        else if (ucPoint.Y >= videoHeight + middleHeight && ucPoint.Y < timelineHeight)
         {
             var audioLayerHeight = audioHeight / Timeline.VisibleAudioLayers;
-            var layerIndex = Timeline.FirstVisibleAudioLayer + (ucPoint.Y - videoHeight) / audioLayerHeight; 
-            return new TimelinePosition(currentTime, layerIndex, MediaFormat.Audio);
+            var relativeLayerIndex = (ucPoint.Y - videoHeight) / audioLayerHeight;
+            var layerIndex = Timeline.FirstVisibleAudioLayer + relativeLayerIndex;
+            return new TimelinePosition(currentTime, layerIndex, TimelinePart.Audio);
         }
         return null;
     }
     private Rectangle CalculateRectangle(ITimelineClip clip)
     {
-        int Middle = TimelineRectangle.Height / 2;
-        int VideoBlockHeight = (Middle - Constants.MiddleOffset) / Timeline.VisibleVideoLayers;
-        int AudioBlockHeight = (Middle - Constants.MiddleOffset) / Timeline.VisibleAudioLayers;
+        int middle = TimelineRectangle.Height / 2;
+        int videoBlockHeight = (middle - HScrollBarControl.Height / 2) / Timeline.VisibleVideoLayers;
+        int audioBlockHeight = (middle - MiddleOffset) / Timeline.VisibleAudioLayers;
 
         int x1 = Convert.ToInt32((clip.TimelineStartInSeconds - Timeline.VisibleStart) / Timeline.VisibleWidth * TimelineRectangle.Width);
         int x2 = Convert.ToInt32((clip.TimelineEndInSeconds - Timeline.VisibleStart) / Timeline.VisibleWidth * TimelineRectangle.Width);
         int width = x2 - x1;
 
-        int layer;
-        int y;
         if (clip.IsVideoClip)
         {
-            layer = clip.Layer - Timeline.FirstVisibleVideoLayer;
-            y = Middle - Constants.MiddleOffset - VideoBlockHeight - layer * VideoBlockHeight;
-            var rect = new Rectangle(x1, y + Constants.Margin / 2, width, VideoBlockHeight - Constants.Margin);
+            var layer = clip.Layer - Timeline.FirstVisibleVideoLayer;
+            var y = middle - MiddleOffset - videoBlockHeight - layer * videoBlockHeight;
+            var rect = new Rectangle(x1, y + Constants.Margin / 2, width, videoBlockHeight - Constants.Margin);
             return rect;
         }
         else
         {
-            layer = clip.Layer - Timeline.FirstVisibleAudioLayer;
-            y = Middle + Constants.MiddleOffset + (clip.Layer - Timeline.FirstVisibleAudioLayer) * AudioBlockHeight;
-            var rect = new Rectangle(x1, y + Constants.Margin / 2, width, AudioBlockHeight - Constants.Margin);
+            var layer = clip.Layer - Timeline.FirstVisibleAudioLayer;
+            var y = middle + MiddleOffset + (clip.Layer - Timeline.FirstVisibleAudioLayer) * audioBlockHeight;
+            var rect = new Rectangle(x1, y + Constants.Margin / 2, width, audioBlockHeight - Constants.Margin);
             return rect;
         }
     }
 
+    private void TimelineControl_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.KeyCode == Keys.Delete || e.KeyCode == Keys.Back)
+        {
+            // Delete
+        }
+    }
 }

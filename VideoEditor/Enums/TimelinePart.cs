@@ -1,7 +1,8 @@
 ﻿namespace VideoEditor.Enums;
 
-public enum MediaFormat
+public enum TimelinePart
 {
     Video,
-    Audio
+    Audio,
+    Middle
 }
