@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace VideoEditor.Forms
+namespace VideoEditor.UI
 {
     public partial class TimelineControl
     {

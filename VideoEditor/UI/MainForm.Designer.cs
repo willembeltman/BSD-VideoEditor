@@ -48,9 +48,9 @@
             helpContentsToolStripMenuItem = new ToolStripMenuItem();
             toolStripSeparator4 = new ToolStripSeparator();
             aboutToolStripMenuItem = new ToolStripMenuItem();
-            timelineControl = new Forms.TimelineControl();
-            displayControl = new Forms.DisplayControl();
-            propertiesControl = new Forms.PropertiesControl();
+            timelineControl = new UI.TimelineControl();
+            displayControl = new UI.DisplayControl();
+            propertiesControl = new UI.PropertiesControl();
             menuStrip.SuspendLayout();
             SuspendLayout();
             // 
@@ -245,8 +245,8 @@
         private ToolStripMenuItem mediaToolStripMenuItem;
         private ToolStripMenuItem timelineToolStripMenuItem;
         private ToolStripMenuItem helpToolStripMenuItem;
-        private Forms.TimelineControl timelineControl;
-        private Forms.DisplayControl displayControl;
+        private UI.TimelineControl timelineControl;
+        private UI.DisplayControl displayControl;
         private ToolStripMenuItem helpContentsToolStripMenuItem;
         private ToolStripSeparator toolStripSeparator4;
         private ToolStripMenuItem aboutToolStripMenuItem;
@@ -254,6 +254,6 @@
         private ToolStripMenuItem colorToolStripMenuItem;
         private ToolStripMenuItem audioToolStripMenuItem;
         private ToolStripMenuItem exportToolStripMenuItem1;
-        private Forms.PropertiesControl propertiesControl;
+        private UI.PropertiesControl propertiesControl;
     }
 }

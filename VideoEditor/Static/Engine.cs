@@ -1,4 +1,4 @@
-﻿using VideoEditor.Forms;
+﻿using VideoEditor.UI;
 
 namespace VideoEditor;
 

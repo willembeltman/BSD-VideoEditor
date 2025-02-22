@@ -1,4 +1,4 @@
-﻿namespace VideoEditor.Forms;
+﻿namespace VideoEditor.UI;
 
 public partial class DisplayControl : UserControl
 {

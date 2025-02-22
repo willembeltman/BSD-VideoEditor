@@ -1,6 +1,6 @@
-﻿namespace VideoEditor.Forms
+﻿namespace VideoEditor.UI
 {
-    partial class PropertiesControl
+    partial class DisplayControl
     {
         /// <summary> 
         /// Required designer variable.
@@ -28,31 +28,36 @@
         /// </summary>
         private void InitializeComponent()
         {
-            vScrollBar1 = new VScrollBar();
+            videoControl = new PictureBox();
+            ((System.ComponentModel.ISupportInitialize)videoControl).BeginInit();
             SuspendLayout();
             // 
-            // vScrollBar1
+            // videoControl
             // 
-            vScrollBar1.Location = new Point(253, 0);
-            vScrollBar1.Name = "vScrollBar1";
-            vScrollBar1.Size = new Size(32, 273);
-            vScrollBar1.TabIndex = 0;
+            videoControl.BackColor = Color.Black;
+            videoControl.Location = new Point(99, 2);
+            videoControl.Margin = new Padding(2);
+            videoControl.Name = "videoControl";
+            videoControl.Size = new Size(323, 224);
+            videoControl.TabIndex = 0;
+            videoControl.TabStop = false;
             // 
-            // PropertiesControl
+            // DisplayControl
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.ControlDarkDark;
-            Controls.Add(vScrollBar1);
+            Controls.Add(videoControl);
             Margin = new Padding(2);
-            Name = "PropertiesControl";
-            Size = new Size(281, 273);
-            Resize += PropertiesControl_Resize;
+            Name = "DisplayControl";
+            Size = new Size(508, 228);
+            Resize += DisplayControl_Resize;
+            ((System.ComponentModel.ISupportInitialize)videoControl).EndInit();
             ResumeLayout(false);
         }
 
         #endregion
 
-        private VScrollBar vScrollBar1;
+        private PictureBox videoControl;
     }
 }
