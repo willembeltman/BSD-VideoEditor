@@ -1,12 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace VideoEditor.Types;
 
-namespace VideoEditor.Types
+public struct TimelineCurrentTime
 {
-    public class TimelineCurrentTime
+    public TimelineCurrentTime(double currentTime, TimelineClipVideo[] videoClips, TimelineClipAudio[] audioClips)
     {
+        CurrentTime = currentTime;
+        VideoClips = videoClips;
+        AudioClips = audioClips;
     }
+    public double CurrentTime { get; }
+    public TimelineClipVideo[] VideoClips { get; }
+    public TimelineClipAudio[] AudioClips { get; }
 }
