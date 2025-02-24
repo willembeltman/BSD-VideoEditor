@@ -1,15 +1,15 @@
 ﻿namespace VideoEditor.Types;
 
-public readonly struct Timestamp
+public readonly struct TimeStamp
 {
-    public Timestamp()
+    public TimeStamp()
     {
         Hours = 0;
         Minutes = 0;
         Seconds = 0;
         Milliseconds = 0;
     }
-    public Timestamp(string time)
+    public TimeStamp(string time)
     {
         if (string.IsNullOrWhiteSpace(time))
             throw new ArgumentException("Invalid timestamp format", nameof(time));
@@ -34,21 +34,21 @@ public readonly struct Timestamp
             throw new FormatException("Invalid timestamp format. Expected HH:mm:ss.SSS or mm:ss.SSS");
         }
     }
-    public Timestamp(int hours, int minutes, int seconds, int milliseconds)
+    public TimeStamp(int hours, int minutes, int seconds, int milliseconds)
     {
         Hours = hours;
         Minutes = minutes;
         Seconds = seconds;
         Milliseconds = milliseconds;
     }
-    public Timestamp(TimeSpan time)
+    public TimeStamp(TimeSpan time)
     {
         Hours = time.Hours;
         Minutes = time.Minutes;
         Seconds = time.Seconds;
         Milliseconds = time.Milliseconds;
     }
-    public Timestamp(long frameIndex, Fps fps)
+    public TimeStamp(long frameIndex, Fps fps)
     {
         double timeInSeconds = frameIndex * fps.Base / fps.Divider;
         var timeSpan = TimeSpan.FromSeconds(timeInSeconds);
@@ -63,20 +63,20 @@ public readonly struct Timestamp
     public int Seconds { get; }
     public int Milliseconds { get; }
 
-    public static bool operator ==(Timestamp p1, Timestamp p2)
+    public static bool operator ==(TimeStamp p1, TimeStamp p2)
     {
         return p1.Equals(p2);
     }
-    public static bool operator !=(Timestamp p1, Timestamp p2)
+    public static bool operator !=(TimeStamp p1, TimeStamp p2)
     {
         return !p1.Equals(p2);
     }
     public override bool Equals(object? obj)
     {
         if (obj == null) return false;
-        if (!(obj is Timestamp)) return false;
+        if (!(obj is TimeStamp)) return false;
 
-        var other = obj as Timestamp?;
+        var other = obj as TimeStamp?;
         if (other == null) return false;
         if (Hours != other.Value.Hours) return false;
         if (Minutes != other.Value.Minutes) return false;

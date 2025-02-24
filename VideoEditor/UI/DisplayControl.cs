@@ -44,4 +44,9 @@ public partial class DisplayControl : UserControl
         //    videoElement.Left = (ClientRectangle.Width - Constants.Margin * 2 - videoElement.Width) / 2 + Constants.Margin;
         //}
     }
+
+    public void GetFrame()
+    {
+
+    }
 }

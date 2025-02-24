@@ -8,9 +8,9 @@ public static class FFMpeg
     public static IEnumerable<byte[]> ReadFrames(
         string fullName,
         Resolution resolution,
-        Timestamp? startTime = null)
+        TimeStamp? startTime = null)
     {
-        startTime = startTime ?? new Timestamp();
+        startTime = startTime ?? new TimeStamp();
 
         //var ffmpegArgs = $"-i \"{fullName}\" -vf scale={resolution.Width}:{resolution.Height} -pix_fmt rgb24 -f rawvideo -";
         var arguments = $"-i \"{fullName}\" " +
