@@ -51,6 +51,7 @@
             timelineControl = new UI.TimelineControl();
             displayControl = new UI.DisplayControl();
             propertiesControl = new UI.PropertiesControl();
+            getFrameToolStripMenuItem = new ToolStripMenuItem();
             menuStrip.SuspendLayout();
             SuspendLayout();
             // 
@@ -60,162 +61,167 @@
             menuStrip.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, mediaToolStripMenuItem, timelineToolStripMenuItem, editorToolStripMenuItem, colorToolStripMenuItem, audioToolStripMenuItem, exportToolStripMenuItem1, helpToolStripMenuItem });
             menuStrip.Location = new Point(0, 0);
             menuStrip.Name = "menuStrip";
-            menuStrip.Padding = new Padding(4, 1, 0, 1);
-            menuStrip.Size = new Size(924, 24);
+            menuStrip.Size = new Size(1320, 33);
             menuStrip.TabIndex = 2;
             // 
             // fileToolStripMenuItem
             // 
             fileToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { newProjectToolStripMenuItem, openProjectToolStripMenuItem, saveProjectToolStripMenuItem, saveProjectAsToolStripMenuItem, toolStripSeparator1, exportToolStripMenuItem, toolStripSeparator2, exitToolStripMenuItem });
             fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            fileToolStripMenuItem.Size = new Size(37, 22);
+            fileToolStripMenuItem.Size = new Size(54, 29);
             fileToolStripMenuItem.Text = "File";
             // 
             // newProjectToolStripMenuItem
             // 
             newProjectToolStripMenuItem.Name = "newProjectToolStripMenuItem";
-            newProjectToolStripMenuItem.Size = new Size(164, 22);
+            newProjectToolStripMenuItem.Size = new Size(250, 34);
             newProjectToolStripMenuItem.Text = "New project";
             // 
             // openProjectToolStripMenuItem
             // 
             openProjectToolStripMenuItem.Name = "openProjectToolStripMenuItem";
-            openProjectToolStripMenuItem.Size = new Size(164, 22);
+            openProjectToolStripMenuItem.Size = new Size(250, 34);
             openProjectToolStripMenuItem.Text = "Open project";
             // 
             // saveProjectToolStripMenuItem
             // 
             saveProjectToolStripMenuItem.Name = "saveProjectToolStripMenuItem";
-            saveProjectToolStripMenuItem.Size = new Size(164, 22);
+            saveProjectToolStripMenuItem.Size = new Size(250, 34);
             saveProjectToolStripMenuItem.Text = "Save project";
             // 
             // saveProjectAsToolStripMenuItem
             // 
             saveProjectAsToolStripMenuItem.Name = "saveProjectAsToolStripMenuItem";
-            saveProjectAsToolStripMenuItem.Size = new Size(164, 22);
+            saveProjectAsToolStripMenuItem.Size = new Size(250, 34);
             saveProjectAsToolStripMenuItem.Text = "Save project as ...";
             // 
             // toolStripSeparator1
             // 
             toolStripSeparator1.Name = "toolStripSeparator1";
-            toolStripSeparator1.Size = new Size(161, 6);
+            toolStripSeparator1.Size = new Size(247, 6);
             // 
             // exportToolStripMenuItem
             // 
             exportToolStripMenuItem.Name = "exportToolStripMenuItem";
-            exportToolStripMenuItem.Size = new Size(164, 22);
+            exportToolStripMenuItem.Size = new Size(250, 34);
             exportToolStripMenuItem.Text = "Export video";
             // 
             // toolStripSeparator2
             // 
             toolStripSeparator2.Name = "toolStripSeparator2";
-            toolStripSeparator2.Size = new Size(161, 6);
+            toolStripSeparator2.Size = new Size(247, 6);
             // 
             // exitToolStripMenuItem
             // 
             exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            exitToolStripMenuItem.Size = new Size(164, 22);
+            exitToolStripMenuItem.Size = new Size(250, 34);
             exitToolStripMenuItem.Text = "Exit";
             // 
             // mediaToolStripMenuItem
             // 
             mediaToolStripMenuItem.Name = "mediaToolStripMenuItem";
-            mediaToolStripMenuItem.Size = new Size(42, 22);
+            mediaToolStripMenuItem.Size = new Size(62, 29);
             mediaToolStripMenuItem.Text = "Files";
             // 
             // timelineToolStripMenuItem
             // 
+            timelineToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { getFrameToolStripMenuItem });
             timelineToolStripMenuItem.Name = "timelineToolStripMenuItem";
-            timelineToolStripMenuItem.Size = new Size(69, 22);
+            timelineToolStripMenuItem.Size = new Size(101, 29);
             timelineToolStripMenuItem.Text = "Timelines";
             // 
             // editorToolStripMenuItem
             // 
             editorToolStripMenuItem.Name = "editorToolStripMenuItem";
-            editorToolStripMenuItem.Size = new Size(50, 22);
+            editorToolStripMenuItem.Size = new Size(75, 29);
             editorToolStripMenuItem.Text = "Editor";
             // 
             // colorToolStripMenuItem
             // 
             colorToolStripMenuItem.Name = "colorToolStripMenuItem";
-            colorToolStripMenuItem.Size = new Size(48, 22);
+            colorToolStripMenuItem.Size = new Size(71, 29);
             colorToolStripMenuItem.Text = "Color";
             // 
             // audioToolStripMenuItem
             // 
             audioToolStripMenuItem.Name = "audioToolStripMenuItem";
-            audioToolStripMenuItem.Size = new Size(51, 22);
+            audioToolStripMenuItem.Size = new Size(76, 29);
             audioToolStripMenuItem.Text = "Audio";
             // 
             // exportToolStripMenuItem1
             // 
             exportToolStripMenuItem1.Name = "exportToolStripMenuItem1";
-            exportToolStripMenuItem1.Size = new Size(53, 22);
+            exportToolStripMenuItem1.Size = new Size(79, 29);
             exportToolStripMenuItem1.Text = "Export";
             // 
             // helpToolStripMenuItem
             // 
             helpToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { helpContentsToolStripMenuItem, toolStripSeparator4, aboutToolStripMenuItem });
             helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-            helpToolStripMenuItem.Size = new Size(44, 22);
+            helpToolStripMenuItem.Size = new Size(65, 29);
             helpToolStripMenuItem.Text = "Help";
             // 
             // helpContentsToolStripMenuItem
             // 
             helpContentsToolStripMenuItem.Name = "helpContentsToolStripMenuItem";
-            helpContentsToolStripMenuItem.Size = new Size(148, 22);
+            helpContentsToolStripMenuItem.Size = new Size(224, 34);
             helpContentsToolStripMenuItem.Text = "Help contents";
             // 
             // toolStripSeparator4
             // 
             toolStripSeparator4.Name = "toolStripSeparator4";
-            toolStripSeparator4.Size = new Size(145, 6);
+            toolStripSeparator4.Size = new Size(221, 6);
             // 
             // aboutToolStripMenuItem
             // 
             aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            aboutToolStripMenuItem.Size = new Size(148, 22);
+            aboutToolStripMenuItem.Size = new Size(224, 34);
             aboutToolStripMenuItem.Text = "About";
             // 
             // timelineControl
             // 
             timelineControl.AllowDrop = true;
             timelineControl.BackColor = Color.Black;
-            timelineControl.Location = new Point(9, 298);
-            timelineControl.Margin = new Padding(2);
+            timelineControl.Location = new Point(13, 497);
             timelineControl.Name = "timelineControl";
-            timelineControl.Size = new Size(907, 265);
+            timelineControl.Size = new Size(1296, 442);
             timelineControl.TabIndex = 3;
             // 
             // displayControl
             // 
             displayControl.BackColor = SystemColors.ControlDarkDark;
-            displayControl.Location = new Point(8, 28);
-            displayControl.Margin = new Padding(1);
+            displayControl.Location = new Point(11, 47);
+            displayControl.Margin = new Padding(1, 2, 1, 2);
             displayControl.Name = "displayControl";
-            displayControl.Size = new Size(650, 255);
+            displayControl.Size = new Size(929, 425);
             displayControl.TabIndex = 4;
             // 
             // propertiesControl
             // 
             propertiesControl.BackColor = SystemColors.ControlDarkDark;
-            propertiesControl.Location = new Point(672, 28);
-            propertiesControl.Margin = new Padding(1);
+            propertiesControl.Location = new Point(960, 47);
+            propertiesControl.Margin = new Padding(1, 2, 1, 2);
             propertiesControl.Name = "propertiesControl";
-            propertiesControl.Size = new Size(244, 255);
+            propertiesControl.Size = new Size(349, 425);
             propertiesControl.TabIndex = 5;
+            // 
+            // getFrameToolStripMenuItem
+            // 
+            getFrameToolStripMenuItem.Name = "getFrameToolStripMenuItem";
+            getFrameToolStripMenuItem.Size = new Size(270, 34);
+            getFrameToolStripMenuItem.Text = "Get frame";
+            getFrameToolStripMenuItem.Click += getFrameToolStripMenuItem_Click;
             // 
             // MainForm
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(924, 574);
+            ClientSize = new Size(1320, 957);
             Controls.Add(propertiesControl);
             Controls.Add(displayControl);
             Controls.Add(timelineControl);
             Controls.Add(menuStrip);
             MainMenuStrip = menuStrip;
-            Margin = new Padding(2);
             Name = "MainForm";
             ShowIcon = false;
             Text = "My video editor";
@@ -255,5 +261,6 @@
         private ToolStripMenuItem audioToolStripMenuItem;
         private ToolStripMenuItem exportToolStripMenuItem1;
         private UI.PropertiesControl propertiesControl;
+        private ToolStripMenuItem getFrameToolStripMenuItem;
     }
 }

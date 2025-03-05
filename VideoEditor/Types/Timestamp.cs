@@ -4,10 +4,7 @@ public readonly struct TimeStamp
 {
     public TimeStamp()
     {
-        Hours = 0;
-        Minutes = 0;
-        Seconds = 0;
-        Milliseconds = 0;
+        TimeSpan = new TimeSpan(0, 0, 0, 0);
     }
     public TimeStamp(string time)
     {
@@ -18,16 +15,18 @@ public readonly struct TimeStamp
 
         if (parts.Length == 3) // mm:ss.SSS formaat
         {
-            Minutes = int.Parse(parts[0]);
-            Seconds = int.Parse(parts[1]);
-            Milliseconds = int.Parse(parts[2].PadRight(3, '0'));
+            var minutes = int.Parse(parts[0]);
+            var seconds = int.Parse(parts[1]);
+            var milliseconds = int.Parse(parts[2].PadRight(3, '0'));
+            TimeSpan = new TimeSpan(0, minutes, seconds, milliseconds);
         }
         else if (parts.Length == 4) // HH:mm:ss.SSS formaat
         {
-            Hours = int.Parse(parts[0]);
-            Minutes = int.Parse(parts[1]);
-            Seconds = int.Parse(parts[2]);
-            Milliseconds = int.Parse(parts[3].PadRight(3, '0'));
+            var hours = int.Parse(parts[0]);
+            var minutes = int.Parse(parts[1]);
+            var seconds = int.Parse(parts[2]);
+            var milliseconds = int.Parse(parts[3].PadRight(3, '0'));
+            TimeSpan = new TimeSpan(hours, minutes, seconds, milliseconds);
         }
         else
         {
@@ -36,32 +35,28 @@ public readonly struct TimeStamp
     }
     public TimeStamp(int hours, int minutes, int seconds, int milliseconds)
     {
-        Hours = hours;
-        Minutes = minutes;
-        Seconds = seconds;
-        Milliseconds = milliseconds;
+        TimeSpan = new TimeSpan(hours, minutes, seconds, milliseconds);
     }
     public TimeStamp(TimeSpan time)
     {
-        Hours = time.Hours;
-        Minutes = time.Minutes;
-        Seconds = time.Seconds;
-        Milliseconds = time.Milliseconds;
+        TimeSpan = time;
     }
     public TimeStamp(long frameIndex, Fps fps)
     {
         double timeInSeconds = frameIndex * fps.Base / fps.Divider;
-        var timeSpan = TimeSpan.FromSeconds(timeInSeconds);
-        Hours = timeSpan.Hours;
-        Minutes = timeSpan.Minutes;
-        Seconds = timeSpan.Seconds;
-        Milliseconds = timeSpan.Milliseconds;
+        TimeSpan = TimeSpan.FromSeconds(timeInSeconds);
+    }
+    public TimeStamp(double timeInSeconds)
+    {
+        TimeSpan = TimeSpan.FromSeconds(timeInSeconds);
     }
 
-    public int Hours { get; }
-    public int Minutes { get; }
-    public int Seconds { get; }
-    public int Milliseconds { get; }
+    TimeSpan TimeSpan { get; }
+    public int Hours => TimeSpan.Hours;
+    public int Minutes => TimeSpan.Minutes;
+    public int Seconds => TimeSpan.Seconds;
+    public int Milliseconds => TimeSpan.Milliseconds;
+    public double TotalSeconds => TimeSpan.TotalSeconds;
 
     public static bool operator ==(TimeStamp p1, TimeStamp p2)
     {

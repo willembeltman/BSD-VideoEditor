@@ -18,7 +18,7 @@ public partial class MainForm : Form
     private void MainForm_Load(object sender, EventArgs e)
     {
         MainForm_Resize(sender, e);
-        Application.Idle += Application_Idle;
+        //Application.Idle += Application_Idle;
     }
 
     private void Application_Idle(object? sender, EventArgs e)
@@ -125,5 +125,10 @@ public partial class MainForm : Form
     private void MainForm_MouseLeave(object sender, EventArgs e)
     {
         Cursor = Cursors.Default;
+    }
+
+    private void getFrameToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+        displayControl.GetFrame();
     }
 }

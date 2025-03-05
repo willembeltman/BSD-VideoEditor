@@ -7,7 +7,7 @@ namespace VideoEditor;
 public static class Engine
 {
     public static Project Project { get; set; } = new Project();
-    public static Timeline Timeline => Project.CurrentTimeline;
+    public static bool IsRunning { get; set; } = true;
 
     public static TimelineControl? TimelineControl { get; set; }
     public static DisplayControl? DisplayControl { get; set; }
@@ -22,29 +22,33 @@ public static class Engine
     static Stopwatch Stopwatch = Stopwatch.StartNew();
     static long counter = 0;
 
-    public static async Task Idle()
+    public static Timeline Timeline => Project.CurrentTimeline;
+
+    public static void Idle()
     {
         if (DisplayControl == null) return;
 
-        var b = Convert.ToByte(c);
-        Parallel.For(0, frameData.Length, i =>
-        {
-            frameData[i] = b;
-        });
-        DisplayControl.SetFrame(frameData, w, h);
-        counter++;
+        //var b = Convert.ToByte(c);
+        //Parallel.For(0, frameData.Length, i =>
+        //{
+        //    frameData[i] = b;
+        //});
+        //DisplayControl.SetFrame(frameData, w, h);
+        //counter++;
 
-        c += a;
-        if (c == 255)
-            a = -1;
-        if (c == 0)
-        {
-            a = 1;
+        //c += a;
+        //if (c == 255)
+        //    a = -1;
+        //if (c == 0)
+        //{
+        //    a = 1;
 
-            Debug.WriteLine($"{Convert.ToDouble(counter) / Stopwatch.Elapsed.TotalSeconds:F2}");
-            counter = 0;
-            Stopwatch.Restart();
-        }
+        //    Debug.WriteLine($"{Convert.ToDouble(counter) / Stopwatch.Elapsed.TotalSeconds:F2}");
+        //    counter = 0;
+        //    Stopwatch.Restart();
+        //}
+
+
 
     }
 }

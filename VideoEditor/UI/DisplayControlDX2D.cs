@@ -46,7 +46,7 @@ public class DisplayControlDX2D : Control
         {
             _bitmap?.Dispose();
 
-            var bitmapProperties = new BitmapProperties(new PixelFormat(Format.B8G8R8A8_UNorm, AlphaMode.Ignore));
+            var bitmapProperties = new BitmapProperties(new PixelFormat(Format.R8G8B8A8_UNorm, AlphaMode.Ignore));
             _bitmap = new Bitmap(_renderTarget, new Size2(width, height), bitmapProperties);
         }
 

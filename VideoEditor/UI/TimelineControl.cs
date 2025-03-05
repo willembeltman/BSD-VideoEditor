@@ -126,7 +126,7 @@ public partial class TimelineControl : UserControl
         using var pen = new Pen(Color.Red, 2);
 
         // Bereken de x-positie van de player marker
-        int x = Convert.ToInt32((Timeline.PlayerPosition - Timeline.VisibleStart) / Timeline.VisibleWidth * Width);
+        int x = Convert.ToInt32((Timeline.CurrentTime - Timeline.VisibleStart) / Timeline.VisibleWidth * Width);
 
         // Zorg ervoor dat de lijn binnen de zichtbare regio valt
         if (x >= 0 && x <= Width)
@@ -207,7 +207,7 @@ public partial class TimelineControl : UserControl
     }
     private void SetupScrollbar()
     {
-        var max = Timeline.AudioClips.Any() ? Timeline.AudioClips.Max(a => a.TimelineEndInSeconds) : Timeline.VisibleStart + Timeline.VisibleWidth;
+        var max = Timeline.AudioClips.Any() ? Timeline.AudioClips.Max(a => a.TimelineEndTime) : Timeline.VisibleStart + Timeline.VisibleWidth;
         max = Math.Max(max, Timeline.VisibleStart + Timeline.VisibleWidth);
         HScrollBarControl.Minimum = 0;
         HScrollBarControl.Maximum = Convert.ToInt32(Math.Ceiling(max));
@@ -264,10 +264,10 @@ public partial class TimelineControl : UserControl
                 var clip = new TimelineClipVideo(Timeline, videoStream, group)
                 {
                     Layer = layer,
-                    TimelineStartInSeconds = start,
-                    TimelineEndInSeconds = currentTime,
-                    ClipStartInSeconds = 0,
-                    ClipEndInSeconds = file.Duration.Value
+                    TimelineStartTime = start,
+                    TimelineEndTime = currentTime,
+                    ClipStartTime = 0,
+                    ClipEndTime = file.Duration.Value
                 };
                 DragAndDrop.VideoClips.Add(clip);
                 layer++;
@@ -279,10 +279,10 @@ public partial class TimelineControl : UserControl
                 var clip = new TimelineClipAudio(Timeline, audioStream, group)
                 {
                     Layer = layer,
-                    TimelineStartInSeconds = start,
-                    TimelineEndInSeconds = currentTime,
-                    ClipStartInSeconds = 0,
-                    ClipEndInSeconds = file.Duration.Value
+                    TimelineStartTime = start,
+                    TimelineEndTime = currentTime,
+                    ClipStartTime = 0,
+                    ClipEndTime = file.Duration.Value
                 };
                 DragAndDrop.AudioClips.Add(clip);
                 layer++;
@@ -328,8 +328,8 @@ public partial class TimelineControl : UserControl
                 if (cachedVideoStream != null)
                 {
                     cachedVideoStream.Layer = layer;
-                    cachedVideoStream.TimelineStartInSeconds = start;
-                    cachedVideoStream.TimelineEndInSeconds = currentTime;
+                    cachedVideoStream.TimelineStartTime = start;
+                    cachedVideoStream.TimelineEndTime = currentTime;
                     layer++;
                 }
             }
@@ -343,8 +343,8 @@ public partial class TimelineControl : UserControl
                 if (cachedAudioStream != null)
                 {
                     cachedAudioStream.Layer = layer;
-                    cachedAudioStream.TimelineStartInSeconds = start;
-                    cachedAudioStream.TimelineEndInSeconds = currentTime;
+                    cachedAudioStream.TimelineStartTime = start;
+                    cachedAudioStream.TimelineEndTime = currentTime;
                     layer++;
                 }
             }
@@ -399,7 +399,7 @@ public partial class TimelineControl : UserControl
         if (startposition.Value.TimelinePart == TimelinePart.Middle)
         {
             MiddleDragging.Set(startpoint, startposition);
-            Timeline.PlayerPosition = startposition.Value.CurrentTime;
+            Timeline.CurrentTime = startposition.Value.CurrentTime;
             Invalidate();
             return;
         }
@@ -411,8 +411,8 @@ public partial class TimelineControl : UserControl
             foreach (var clip in selectedClips)
             {
                 clip.OldLayer = clip.Layer;
-                clip.OldTimelineStartInSeconds = clip.TimelineStartInSeconds;
-                clip.OldTimelineEndInSeconds = clip.TimelineEndInSeconds;
+                clip.OldTimelineStartInSeconds = clip.TimelineStartTime;
+                clip.OldTimelineEndInSeconds = clip.TimelineEndTime;
             }
             Invalidate();
             return;
@@ -435,7 +435,7 @@ public partial class TimelineControl : UserControl
 
         if (MiddleDragging.IsDragging && endPosition.Value.TimelinePart == TimelinePart.Middle)
         {
-            Timeline.PlayerPosition = endPosition.Value.CurrentTime;
+            Timeline.CurrentTime = endPosition.Value.CurrentTime;
             Invalidate();
             return;
         }
@@ -447,9 +447,9 @@ public partial class TimelineControl : UserControl
             {
                 clip.Layer = clip.OldLayer + diff.Layer;
                 if (clip.Layer < 0) clip.Layer = 0;
-                clip.TimelineStartInSeconds = clip.OldTimelineStartInSeconds + diff.CurrentTime;
-                clip.TimelineEndInSeconds = clip.OldTimelineEndInSeconds + diff.CurrentTime;
-                Debug.WriteLine($"Dragging {diff.CurrentTime}x{diff.Layer} {clip.OldTimelineStartInSeconds}+{diff.CurrentTime.ToString("F3")}={clip.TimelineStartInSeconds}");
+                clip.TimelineStartTime = clip.OldTimelineStartInSeconds + diff.CurrentTime;
+                clip.TimelineEndTime = clip.OldTimelineEndInSeconds + diff.CurrentTime;
+                Debug.WriteLine($"Dragging {diff.CurrentTime}x{diff.Layer} {clip.OldTimelineStartInSeconds}+{diff.CurrentTime.ToString("F3")}={clip.TimelineStartTime}");
             }
 
             Invalidate();
@@ -527,8 +527,8 @@ public partial class TimelineControl : UserControl
         int videoBlockHeight = (middle - HScrollBarControl.Height / 2) / Timeline.VisibleVideoLayers;
         int audioBlockHeight = (middle - MiddleOffset) / Timeline.VisibleAudioLayers;
 
-        int x1 = Convert.ToInt32((clip.TimelineStartInSeconds - Timeline.VisibleStart) / Timeline.VisibleWidth * TimelineRectangle.Width);
-        int x2 = Convert.ToInt32((clip.TimelineEndInSeconds - Timeline.VisibleStart) / Timeline.VisibleWidth * TimelineRectangle.Width);
+        int x1 = Convert.ToInt32((clip.TimelineStartTime - Timeline.VisibleStart) / Timeline.VisibleWidth * TimelineRectangle.Width);
+        int x2 = Convert.ToInt32((clip.TimelineEndTime - Timeline.VisibleStart) / Timeline.VisibleWidth * TimelineRectangle.Width);
         int width = x2 - x1;
 
         if (clip.IsVideoClip)

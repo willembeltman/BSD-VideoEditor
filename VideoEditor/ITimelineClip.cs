@@ -10,10 +10,10 @@ public interface ITimelineClip
     long TimelineEndIndex { get; set; }
     long ClipStartIndex { get; set; }
     long ClipEndIndex { get; set; }
-    double TimelineStartInSeconds { get; set; }
-    double TimelineEndInSeconds { get; set; }
-    double ClipStartInSeconds { get; set; }
-    double ClipEndInSeconds { get; set; }
+    double TimelineStartTime { get; set; }
+    double TimelineEndTime { get; set; }
+    double ClipStartTime { get; set; }
+    double ClipEndTime { get; set; }
     bool IsVideoClip { get; }
     bool IsAudioClip { get; }
     double OldTimelineStartInSeconds { get; set; }

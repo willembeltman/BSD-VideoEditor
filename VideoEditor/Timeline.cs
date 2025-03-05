@@ -32,7 +32,15 @@ public class Timeline
     public int FirstVisibleAudioLayer { get; set; } = 0;
     public int VisibleAudioLayers { get; set; } = 3;
 
-    public long CurrentFrameIndex { get; set; } = 0;
-
-    public double PlayerPosition { get; set; } = 0;
+    public long CurrentTimeIndex { get; set; } = 0;
+    public double CurrentTime
+    {
+        get => Convert.ToDouble(CurrentTimeIndex) * Fps.Divider / Fps.Base;
+        set => CurrentTimeIndex = Convert.ToInt64(value * Fps.Base / Fps.Divider);
+    }
+    public TimeStamp CurrentTimeStamp
+    {
+        get => new TimeStamp(CurrentTime);
+        set => CurrentTime = value.TotalSeconds;
+    }
 }

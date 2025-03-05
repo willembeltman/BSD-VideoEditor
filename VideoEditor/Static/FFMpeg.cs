@@ -15,7 +15,7 @@ public static class FFMpeg
         //var ffmpegArgs = $"-i \"{fullName}\" -vf scale={resolution.Width}:{resolution.Height} -pix_fmt rgb24 -f rawvideo -";
         var arguments = $"-i \"{fullName}\" " +
                         $"-ss {startTime} " +
-                        $"-pix_fmt rgb24 -f rawvideo -";
+                        $"-pix_fmt rgba -f rawvideo -";
 
         var processStartInfo = new ProcessStartInfo
         {
@@ -30,14 +30,25 @@ public static class FFMpeg
         using (var process = Process.Start(processStartInfo))
         using (var stream = process.StandardOutput.BaseStream)
         {
-            int frameSize = resolution.Width * resolution.Height * 3; // rgb24 → 3 bytes per pixel
+            int frameSize = resolution.Width * resolution.Height * 4; // rgb24 → 3 bytes per pixel
             byte[] buffer = new byte[frameSize];
 
-            while (stream.Read(buffer, 0, frameSize) == frameSize)
+            while (Read(stream, buffer) == frameSize)
             {
                 yield return buffer;
             }
         }
+    }
+
+    private static int Read(Stream stream, byte[] buffer)
+    {
+        var read = 0;
+        while (read < buffer.Length)
+        {
+            read += stream.Read(buffer, read, buffer.Length - read);
+            if (read <= 0) throw new Exception("Stream ended within framedata");
+        }
+        return read;
     }
 
     public static void WriteFrames(
@@ -84,8 +95,8 @@ public static class FFMpeg
 
     public static IEnumerable<byte[]> ReadAudio(
         string fullName,
-        int channels,
-        int sampleRate)
+        int channels = 2,
+        int sampleRate = 48000)
     {
         var ffmpegArgs = $"-i \"{fullName}\" -vn -f s16le -ac {channels} -ar {sampleRate} -";
 
@@ -100,16 +111,19 @@ public static class FFMpeg
         };
 
         using (var process = Process.Start(processStartInfo))
-        using (var stream = process.StandardOutput.BaseStream)
         {
-            int bufferSize = channels * 2; // 16-bit = 2 bytes per sample
-            var buffer = new byte[bufferSize];
-
-            while (true)
+            if (process == null) yield break;
+            using (var stream = process.StandardOutput.BaseStream)
             {
-                int bytesRead = stream.Read(buffer, 0, bufferSize);
-                if (bytesRead == 0) yield break;
-                yield return buffer;
+                int bufferSize = channels * 2; // 16-bit = 2 bytes per sample
+                var buffer = new byte[bufferSize];
+
+                while (true)
+                {
+                    int bytesRead = stream.Read(buffer, 0, bufferSize);
+                    if (bytesRead == 0) yield break;
+                    yield return buffer;
+                }
             }
         }
     }

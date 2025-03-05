@@ -47,7 +47,7 @@ public class StreamInfo
         return true;
     }
 
-    private File File { get; }
+    public File File { get; }
     public int Index { get; }
     public string? Title { get; }
     public string? CodecName { get; }

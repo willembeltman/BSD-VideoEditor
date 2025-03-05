@@ -12,6 +12,7 @@ public class TimelineClip
     public Timeline Timeline { get; }
     public StreamInfo StreamInfo { get; }
     public int Layer { get; set; }
+    public long CurrentIndex { get; set; }
     public long TimelineStartIndex { get; set; }
     public long TimelineEndIndex { get; set; }
     public long ClipStartIndex { get; set; }
