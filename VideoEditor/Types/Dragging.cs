@@ -9,6 +9,7 @@ namespace VideoEditor.Types
 
         internal void Set(Point startpoint, TimelinePosition? startposition)
         {
+            if (startposition == null) throw new ArgumentNullException(nameof(startposition));
             IsDragging = true;
             StartPoint = startpoint;
             StartPosition = startposition.Value;

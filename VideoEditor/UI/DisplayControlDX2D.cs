@@ -13,83 +13,21 @@ namespace VideoEditor.UI;
 
 public class DisplayControlDX2D : Control
 {
-    private Factory _factory;
-    private WindowRenderTarget _renderTarget;
+    private Factory? _factory;
+    private WindowRenderTarget? _renderTarget;
     private Bitmap? _bitmap;
-    private ImagingFactory _wicFactory;
+    private ImagingFactory? _wicFactory;
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern int GetDpiForWindow(IntPtr hwnd);
-    float dpi => GetDpiForWindow(Handle) / 96.0f;
-    int physicalWidth => (int)(Width * dpi);
-    int physicalHeight => (int)(Height * dpi);
+    private float WindowScaling => GetDpiForWindow(Handle) / 96.0f;
+    private int PhysicalWidth => (int)(Width * WindowScaling);
+    private int PhysicalHeight => (int)(Height * WindowScaling);
 
     public DisplayControlDX2D()
     {
         SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.Opaque, true);
-
-        //_factory = new Factory();
-        //_wicFactory = new ImagingFactory();
-
-        //var renderTargetProperties = new RenderTargetProperties
-        //{
-        //    PixelFormat = new PixelFormat(Format.R8G8B8A8_UNorm, AlphaMode.Ignore)
-        //};
-
-        //var hwndProperties = new HwndRenderTargetProperties
-        //{
-        //    Hwnd = Handle,
-        //    PixelSize = new Size2(Width, Height),
-        //    PresentOptions = PresentOptions.Immediately
-        //};
-
-        //_renderTarget = new WindowRenderTarget(_factory, renderTargetProperties, hwndProperties);
     }
-    //protected override void OnHandleCreated(EventArgs e)
-    //{
-    //    base.OnHandleCreated(e);
-
-    //    _factory = new Factory();
-    //    _wicFactory = new ImagingFactory();
-
-    //    var renderTargetProperties = new RenderTargetProperties
-    //    {
-    //        PixelFormat = new PixelFormat(Format.B8G8R8A8_UNorm, AlphaMode.Ignore)
-    //    };
-
-    //    var hwndProperties = new HwndRenderTargetProperties
-    //    {
-    //        Hwnd = Handle,
-    //        PixelSize = new Size2(Width, Height),
-    //        PresentOptions = PresentOptions.Immediately
-    //    };
-
-    //    _renderTarget = new WindowRenderTarget(_factory, renderTargetProperties, hwndProperties);
-    //}
-
-    protected override void OnHandleCreated(EventArgs e)
-    {
-        base.OnHandleCreated(e);
-
-        _factory = new Factory();
-        _wicFactory = new ImagingFactory();
-
-
-        var renderTargetProperties = new RenderTargetProperties
-        {
-            PixelFormat = new PixelFormat(Format.B8G8R8A8_UNorm, AlphaMode.Ignore)
-        };
-
-        var hwndProperties = new HwndRenderTargetProperties
-        {
-            Hwnd = Handle,
-            PixelSize = new Size2(physicalWidth, physicalHeight),
-            PresentOptions = PresentOptions.Immediately
-        };
-
-        _renderTarget = new WindowRenderTarget(_factory, renderTargetProperties, hwndProperties);
-    }
-
 
     public void SetFrame(byte[] frameBuffer, int frameWidth, int frameHeight)
     {
@@ -104,11 +42,10 @@ public class DisplayControlDX2D : Control
         // Update de bitmap rechtstreeks met de framebuffer
         _bitmap.CopyFromMemory(frameBuffer, frameWidth * 4);
 
-        Invalidate(); // Triggert opnieuw tekenen
+        Draw();
     }
 
-
-    protected override void OnPaint(PaintEventArgs e)
+    private void Draw()
     {
         if (_renderTarget == null || _bitmap == null)
             return;
@@ -154,11 +91,37 @@ public class DisplayControlDX2D : Control
         _renderTarget.EndDraw();
     }
 
+    protected override void OnHandleCreated(EventArgs e)
+    {
+        base.OnHandleCreated(e);
+
+        _factory = new Factory();
+        _wicFactory = new ImagingFactory();
+
+        var renderTargetProperties = new RenderTargetProperties
+        {
+            PixelFormat = new PixelFormat(Format.B8G8R8A8_UNorm, AlphaMode.Ignore)
+        };
+
+        var hwndProperties = new HwndRenderTargetProperties
+        {
+            Hwnd = Handle,
+            PixelSize = new Size2(PhysicalWidth, PhysicalHeight),
+            PresentOptions = PresentOptions.Immediately
+        };
+
+        _renderTarget = new WindowRenderTarget(_factory, renderTargetProperties, hwndProperties);
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        Draw();
+    }
+
     protected override void OnResize(EventArgs e)
     {
         base.OnResize(e);
-        _renderTarget?.Resize(new Size2(physicalWidth, physicalHeight));
-        Invalidate(); // Triggert opnieuw tekenen
+        _renderTarget?.Resize(new Size2(PhysicalWidth, PhysicalHeight));
     }
 
     protected override void Dispose(bool disposing)

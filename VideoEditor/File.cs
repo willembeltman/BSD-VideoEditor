@@ -8,6 +8,9 @@ public class File
 {
     private File(string fullName, FFProbeRapport rapport)
     {
+        if (rapport.streams == null) throw new Exception("Media container rapport has no 'streams'");
+        if (rapport.format == null) throw new Exception("Media container rapport has no 'format'");
+
         FullName = fullName;
         AllStreams =
             rapport.streams

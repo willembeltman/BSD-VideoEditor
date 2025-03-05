@@ -28,19 +28,22 @@ public static class FFMpeg
         };
 
         using (var process = Process.Start(processStartInfo))
-        using (var stream = process.StandardOutput.BaseStream)
         {
-            int frameSize = resolution.Width * resolution.Height * 4; // rgba 4 bytes
-            byte[] buffer = new byte[frameSize];
-
-            while (ReadFrame(stream, buffer) == frameSize)
+            if (process == null) throw new Exception("Cannot start FFmpeg");
+            using (var stream = process.StandardOutput.BaseStream)
             {
-                yield return buffer;
+                int frameSize = resolution.Width * resolution.Height * 4; // rgba 4 bytes
+                byte[] buffer = new byte[frameSize];
+
+                while (ReadFrame(stream, buffer))
+                {
+                    yield return buffer;
+                }
             }
         }
     }
 
-    private static int ReadFrame(Stream stream, byte[] buffer)
+    private static bool ReadFrame(Stream stream, byte[] buffer)
     {
         var read = 0;
         while (read < buffer.Length)
@@ -48,7 +51,7 @@ public static class FFMpeg
             read += stream.Read(buffer, read, buffer.Length - read);
             if (read <= 0) throw new Exception("Stream ended within framedata");
         }
-        return read;
+        return read == buffer.Length;
     }
 
     public static void WriteFrames(
@@ -78,18 +81,17 @@ public static class FFMpeg
             CreateNoWindow = true
         };
 
-        using (var process = Process.Start(processStartInfo))
-        using (var stream = process.StandardInput.BaseStream)
+        using var process = Process.Start(processStartInfo);
+        if (process == null) throw new Exception("Cannot start FFmpeg");
+
+        using var stream = process.StandardInput.BaseStream;
+        int frameSize = resolution.Width * resolution.Height * 4; // rgba 4 bytes
+        foreach (var frame in frames)
         {
-            int frameSize = resolution.Width * resolution.Height * 4; // rgba 4 bytes
+            if (frame.Length != frameSize)
+                throw new ArgumentException("Frame size mismatch!");
 
-            foreach (var frame in frames)
-            {
-                if (frame.Length != frameSize)
-                    throw new ArgumentException("Frame size mismatch!");
-
-                stream.Write(frame, 0, frame.Length);
-            }
+            stream.Write(frame, 0, frame.Length);
         }
     }
 
@@ -110,21 +112,17 @@ public static class FFMpeg
             CreateNoWindow = true
         };
 
-        using (var process = Process.Start(processStartInfo))
-        {
-            if (process == null) yield break;
-            using (var stream = process.StandardOutput.BaseStream)
-            {
-                int bufferSize = channels * 2; // 16-bit = 2 bytes per sample
-                var buffer = new byte[bufferSize];
+        using var process = Process.Start(processStartInfo);
+        if (process == null) throw new Exception("Cannot start FFmpeg");
 
-                while (true)
-                {
-                    int bytesRead = stream.Read(buffer, 0, bufferSize);
-                    if (bytesRead == 0) yield break;
-                    yield return buffer;
-                }
-            }
+        using var stream = process.StandardOutput.BaseStream;
+        int bufferSize = channels * 2; // 16-bit = 2 bytes per sample
+        var buffer = new byte[bufferSize];
+        while (true)
+        {
+            int bytesRead = stream.Read(buffer, 0, bufferSize);
+            if (bytesRead == 0) yield break;
+            yield return buffer;
         }
     }
 
@@ -147,13 +145,13 @@ public static class FFMpeg
             CreateNoWindow = true
         };
 
-        using (var process = Process.Start(processStartInfo))
-        using (var stream = process.StandardInput.BaseStream)
+        using var process = Process.Start(processStartInfo);
+        if (process == null) throw new Exception("Cannot start FFmpeg");
+
+        using var stream = process.StandardInput.BaseStream;
+        foreach (var frame in audioFrames)
         {
-            foreach (var frame in audioFrames)
-            {
-                stream.Write(frame, 0, frame.Length);
-            }
+            stream.Write(frame, 0, frame.Length);
         }
     }
 
@@ -206,10 +204,9 @@ public static class FFMpeg
             CreateNoWindow = true
         };
 
-        using (var process = Process.Start(processStartInfo))
-        {
-            process.WaitForExit(); // Wacht tot het proces klaar is
-        }
+        using var process = Process.Start(processStartInfo);
+        if (process == null) throw new Exception("Cannot start FFmpeg");
+        process.WaitForExit(); // Wacht tot het proces klaar is
     }
 
 }

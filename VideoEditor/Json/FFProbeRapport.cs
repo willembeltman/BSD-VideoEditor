@@ -2,7 +2,7 @@
 
 public class FFProbeRapport
 {
-    public List<FFProbeStream> streams { get; set; }
-    public FFProbeFormat format { get; set; }
+    public List<FFProbeStream>? streams { get; set; }
+    public FFProbeFormat? format { get; set; }
 }
 

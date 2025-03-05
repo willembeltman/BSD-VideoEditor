@@ -14,13 +14,13 @@ public static class Engine
     public static MainForm? MainForm { get; set; }
     public static PropertiesControl? PropertiesControl { get; set; }
 
-    static int w = 1920;
-    static int h = 1080;
-    static int c = 0;
-    static int a = 1;
-    static byte[] frameData = new byte[w * h * 4]; // 4K BGRA
-    static Stopwatch Stopwatch = Stopwatch.StartNew();
-    static long counter = 0;
+    //static int w = 1920;
+    //static int h = 1080;
+    //static int c = 0;
+    //static int a = 1;
+    //static byte[] frameData = new byte[w * h * 4]; // 4K BGRA
+    //static Stopwatch Stopwatch = Stopwatch.StartNew();
+    //static long counter = 0;
 
     public static Timeline Timeline => Project.CurrentTimeline;
 
