@@ -29,5 +29,10 @@ public class TimelineClipVideo : TimelineClip, ITimelineClip
 
     public bool IsVideoClip => true;
     public bool IsAudioClip => false;
+
+    //public byte[] GetFrame()
+    //{
+
+    //}
 }
 

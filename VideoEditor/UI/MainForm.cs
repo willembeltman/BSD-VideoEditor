@@ -18,7 +18,12 @@ public partial class MainForm : Form
     private void MainForm_Load(object sender, EventArgs e)
     {
         MainForm_Resize(sender, e);
-        Engine.Start();
+        Application.Idle += Application_Idle;
+    }
+
+    private void Application_Idle(object? sender, EventArgs e)
+    {
+        Engine.Idle();
     }
 
     private void MainForm_Resize(object sender, EventArgs e)

@@ -425,11 +425,13 @@ public partial class TimelineControl : UserControl
     }
     private void TimelineControl_MouseMove(object sender, MouseEventArgs e)
     {
+        if (!MiddleDragging.IsDragging || !SelectedClipsDragging.IsDragging) return;
+
         var endPoint = new Point(e.X, e.Y);
         var endPosition = GetTimelinePositionControl(endPoint);
         if (endPosition == null) return;
 
-        //Debug.WriteLine($"{endPosition.Value.Layer} {endPosition.Value.CurrentTime} {endPosition.Value.TimelinePart}");
+        Debug.WriteLine($"{endPosition.Value.Layer} {endPosition.Value.CurrentTime} {endPosition.Value.TimelinePart}");
 
         if (MiddleDragging.IsDragging && endPosition.Value.TimelinePart == TimelinePart.Middle)
         {
@@ -438,23 +440,20 @@ public partial class TimelineControl : UserControl
             return;
         }
 
-        if (!SelectedClipsDragging.IsDragging) return;
-
-        if (endPosition.Value.Layer != SelectedClipsDragging.StartPosition.Layer ||
-            endPosition.Value.CurrentTime != SelectedClipsDragging.StartPosition.CurrentTime)
+        if (SelectedClipsDragging.IsDragging && endPosition.Value != SelectedClipsDragging.StartPosition)
         {
-            var layerDiff = endPosition.Value.Layer - SelectedClipsDragging.StartPosition.Layer;
-            var currentTimeDiff = endPosition.Value.CurrentTime - SelectedClipsDragging.StartPosition.CurrentTime;
+            var diff = endPosition.Value - SelectedClipsDragging.StartPosition;
             foreach (var clip in Timeline.SelectedClips)
             {
-                clip.Layer = clip.OldLayer + layerDiff;
+                clip.Layer = clip.OldLayer + diff.Layer;
                 if (clip.Layer < 0) clip.Layer = 0;
-                clip.TimelineStartInSeconds = clip.OldTimelineStartInSeconds + currentTimeDiff;
-                clip.TimelineEndInSeconds = clip.OldTimelineEndInSeconds + currentTimeDiff;
-                Debug.WriteLine($"Dragging {currentTimeDiff}x{layerDiff} {clip.OldTimelineStartInSeconds}+{currentTimeDiff.ToString("F3")}={clip.TimelineStartInSeconds}");
+                clip.TimelineStartInSeconds = clip.OldTimelineStartInSeconds + diff.CurrentTime;
+                clip.TimelineEndInSeconds = clip.OldTimelineEndInSeconds + diff.CurrentTime;
+                Debug.WriteLine($"Dragging {diff.CurrentTime}x{diff.Layer} {clip.OldTimelineStartInSeconds}+{diff.CurrentTime.ToString("F3")}={clip.TimelineStartInSeconds}");
             }
 
             Invalidate();
+            return;
         }
     }
     private void TimelineControl_MouseUp(object sender, MouseEventArgs e)
@@ -515,7 +514,7 @@ public partial class TimelineControl : UserControl
         else if (ucPoint.Y >= videoHeight + middleHeight && ucPoint.Y < timelineHeight)
         {
             var audioLayerHeight = audioHeight / Timeline.VisibleAudioLayers;
-            var relativeLayerIndex = (ucPoint.Y - videoHeight) / audioLayerHeight;
+            var relativeLayerIndex = (ucPoint.Y - videoHeight) / audioLayerHeight - 1;
             var layerIndex = Timeline.FirstVisibleAudioLayer + relativeLayerIndex;
             if (layerIndex < 0) layerIndex = 0;
             return new TimelinePosition(currentTime, layerIndex, TimelinePart.Audio);

@@ -2,7 +2,7 @@
 
 public enum TimelinePart
 {
-    Video,
-    Audio,
-    Middle
+    Video = -1,
+    Middle = 0,
+    Audio = 1,
 }

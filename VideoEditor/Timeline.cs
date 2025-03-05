@@ -25,11 +25,14 @@ public class Timeline
     public int SampleRate { get; set; }
     public int AudioChannels { get; set; }
 
-    public double PlayerPosition { get; set; } = 0;
     public double VisibleWidth { get; set; } = 100;
     public double VisibleStart { get; set; } = 0;
     public int FirstVisibleVideoLayer { get; set; } = 0;
     public int VisibleVideoLayers { get; set; } = 3;
     public int FirstVisibleAudioLayer { get; set; } = 0;
     public int VisibleAudioLayers { get; set; } = 3;
+
+    public long CurrentFrameIndex { get; set; } = 0;
+
+    public double PlayerPosition { get; set; } = 0;
 }

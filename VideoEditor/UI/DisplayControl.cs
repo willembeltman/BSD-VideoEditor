@@ -6,7 +6,12 @@ public partial class DisplayControl : UserControl
     {
         InitializeComponent();
         Engine.DisplayControl = this;
+        videoControl = new DisplayControlDX2D();
+        Controls.Add(videoControl);
+        videoControl.Dock = DockStyle.Fill;
     }
+
+    DisplayControlDX2D videoControl { get; }
 
     private void DisplayControl_Resize(object sender, EventArgs e)
     {
@@ -45,8 +50,8 @@ public partial class DisplayControl : UserControl
         //}
     }
 
-    public void GetFrame()
+    public void SetFrame(byte[] frameBuffer, int width, int height)
     {
-
+        videoControl.SetFrame(frameBuffer, width, height);
     }
 }
