@@ -30,17 +30,17 @@ public static class FFMpeg
         using (var process = Process.Start(processStartInfo))
         using (var stream = process.StandardOutput.BaseStream)
         {
-            int frameSize = resolution.Width * resolution.Height * 4; // rgb24 → 3 bytes per pixel
+            int frameSize = resolution.Width * resolution.Height * 4; // rgba 4 bytes
             byte[] buffer = new byte[frameSize];
 
-            while (Read(stream, buffer) == frameSize)
+            while (ReadFrame(stream, buffer) == frameSize)
             {
                 yield return buffer;
             }
         }
     }
 
-    private static int Read(Stream stream, byte[] buffer)
+    private static int ReadFrame(Stream stream, byte[] buffer)
     {
         var read = 0;
         while (read < buffer.Length)
@@ -59,7 +59,7 @@ public static class FFMpeg
         byte crf = 23,
         Preset preset = Preset.medium)
     {
-        var ffmpegArgs = $"-y -f rawvideo -pixel_format rgb24 " +
+        var ffmpegArgs = $"-y -f rawvideo -pixel_format rgba " +
                          $"-video_size {resolution.Width}x{resolution.Height} " +
                          $"-framerate {fps} " +
                          $"-i - -c:v libx265 " +
@@ -81,7 +81,7 @@ public static class FFMpeg
         using (var process = Process.Start(processStartInfo))
         using (var stream = process.StandardInput.BaseStream)
         {
-            int frameSize = resolution.Width * resolution.Height * 3; // rgb24 → 3 bytes per pixel
+            int frameSize = resolution.Width * resolution.Height * 4; // rgba 4 bytes
 
             foreach (var frame in frames)
             {
