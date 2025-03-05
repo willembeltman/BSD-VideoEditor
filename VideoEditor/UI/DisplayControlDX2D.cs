@@ -113,52 +113,45 @@ public class DisplayControlDX2D : Control
         if (_renderTarget == null || _bitmap == null)
             return;
 
-        try
+        _renderTarget.BeginDraw();
+        _renderTarget.Clear(new Color4(0, 0, 0, 1)); // Zwarte achtergrond
+
+        float controlWidth = Width;
+        float controlHeight = Height;
+        float imageWidth = _bitmap.PixelSize.Width;
+        float imageHeight = _bitmap.PixelSize.Height;
+
+        // Bereken de aspect ratio van de afbeelding
+        float imageAspect = imageWidth / imageHeight;
+        float controlAspect = controlWidth / controlHeight;
+
+        float destWidth, destHeight;
+        float offsetX, offsetY;
+
+        if (imageAspect > controlAspect)
         {
-            _renderTarget.BeginDraw();
-            _renderTarget.Clear(new Color4(0, 0, 0, 1)); // Zwarte achtergrond
-
-            float controlWidth = Width;
-            float controlHeight = Height;
-            float imageWidth = _bitmap.PixelSize.Width;
-            float imageHeight = _bitmap.PixelSize.Height;
-
-            // Bereken de aspect ratio van de afbeelding
-            float imageAspect = imageWidth / imageHeight;
-            float controlAspect = controlWidth / controlHeight;
-
-            float destWidth, destHeight;
-            float offsetX, offsetY;
-
-            if (imageAspect > controlAspect)
-            {
-                // Beeld is breder dan de control -> Pas hoogte aan
-                destWidth = controlWidth;
-                destHeight = controlWidth / imageAspect;
-                offsetX = 0;
-                offsetY = (controlHeight - destHeight) / 2; // Centreer verticaal
-            }
-            else
-            {
-                // Beeld is hoger dan de control -> Pas breedte aan
-                destHeight = controlHeight;
-                destWidth = controlHeight * imageAspect;
-                offsetX = (controlWidth - destWidth) / 2; // Centreer horizontaal
-                offsetY = 0;
-            }
-
-            // Maak een rectangle met correcte scaling en centrering
-            var destRect = new RawRectangleF(offsetX, offsetY, offsetX + destWidth, offsetY + destHeight);
-
-            // Tekenen met GPU-scaling en behoud van aspect ratio
-            _renderTarget.DrawBitmap(_bitmap, destRect, 1.0f, BitmapInterpolationMode.Linear);
-
-            _renderTarget.EndDraw();
+            // Beeld is breder dan de control -> Pas hoogte aan
+            destWidth = controlWidth;
+            destHeight = controlWidth / imageAspect;
+            offsetX = 0;
+            offsetY = (controlHeight - destHeight) / 2; // Centreer verticaal
         }
-        catch (Exception ex)
+        else
         {
-
+            // Beeld is hoger dan de control -> Pas breedte aan
+            destHeight = controlHeight;
+            destWidth = controlHeight * imageAspect;
+            offsetX = (controlWidth - destWidth) / 2; // Centreer horizontaal
+            offsetY = 0;
         }
+
+        // Maak een rectangle met correcte scaling en centrering
+        var destRect = new RawRectangleF(offsetX, offsetY, offsetX + destWidth, offsetY + destHeight);
+
+        // Tekenen met GPU-scaling en behoud van aspect ratio
+        _renderTarget.DrawBitmap(_bitmap, destRect, 1.0f, BitmapInterpolationMode.Linear);
+
+        _renderTarget.EndDraw();
     }
 
     protected override void OnResize(EventArgs e)
