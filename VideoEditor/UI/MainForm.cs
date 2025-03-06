@@ -100,7 +100,6 @@ public partial class MainForm : Form
     {
         return e.X > displayControl.Right && e.X < propertiesControl.Left;
     }
-
     public bool MouseIsOverYResizer(MouseEventArgs e)
     {
         return e.Y > displayControl.Bottom && e.Y < timelineControl.Top;
@@ -110,13 +109,11 @@ public partial class MainForm : Form
         IsMovingX = MouseIsOverXResizer(e);
         IsMovingY = MouseIsOverYResizer(e);
     }
-
     private void MainForm_MouseUp(object sender, MouseEventArgs e)
     {
         IsMovingX = false;
         IsMovingY = false;
     }
-
     private void MainForm_MouseLeave(object sender, EventArgs e)
     {
         Cursor = Cursors.Default;
@@ -124,6 +121,14 @@ public partial class MainForm : Form
 
     private void getFrameToolStripMenuItem_Click(object sender, EventArgs e)
     {
-        displayControl.GetFrame();
+        if (Engine.IsPlaying)
+            Engine.Stop();
+        else
+            Engine.Play();
+    }
+
+    private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+    {
+        Engine.StopEngine();
     }
 }

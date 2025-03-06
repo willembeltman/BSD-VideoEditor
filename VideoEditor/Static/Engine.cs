@@ -8,6 +8,7 @@ public static class Engine
 {
     public static Project Project { get; set; } = new Project();
     public static bool IsRunning { get; set; } = true;
+    public static bool IsPlaying { get; private set; } = false;
 
     public static TimelineControl? TimelineControl { get; set; }
     public static DisplayControl? DisplayControl { get; set; }
@@ -15,9 +16,8 @@ public static class Engine
     public static PropertiesControl? PropertiesControl { get; set; }
 
     static Stopwatch Stopwatch { get; set; } = new Stopwatch();
-    static bool IsPlaying { get; set; } = false;
-    public static double StartTime { get; private set; }
     static AutoResetEvent Invoke { get; set; } = new AutoResetEvent(false);
+    static double StartTime { get; set; }
 
     public static Timeline Timeline => Project.CurrentTimeline;
 

@@ -421,7 +421,7 @@ public partial class TimelineControl : UserControl
     }
     private void TimelineControl_MouseMove(object sender, MouseEventArgs e)
     {
-        if (!MiddleDragging.IsDragging || !SelectedClipsDragging.IsDragging) return;
+        if (!MiddleDragging.IsDragging && !SelectedClipsDragging.IsDragging) return;
 
         var endPoint = new Point(e.X, e.Y);
         var endPosition = GetTimelinePositionControl(endPoint);

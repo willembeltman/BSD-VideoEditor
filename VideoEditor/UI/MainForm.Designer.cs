@@ -40,6 +40,7 @@
             exitToolStripMenuItem = new ToolStripMenuItem();
             mediaToolStripMenuItem = new ToolStripMenuItem();
             timelineToolStripMenuItem = new ToolStripMenuItem();
+            getFrameToolStripMenuItem = new ToolStripMenuItem();
             editorToolStripMenuItem = new ToolStripMenuItem();
             colorToolStripMenuItem = new ToolStripMenuItem();
             audioToolStripMenuItem = new ToolStripMenuItem();
@@ -51,7 +52,6 @@
             timelineControl = new UI.TimelineControl();
             displayControl = new UI.DisplayControl();
             propertiesControl = new UI.PropertiesControl();
-            getFrameToolStripMenuItem = new ToolStripMenuItem();
             menuStrip.SuspendLayout();
             SuspendLayout();
             // 
@@ -130,6 +130,13 @@
             timelineToolStripMenuItem.Size = new Size(101, 29);
             timelineToolStripMenuItem.Text = "Timelines";
             // 
+            // getFrameToolStripMenuItem
+            // 
+            getFrameToolStripMenuItem.Name = "getFrameToolStripMenuItem";
+            getFrameToolStripMenuItem.Size = new Size(192, 34);
+            getFrameToolStripMenuItem.Text = "Get frame";
+            getFrameToolStripMenuItem.Click += getFrameToolStripMenuItem_Click;
+            // 
             // editorToolStripMenuItem
             // 
             editorToolStripMenuItem.Name = "editorToolStripMenuItem";
@@ -205,13 +212,6 @@
             propertiesControl.Size = new Size(349, 425);
             propertiesControl.TabIndex = 5;
             // 
-            // getFrameToolStripMenuItem
-            // 
-            getFrameToolStripMenuItem.Name = "getFrameToolStripMenuItem";
-            getFrameToolStripMenuItem.Size = new Size(270, 34);
-            getFrameToolStripMenuItem.Text = "Get frame";
-            getFrameToolStripMenuItem.Click += getFrameToolStripMenuItem_Click;
-            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
@@ -225,6 +225,7 @@
             Name = "MainForm";
             ShowIcon = false;
             Text = "My video editor";
+            FormClosing += MainForm_FormClosing;
             Load += MainForm_Load;
             MouseDown += MainForm_MouseDown;
             MouseLeave += MainForm_MouseLeave;

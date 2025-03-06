@@ -6,7 +6,7 @@ public static class FFConvert
     {
         if (text == null) return null;
         return text
-            .Replace(".", Thread.CurrentThread.CurrentCulture.NumberFormat.NumberDecimalSeparator)
-            .Replace(",", "");
+            .Replace(",", "")
+            .Replace(".", Thread.CurrentThread.CurrentCulture.NumberFormat.NumberDecimalSeparator);
     }
 }
