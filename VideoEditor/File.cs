@@ -1,6 +1,6 @@
-﻿using VideoEditor.Dtos;
-using VideoEditor.Enums;
-using VideoEditor.Static;
+﻿using VideoEditor.Enums;
+using VideoEditor.FF;
+using VideoEditor.FF.Json;
 
 namespace VideoEditor;
 
@@ -25,7 +25,7 @@ public class File
             AllStreams
                 .Where(a => a.CodecType == CodecType.Audio)
                 .ToArray();
-        Duration = FFHelpers.TryParseToDouble(rapport.format.duration, out var dur) ? dur : null;
+        Duration = FFDouble.TryParse(rapport.format.duration, out var dur) ? dur : null;
     }
 
     public string FullName { get; }

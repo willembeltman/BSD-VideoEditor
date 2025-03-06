@@ -1,7 +1,7 @@
 ﻿using VideoEditor.Enums;
-using VideoEditor.Dtos;
-using VideoEditor.Static;
 using VideoEditor.Types;
+using VideoEditor.FF.Json;
+using VideoEditor.FF;
 
 namespace VideoEditor;
 
@@ -14,37 +14,15 @@ public class StreamInfo
         CodecName = stream.codec_name;
         CodecLongName = stream.codec_long_name;
         CodecType = stream.codec_type == "video" ? CodecType.Video : CodecType.Audio;
+        Title = stream.tags?.title;
 
         // Video
-        Resolution = TryParse(stream.width, stream.height, out Resolution? resolution) ? resolution : null;
-        Fps = TryParse(stream.avg_frame_rate, out Fps? fps) ? fps : null;
+        Resolution = Types.Resolution.TryParse(stream.width, stream.height, out Resolution resolution) ? resolution : null;
+        Fps = Types.Fps.TryParse(stream.avg_frame_rate, out Fps fps) ? fps : null;
 
         // Audio
-        Title = stream.tags?.title;
         Channels = stream.channels;
-        SampleRate = FFHelpers.TryParseToInt(stream.sample_rate, out int sampleRate) ? sampleRate : null;
-    }
-    public static bool TryParse(int? width, int? height, out Resolution? resolution)
-    {
-        resolution = null;
-        if (width == null || height == null) return false;
-        resolution = new Resolution(width.Value, height.Value);
-        return true;
-    }
-    public static bool TryParse(string? value, out Fps? result)
-    {
-        result = null;
-
-        if (value == null) return false;
-
-        var list = value.Split(['/'], StringSplitOptions.RemoveEmptyEntries);
-
-        if (list.Length != 2) return false;
-        if (!long.TryParse(list[0], out var @base)) return false;
-        if (!long.TryParse(list[1], out var divider)) return false;
-
-        result = new Fps(@base, divider);
-        return true;
+        SampleRate = FFInt.TryParse(stream.sample_rate, out int sampleRate) ? sampleRate : null;
     }
 
     public File File { get; }

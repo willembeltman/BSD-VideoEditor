@@ -1,4 +1,6 @@
-﻿namespace VideoEditor.UI;
+﻿using VideoEditor.Static;
+
+namespace VideoEditor.UI;
 
 public partial class PropertiesControl : UserControl
 {

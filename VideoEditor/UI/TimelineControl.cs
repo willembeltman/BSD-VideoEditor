@@ -37,12 +37,8 @@ public partial class TimelineControl : UserControl
         g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
         g.Clear(Color.Black);
 
-        // Teken tijdsmarkeringen
         DrawTimeMarkers(g);
-
-        // Teken clips
         DrawVideoClips(g);
-
         DrawPlayerPosition(g);
     }
     private void DrawTimeMarkers(Graphics g)

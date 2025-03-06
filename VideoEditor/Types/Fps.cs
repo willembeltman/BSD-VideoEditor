@@ -53,5 +53,21 @@ public readonly struct Fps
     {
         return $"{Value}";
     }
+
+    public static bool TryParse(string? value, out Fps result)
+    {
+        result = new Fps();
+
+        if (value == null) return false;
+
+        var list = value.Split(['/'], StringSplitOptions.RemoveEmptyEntries);
+
+        if (list.Length != 2) return false;
+        if (!long.TryParse(list[0], out var @base)) return false;
+        if (!long.TryParse(list[1], out var divider)) return false;
+
+        result = new Fps(@base, divider);
+        return true;
+    }
 }
 

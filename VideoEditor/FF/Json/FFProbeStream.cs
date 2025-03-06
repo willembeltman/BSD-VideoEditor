@@ -1,4 +1,4 @@
-﻿namespace VideoEditor.Dtos;
+﻿namespace VideoEditor.FF.Json;
 
 public class FFProbeStream
 {

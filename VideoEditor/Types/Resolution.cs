@@ -44,4 +44,12 @@ public readonly struct Resolution
     {
         return $"{Width}x{Height}";
     }
+
+    public static bool TryParse(int? width, int? height, out Resolution resolution)
+    {
+        resolution = new Resolution();
+        if (width == null || height == null) return false;
+        resolution = new Resolution(width.Value, height.Value);
+        return true;
+    }
 }

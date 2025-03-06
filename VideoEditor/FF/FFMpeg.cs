@@ -1,7 +1,9 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
 using VideoEditor.Enums;
 using VideoEditor.Types;
-namespace VideoEditor.Static;
+namespace VideoEditor.FF;
 
 public static class FFMpeg
 {
@@ -12,7 +14,6 @@ public static class FFMpeg
     {
         startTime = startTime ?? new TimeStamp();
 
-        //var ffmpegArgs = $"-i \"{fullName}\" -vf scale={resolution.Width}:{resolution.Height} -pix_fmt rgb24 -f rawvideo -";
         var arguments = $"-i \"{fullName}\" " +
                         $"-ss {startTime} " +
                         $"-pix_fmt rgba -f rawvideo -";
@@ -48,8 +49,9 @@ public static class FFMpeg
         var read = 0;
         while (read < buffer.Length)
         {
-            read += stream.Read(buffer, read, buffer.Length - read);
-            if (read <= 0) throw new Exception("Stream ended within framedata");
+            var taken = stream.Read(buffer, read, buffer.Length - read);
+            if (taken <= 0) throw new Exception("Stream ended within framedata");
+            read += taken;
         }
         return read == buffer.Length;
     }

@@ -43,4 +43,23 @@ public class Timeline
         get => new TimeStamp(CurrentTime);
         set => CurrentTime = value.TotalSeconds;
     }
+
+    public long NextTimeIndex => CurrentTimeIndex + 1;
+    public double NextTime
+    {
+        get => Convert.ToDouble(NextTimeIndex) * Fps.Divider / Fps.Base;
+        set => CurrentTimeIndex = Convert.ToInt64(value * Fps.Base / Fps.Divider) - 1;
+    }
+    public TimeStamp NextTimeStamp
+    {
+        get => new TimeStamp(NextTime);
+        set => NextTime = value.TotalSeconds;
+    }
+
+    public TimelineClipVideo[] GetCurrentVideoClips()
+    {
+        return VideoClips
+            .Where(a => a.TimelineStartTime <= CurrentTime && CurrentTime < a.TimelineEndTime)
+            .ToArray();
+    }
 }

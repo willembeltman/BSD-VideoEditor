@@ -1,4 +1,4 @@
-﻿namespace VideoEditor.Static
+﻿namespace VideoEditor.FF
 {
     public static class FFExecutebles
     {
