@@ -139,8 +139,9 @@ public partial class MainForm : Form
         var fullname = @"D:\Willem\Videos\2025-03-07 09-43-50.mkv";
         using var ding = new FFMpeg_FrameReader(fullname, new Types.Resolution());
 
-        var skip = 3;
+        var skip = 1;
         var index = 0;
+        var index2 = 0;
         var stopwatch = Stopwatch.StartNew();
 
         //bool stop = false;
@@ -150,17 +151,24 @@ public partial class MainForm : Form
         //    stop = frame == null;
         //    index += skip;
 
-        //    Thread.Sleep(10);
-        //    Debug.WriteLine($"{Convert.ToDouble(index) / stopwatch.Elapsed.TotalSeconds / skip}fps");
+        //    //Thread.Sleep(10);
+        //    if (index2 % 100 == 0)
+        //        Debug.WriteLine($"{Convert.ToDouble(index2) / stopwatch.Elapsed.TotalSeconds}fps");
+        //    index2++;
         //}
 
+        var next = skip;
         var reader = FFMpeg.ReadFrames(fullname, new Types.Resolution());
         foreach (var frame in reader)
         {
-            if (index % skip == 0)
+            if (next == index)
             {
-                Thread.Sleep(10);
-                Debug.WriteLine($"{Convert.ToDouble(index) / stopwatch.Elapsed.TotalSeconds / skip}fps");
+                next += skip;
+
+                //Thread.Sleep(10);
+                if (index2 % 100 == 0)
+                    Debug.WriteLine($"{Convert.ToDouble(index2) / stopwatch.Elapsed.TotalSeconds}fps");
+                index2++;
             }
             index++;
         }

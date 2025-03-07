@@ -122,15 +122,12 @@ public class FFMpeg_FrameReader : IDisposable
 
     public Frame? GetFrame(long frameIndex, long nextFrameIndex)
     {
-        // Check end of video of exception
         if (EndOfVideo || KillSwitch) return null;
 
-        // Check if requested frame index is smaller or equal to next requested frame index
         if (frameIndex > nextFrameIndex)
             throw new ArgumentOutOfRangeException(
                 $"{nameof(frameIndex)} cannot be larger then {nameof(nextFrameIndex)}");
 
-        // Check if requested frame index has already been read
         if (frameIndex < CurrentFrameIndex)
             throw new ArgumentOutOfRangeException(
                 $"{nameof(frameIndex)} cannot be smaller then {nameof(CurrentFrameIndex)}");
@@ -139,61 +136,37 @@ public class FFMpeg_FrameReader : IDisposable
             throw new ArgumentOutOfRangeException(
                 $"{nameof(nextFrameIndex)} cannot be smaller then {nameof(NextFrameIndex)}");
 
-        // Start if needed
         if (!IsStarted)
         {
             IsStarted = true;
             ReaderWorker.Start();
         }
 
-        if (frameIndex == CurrentFrameIndex)
-        {
-            if (RequestedFrameIndex < nextFrameIndex)
-            {
-                RequestedFrameIndex = nextFrameIndex;
-                ReadNextFrameEvent.Set();
-            }
-
-            if (EndOfVideo || KillSwitch) return null;
-
-            return CurrentFrame;
-        }
-        else
+        if (frameIndex != CurrentFrameIndex)
         {
             NextFrameReadyEvent.WaitOne();
-            FrameSwitch = !FrameSwitch;
 
+            FrameSwitch = !FrameSwitch;
             if (EndOfVideo || KillSwitch) return null;
 
-            // Seek till the frame index has reached the requested frame index
             if (CurrentFrameIndex < frameIndex)
             {
-                // Set the requested frameIndex
                 RequestedFrameIndex = frameIndex;
-
-                // Signal reader to read requested frame index
                 ReadNextFrameEvent.Set();
-
-                // Wait for the reader to finish
                 NextFrameReadyEvent.WaitOne();
 
-                // Switch buffers
                 FrameSwitch = !FrameSwitch;
-
-                // Kill if end of video (the switch of the buffer could have caused this)
                 if (EndOfVideo || KillSwitch) return null;
             }
-
-            if (RequestedFrameIndex < nextFrameIndex)
-            {
-                RequestedFrameIndex = nextFrameIndex;
-                ReadNextFrameEvent.Set();
-            }
-
-            // Return the current frame
-            return CurrentFrame;
         }
 
+        if (RequestedFrameIndex < nextFrameIndex)
+        {
+            RequestedFrameIndex = nextFrameIndex;
+            ReadNextFrameEvent.Set();
+        }
+
+        return CurrentFrame;
     }
 
     public void Dispose()
