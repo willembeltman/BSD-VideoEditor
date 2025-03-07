@@ -54,14 +54,7 @@ public class FFMpeg_FrameReader : IDisposable
                 EndOfVideo1 = value;
         }
     }
-
-
-    /// <summary>
-    /// Reads frames from a video file and writes them into a double-buffered system for frame processing.
-    /// The reader continuously pulls frames from the video file, storing them in one of the two available buffers. 
-    /// It waits for a signal to start reading and notifies when the next frame is ready. 
-    /// The process automatically terminates when the end of the video is reached or if an error occurs.
-    /// </summary>
+    
     private void FrameReader()
     {
         try
@@ -83,26 +76,15 @@ public class FFMpeg_FrameReader : IDisposable
             using var process = Process.Start(processStartInfo) ?? throw new Exception("Cannot create process");
             using var stream = process.StandardOutput.BaseStream;
 
-            while (!KillSwitch)
+            while (!KillSwitch && !NextEndOfVideo)
             {
                 ReadNextFrameEvent.WaitOne();
 
-                var read = 0;
-                while (!KillSwitch && read < NextFrame.Buffer.Length)
+                while (RequestedFrameIndex >= NextFrameIndex)
                 {
-                    var taken = stream.Read(NextFrame.Buffer, read, NextFrame.Buffer.Length - read);
-                    if (taken <= 0)
-                    {
-                        NextEndOfVideo = true;
-                        break;
-                    }
-                    read += taken;
+                    if (!Read(stream)) break;
                 }
-                if (KillSwitch || NextEndOfVideo) break;
 
-                NextFrame.Index = NextFrameIndex;
-                NextFrameIndex++;
-                
                 NextFrameReadyEvent.Set();
             }
         }
@@ -118,14 +100,26 @@ public class FFMpeg_FrameReader : IDisposable
         }
     }
 
-    /// <summary>
-    /// Advances the reader to the next frame using double buffering.
-    /// If the next frame has already been read, it is returned immediately.
-    /// Otherwise, the function will block until the background reader has finished loading it.
-    /// Once retrieved, the buffers are swapped, and the reader is signaled to start loading 
-    /// the following frame in the background.
-    /// </summary>
-    /// <returns>The next available frame.</returns>
+    private bool Read(Stream stream)
+    {
+        if (KillSwitch || NextEndOfVideo) return false;
+
+        var read = 0;
+        while (!KillSwitch && !NextEndOfVideo && read < NextFrame.Buffer.Length)
+        {
+            var partialread = stream.Read(NextFrame.Buffer, read, NextFrame.Buffer.Length - read);
+            read += partialread;
+            NextEndOfVideo = partialread <= 0;
+        }
+
+        if (KillSwitch || NextEndOfVideo) return false;
+
+        NextFrame.Index = NextFrameIndex;
+        NextFrameIndex++;
+
+        return true;
+    }
+
     public Frame? GetFrame(long frameIndex, long nextFrameIndex)
     {
         // Check end of video of exception
@@ -141,8 +135,9 @@ public class FFMpeg_FrameReader : IDisposable
             throw new ArgumentOutOfRangeException(
                 $"{nameof(frameIndex)} cannot be smaller then {nameof(CurrentFrameIndex)}");
 
-        // Set the requested frameIndex
-        RequestedFrameIndex = frameIndex;
+        if (nextFrameIndex < NextFrameIndex)
+            throw new ArgumentOutOfRangeException(
+                $"{nameof(nextFrameIndex)} cannot be smaller then {nameof(NextFrameIndex)}");
 
         // Start if needed
         if (!IsStarted)
@@ -151,30 +146,54 @@ public class FFMpeg_FrameReader : IDisposable
             ReaderWorker.Start();
         }
 
-        // Seek till the frame index has reached the requested frame index
-        while (CurrentFrameIndex < RequestedFrameIndex)
+        if (frameIndex == CurrentFrameIndex)
         {
-            // Wait for the reader to finish
-            NextFrameReadyEvent.WaitOne();
+            if (RequestedFrameIndex < nextFrameIndex)
+            {
+                RequestedFrameIndex = nextFrameIndex;
+                ReadNextFrameEvent.Set();
+            }
 
-            // Switch buffers
+            if (EndOfVideo || KillSwitch) return null;
+
+            return CurrentFrame;
+        }
+        else
+        {
+            NextFrameReadyEvent.WaitOne();
             FrameSwitch = !FrameSwitch;
 
-            // Signal reader to read next frame
-            ReadNextFrameEvent.Set();
-
-            // Kill if end of video (the switch of the buffer could have caused this)
             if (EndOfVideo || KillSwitch) return null;
+
+            // Seek till the frame index has reached the requested frame index
+            if (CurrentFrameIndex < frameIndex)
+            {
+                // Set the requested frameIndex
+                RequestedFrameIndex = frameIndex;
+
+                // Signal reader to read requested frame index
+                ReadNextFrameEvent.Set();
+
+                // Wait for the reader to finish
+                NextFrameReadyEvent.WaitOne();
+
+                // Switch buffers
+                FrameSwitch = !FrameSwitch;
+
+                // Kill if end of video (the switch of the buffer could have caused this)
+                if (EndOfVideo || KillSwitch) return null;
+            }
+
+            if (RequestedFrameIndex < nextFrameIndex)
+            {
+                RequestedFrameIndex = nextFrameIndex;
+                ReadNextFrameEvent.Set();
+            }
+
+            // Return the current frame
+            return CurrentFrame;
         }
 
-        // Set requested frame index to the next frame index
-        RequestedFrameIndex = nextFrameIndex;
-
-        // Signal reader to read next frame
-        ReadNextFrameEvent.Set();
-
-        // Return the current frame
-        return CurrentFrame;
     }
 
     public void Dispose()

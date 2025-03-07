@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using VideoEditor.FF;
 using VideoEditor.Static;
 
@@ -135,16 +136,33 @@ public partial class MainForm : Form
 
     private void test2ToolStripMenuItem_Click(object sender, EventArgs e)
     {
-        using var ding = new FFMpeg_FrameReader(@"D:\Willem\Videos\2025-03-07 09-43-50.mkv", new Types.Resolution());
+        var fullname = @"D:\Willem\Videos\2025-03-07 09-43-50.mkv";
+        using var ding = new FFMpeg_FrameReader(fullname, new Types.Resolution());
 
-        var skip = 10;
+        var skip = 3;
         var index = 0;
-        bool stop = false;
-        while (!stop)
+        var stopwatch = Stopwatch.StartNew();
+
+        //bool stop = false;
+        //while (!stop)
+        //{
+        //    var frame = ding.GetFrame(index, index + skip);
+        //    stop = frame == null;
+        //    index += skip;
+
+        //    Thread.Sleep(10);
+        //    Debug.WriteLine($"{Convert.ToDouble(index) / stopwatch.Elapsed.TotalSeconds / skip}fps");
+        //}
+
+        var reader = FFMpeg.ReadFrames(fullname, new Types.Resolution());
+        foreach (var frame in reader)
         {
-            var frame = ding.GetFrame(index, index + skip);
-            stop = frame == null;
-            index += skip;
+            if (index % skip == 0)
+            {
+                Thread.Sleep(10);
+                Debug.WriteLine($"{Convert.ToDouble(index) / stopwatch.Elapsed.TotalSeconds / skip}fps");
+            }
+            index++;
         }
     }
 }
