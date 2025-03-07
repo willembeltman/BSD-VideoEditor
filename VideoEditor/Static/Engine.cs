@@ -66,10 +66,10 @@ public static class Engine
                     Thread.Sleep(wait);
                 }
 
-                Timeline.CurrentTime = Stopwatch.Elapsed.TotalSeconds;
+                Timeline.CurrentTime = StartTime + Stopwatch.Elapsed.TotalSeconds;
                 foreach (var video in Timeline.CurrentVideoClips)
                 {
-                    var framedata = video.GetFrame();
+                    var framedata = video.GetCurrentFrame();
                     DisplayControl.SetFrame(framedata, Timeline.Resolution.Width, Timeline.Resolution.Height);
                     TimelineControl.Invalidate();
                 }

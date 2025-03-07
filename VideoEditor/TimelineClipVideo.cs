@@ -49,7 +49,7 @@ public class TimelineClipVideo : TimelineClip, ITimelineClip, IDisposable
     Resolution CurrentResolution { get; set; }
     IEnumerator<byte[]>? Source { get; set; }
 
-    public byte[]? GetFrame()
+    public byte[]? GetCurrentFrame()
     {
         var reload = false;
 

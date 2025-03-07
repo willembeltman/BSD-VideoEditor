@@ -52,6 +52,7 @@
             timelineControl = new UI.TimelineControl();
             displayControl = new UI.DisplayControl();
             propertiesControl = new UI.PropertiesControl();
+            test2ToolStripMenuItem = new ToolStripMenuItem();
             menuStrip.SuspendLayout();
             SuspendLayout();
             // 
@@ -125,7 +126,7 @@
             // 
             // timelineToolStripMenuItem
             // 
-            timelineToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { getFrameToolStripMenuItem });
+            timelineToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { getFrameToolStripMenuItem, test2ToolStripMenuItem });
             timelineToolStripMenuItem.Name = "timelineToolStripMenuItem";
             timelineToolStripMenuItem.Size = new Size(101, 29);
             timelineToolStripMenuItem.Text = "Timelines";
@@ -133,7 +134,7 @@
             // getFrameToolStripMenuItem
             // 
             getFrameToolStripMenuItem.Name = "getFrameToolStripMenuItem";
-            getFrameToolStripMenuItem.Size = new Size(192, 34);
+            getFrameToolStripMenuItem.Size = new Size(270, 34);
             getFrameToolStripMenuItem.Text = "Get frame";
             getFrameToolStripMenuItem.Click += getFrameToolStripMenuItem_Click;
             // 
@@ -212,6 +213,13 @@
             propertiesControl.Size = new Size(349, 425);
             propertiesControl.TabIndex = 5;
             // 
+            // test2ToolStripMenuItem
+            // 
+            test2ToolStripMenuItem.Name = "test2ToolStripMenuItem";
+            test2ToolStripMenuItem.Size = new Size(270, 34);
+            test2ToolStripMenuItem.Text = "Test 2";
+            test2ToolStripMenuItem.Click += test2ToolStripMenuItem_Click;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
@@ -263,5 +271,6 @@
         private ToolStripMenuItem exportToolStripMenuItem1;
         private UI.PropertiesControl propertiesControl;
         private ToolStripMenuItem getFrameToolStripMenuItem;
+        private ToolStripMenuItem test2ToolStripMenuItem;
     }
 }

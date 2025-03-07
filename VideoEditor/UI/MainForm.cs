@@ -1,3 +1,4 @@
+using VideoEditor.FF;
 using VideoEditor.Static;
 
 namespace VideoEditor;
@@ -130,5 +131,20 @@ public partial class MainForm : Form
     private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
     {
         Engine.StopEngine();
+    }
+
+    private void test2ToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+        using var ding = new FFMpeg_FrameReader(@"D:\Willem\Videos\2025-03-07 09-43-50.mkv", new Types.Resolution());
+
+        var skip = 10;
+        var index = 0;
+        bool stop = false;
+        while (!stop)
+        {
+            var frame = ding.GetFrame(index, index + skip);
+            stop = frame == null;
+            index += skip;
+        }
     }
 }

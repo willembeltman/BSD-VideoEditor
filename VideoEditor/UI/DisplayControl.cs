@@ -61,7 +61,7 @@ public partial class DisplayControl : UserControl
     {
         foreach (var video in Engine.Timeline.VideoClips)
         {
-            var frame = video.GetFrame();
+            var frame = video.GetCurrentFrame();
             if (frame != null)
             {
                 videoControl.SetFrame(frame, Engine.Timeline.Resolution.Width, Engine.Timeline.Resolution.Height);
