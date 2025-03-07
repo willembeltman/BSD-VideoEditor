@@ -56,10 +56,7 @@ public class Timeline
         set => NextTime = value.TotalSeconds;
     }
 
-    public TimelineClipVideo[] GetCurrentVideoClips()
-    {
-        return VideoClips
-            .Where(a => a.TimelineStartTime <= CurrentTime && CurrentTime < a.TimelineEndTime)
-            .ToArray();
-    }
+    public TimelineClipVideo[] CurrentVideoClips => VideoClips
+        .Where(a => a.TimelineStartTime <= CurrentTime && CurrentTime < a.TimelineEndTime)
+        .ToArray();
 }

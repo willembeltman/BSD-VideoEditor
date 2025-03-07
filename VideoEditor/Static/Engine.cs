@@ -14,6 +14,7 @@ public static class Engine
     public static DisplayControl? DisplayControl { get; set; }
     public static MainForm? MainForm { get; set; }
     public static PropertiesControl? PropertiesControl { get; set; }
+    static Thread? TheThread { get; set; }
 
     static Stopwatch Stopwatch { get; set; } = new Stopwatch();
     static AutoResetEvent Invoke { get; set; } = new AutoResetEvent(false);
@@ -21,11 +22,10 @@ public static class Engine
 
     public static Timeline Timeline => Project.CurrentTimeline;
 
-    static Thread? TheThread { get; set; }
 
     public static void StartEngine()
     {
-        TheThread = new Thread(() => InnerStartEngine());
+        TheThread = new Thread(() => TheThreadJob());
         TheThread.Start();
     }
     public static void StopEngine()
@@ -36,28 +36,6 @@ public static class Engine
         Invoke.Set();
         if (TheThread != Thread.CurrentThread)
             TheThread.Join();
-    }
-
-    private static void InnerStartEngine()
-    {
-        while (IsRunning)
-        {
-            if (!Invoke.WaitOne(1000)) continue;
-            while (IsPlaying && IsRunning)
-            { 
-                while(Timeline.NextTime > Stopwatch.Elapsed.TotalSeconds)
-                {
-                    Thread.Sleep(1);
-                }
-                Timeline.CurrentTime = Stopwatch.Elapsed.TotalSeconds;
-                var videos = Timeline.GetCurrentVideoClips();
-                foreach (var video in videos)
-                {
-                    var framedata = video.GetFrame();
-                    DisplayControl.SetFrame(framedata, Timeline.Resolution.Width, Timeline.Resolution.Height);
-                }
-            }
-        }
     }
 
     public static void Play()
@@ -75,37 +53,27 @@ public static class Engine
         IsPlaying = false;
     }
 
-    //static int w = 1920;
-    //static int h = 1080;
-    //static int c = 0;
-    //static int a = 1;
-    //static byte[] frameData = new byte[w * h * 4]; // 4K BGRA
-    //static Stopwatch Stopwatch = Stopwatch.StartNew();
-    //static long counter = 0;
+    private static void TheThreadJob()
+    {
+        while (IsRunning)
+        {
+            if (!Invoke.WaitOne(1000)) continue;
+            while (IsPlaying && IsRunning)
+            {
+                var wait = Convert.ToInt32(Timeline.NextTime * 1000 - Stopwatch.ElapsedMilliseconds);
+                if (wait > 0)
+                {
+                    Thread.Sleep(wait);
+                }
 
-
-    //public static void Idle()
-    //{
-    //    if (DisplayControl == null) return;
-
-    //    //var b = Convert.ToByte(c);
-    //    //Parallel.For(0, frameData.Length, i =>
-    //    //{
-    //    //    frameData[i] = b;
-    //    //});
-    //    //DisplayControl.SetFrame(frameData, w, h);
-    //    //counter++;
-
-    //    //c += a;
-    //    //if (c == 255)
-    //    //    a = -1;
-    //    //if (c == 0)
-    //    //{
-    //    //    a = 1;
-
-    //    //    Debug.WriteLine($"{Convert.ToDouble(counter) / Stopwatch.Elapsed.TotalSeconds:F2}");
-    //    //    counter = 0;
-    //    //    Stopwatch.Restart();
-    //    //}
-    //}
+                Timeline.CurrentTime = Stopwatch.Elapsed.TotalSeconds;
+                foreach (var video in Timeline.CurrentVideoClips)
+                {
+                    var framedata = video.GetFrame();
+                    DisplayControl.SetFrame(framedata, Timeline.Resolution.Width, Timeline.Resolution.Height);
+                    TimelineControl.Invalidate();
+                }
+            }
+        }
+    }
 }
