@@ -8,6 +8,7 @@ using AlphaMode = SharpDX.Direct2D1.AlphaMode;
 using BitmapInterpolationMode = SharpDX.Direct2D1.BitmapInterpolationMode;
 using Format = SharpDX.DXGI.Format;
 using SharpDX.Mathematics.Interop;
+using VideoEditor.Types;
 
 namespace VideoEditor.UI;
 
@@ -29,18 +30,18 @@ public class DisplayControlDX2D : Control
         SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.Opaque, true);
     }
 
-    public void SetFrame(byte[] frameBuffer, int frameWidth, int frameHeight)
+    public void SetFrame(Frame frame)
     {
-        if (_bitmap == null || _bitmap.PixelSize.Width != frameWidth || _bitmap.PixelSize.Height != frameHeight)
+        if (_bitmap == null || _bitmap.PixelSize.Width != frame.Resolution.Width || _bitmap.PixelSize.Height != frame.Resolution.Height)
         {
             _bitmap?.Dispose();
 
             var bitmapProperties = new BitmapProperties(new PixelFormat(Format.R8G8B8A8_UNorm, AlphaMode.Ignore));
-            _bitmap = new Bitmap(_renderTarget, new Size2(frameWidth, frameHeight), bitmapProperties);
+            _bitmap = new Bitmap(_renderTarget, new Size2(frame.Resolution.Width, frame.Resolution.Height), bitmapProperties);
         }
 
         // Update de bitmap rechtstreeks met de framebuffer
-        _bitmap.CopyFromMemory(frameBuffer, frameWidth * 4);
+        _bitmap.CopyFromMemory(frame.Buffer, frame.Resolution.Width * 4);
 
         Draw();
     }

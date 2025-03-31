@@ -1,4 +1,5 @@
 ﻿using VideoEditor.FF;
+using VideoEditor.Static;
 using VideoEditor.Types;
 
 namespace VideoEditor;
@@ -11,52 +12,67 @@ public class TimelineClipVideo : TimelineClip, ITimelineClip, IDisposable
 
     public double TimelineStartTime
     {
-        get => Convert.ToDouble(TimelineStartIndex) * Timeline.Fps.Divider / Timeline.Fps.Base;
-        set => TimelineStartIndex = Convert.ToInt64(value * Timeline.Fps.Base / Timeline.Fps.Divider);
+        get => Convert.ToDouble(TimelineStartFrameIndex) * Timeline.Fps.Divider / Timeline.Fps.Base;
+        set => TimelineStartFrameIndex = Convert.ToInt64(value * Timeline.Fps.Base / Timeline.Fps.Divider);
     }
     public double TimelineEndTime
     {
-        get => Convert.ToDouble(TimelineEndIndex) * Timeline.Fps.Divider / Timeline.Fps.Base;
-        set => TimelineEndIndex = Convert.ToInt64(value * Timeline.Fps.Base / Timeline.Fps.Divider);
+        get => Convert.ToDouble(TimelineEndFrameIndex) * Timeline.Fps.Divider / Timeline.Fps.Base;
+        set => TimelineEndFrameIndex = Convert.ToInt64(value * Timeline.Fps.Base / Timeline.Fps.Divider);
     }
+    public double TimelineLengthTime
+    {
+        get => Convert.ToDouble(TimelineLengthFrameIndex) * Timeline.Fps.Divider / Timeline.Fps.Base;
+        set => TimelineLengthFrameIndex = Convert.ToInt64(value * Timeline.Fps.Base / Timeline.Fps.Divider);
+    }
+
     public double ClipStartTime
     {
-        get => Convert.ToDouble(ClipStartIndex) * StreamInfo.Fps!.Value.Divider / StreamInfo.Fps!.Value.Base;
-        set => ClipStartIndex = Convert.ToInt64(value * StreamInfo.Fps!.Value.Base / StreamInfo.Fps!.Value.Divider);
+        get => Convert.ToDouble(ClipStartFrameIndex) * StreamInfo.Fps!.Value.Divider / StreamInfo.Fps!.Value.Base;
+        set => ClipStartFrameIndex = Convert.ToInt64(value * StreamInfo.Fps!.Value.Base / StreamInfo.Fps!.Value.Divider);
     }
     public double ClipEndTime
     {
-        get => Convert.ToDouble(ClipEndIndex) * StreamInfo.Fps!.Value.Divider / StreamInfo.Fps!.Value.Base;
-        set => ClipEndIndex = Convert.ToInt64(value * StreamInfo.Fps!.Value.Base / StreamInfo.Fps!.Value.Divider);
+        get => Convert.ToDouble(ClipEndFrameIndex) * StreamInfo.Fps!.Value.Divider / StreamInfo.Fps!.Value.Base;
+        set => ClipEndFrameIndex = Convert.ToInt64(value * StreamInfo.Fps!.Value.Base / StreamInfo.Fps!.Value.Divider);
+    }
+    public double ClipLengthTime
+    {
+        get => Convert.ToDouble(ClipLengthFrameIndex) * StreamInfo.Fps!.Value.Divider / StreamInfo.Fps!.Value.Base;
+        set => ClipLengthFrameIndex = Convert.ToInt64(value * StreamInfo.Fps!.Value.Base / StreamInfo.Fps!.Value.Divider);
     }
 
     public bool IsVideoClip => true;
     public bool IsAudioClip => false;
 
-    double NextTime => Convert.ToDouble(CurrentIndex + 1) * StreamInfo.Fps!.Value.Divider / StreamInfo.Fps!.Value.Base;
+    Resolution CurrentResolution { get; set; }
+    FFMpeg_FrameReader? Source { get; set; }
+
 
     double CurrentTime
     {
         get => Convert.ToDouble(CurrentIndex) * StreamInfo.Fps!.Value.Divider / StreamInfo.Fps!.Value.Base;
         set => CurrentIndex = Convert.ToInt64(value * StreamInfo.Fps!.Value.Base / StreamInfo.Fps!.Value.Divider);
     }
-    public TimeStamp CurrentTimeStamp
-    {
-        get => new TimeStamp(CurrentTime);
-        set => CurrentTime = value.TotalSeconds;
-    }
 
-    Resolution CurrentResolution { get; set; }
-    IEnumerator<byte[]>? Source { get; set; }
+    long RelativeCurrentTimelineFrameIndex => Timeline.CurrentFrameIndex - TimelineStartFrameIndex;
+    long RelativeNextTimelineFrameIndex => Timeline.NextFrameIndex - TimelineStartFrameIndex;
+    long RequestedCurrentFrameIndex => RelativeCurrentTimelineFrameIndex * ClipLengthFrameIndex / TimelineLengthFrameIndex;
+    long RequestedNextFrameIndex => RelativeNextTimelineFrameIndex * ClipLengthFrameIndex / TimelineLengthFrameIndex;
+    double RequestedCurrentTime => Convert.ToDouble(RequestedCurrentFrameIndex) * StreamInfo.Fps!.Value.Divider / StreamInfo.Fps!.Value.Base;
+    double RequestedNextTime => Convert.ToDouble(RequestedNextFrameIndex) * StreamInfo.Fps!.Value.Divider / StreamInfo.Fps!.Value.Base;
 
-    public byte[]? GetCurrentFrame()
+    public Frame? GetCurrentFrame()
     {
+        if (Engine.DisplayControl == null) return null;
+        if (StreamInfo.Fps == null) return null;
+
         var reload = false;
-
         if (Source == null) reload = true;
-        else if (Timeline.Resolution != CurrentResolution) reload = true;
-        else if (Timeline.CurrentTime < CurrentTime) reload = true;
-        else if (Timeline.CurrentTime > CurrentTime + 5) reload = true;
+        else if (Engine.DisplayControl.Resolution != CurrentResolution) reload = true;
+        else if (RequestedCurrentTime < CurrentTime) reload = true;
+        else if (RequestedCurrentTime > CurrentTime + 5) reload = true;
+        else if (Source.OutputFrameIndex > RequestedCurrentFrameIndex) reload = true;
 
         if (reload)
         {
@@ -64,24 +80,29 @@ public class TimelineClipVideo : TimelineClip, ITimelineClip, IDisposable
             {
                 Source.Dispose();
             }
-            CurrentResolution = Timeline.Resolution;
-            CurrentTime = Timeline.CurrentTime;
-            Source = FFMpeg
-                .ReadFrames(StreamInfo.File.FullName, Timeline.Resolution, Timeline.CurrentTimeStamp)
-                .GetEnumerator();
-            if (!Source.MoveNext()) return null;
+
+            CurrentResolution = Engine.DisplayControl.Resolution;
+            CurrentTime = RequestedCurrentTime;
+            if (CurrentTime < 0) return null;
+            if (CurrentTime > TimelineEndTime - TimelineStartTime) return null;
+            Source = new FFMpeg_FrameReader(StreamInfo.File.FullName, CurrentResolution, StreamInfo.Fps.Value, CurrentTime);
         }
 
-        if (Source == null) return null;
+        if (Source == null) return null; // kan niet
 
-        while (!(CurrentTime <= Timeline.CurrentTime && Timeline.CurrentTime < NextTime))
-        {
-            Source.MoveNext();
-            CurrentIndex++;
-        }
-        if (Source.Current == null) return null;
-        return Source.Current;
+        if (Source.OutputFrameIndex < RequestedCurrentFrameIndex)
+            Source.MoveNext(RequestedCurrentFrameIndex, RequestedNextFrameIndex);
+
+        //while (!(CurrentTime <= Timeline.CurrentTime && Timeline.CurrentTime < RequestedNextTime))
+        //{
+        //    Source.MoveNext(CurrentClipIndex, NextTimelineTime);
+        //    CurrentIndex++;
+        //}
+        if (Source.OutputFrame == null) return null;
+        return Source.OutputFrame;
     }
+
+
     public void Dispose()
     {
         Source?.Dispose();

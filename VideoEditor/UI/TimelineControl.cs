@@ -261,9 +261,9 @@ public partial class TimelineControl : UserControl
                 {
                     Layer = layer,
                     TimelineStartTime = start,
-                    TimelineEndTime = currentTime,
+                    TimelineLengthTime = file.Duration.Value,
                     ClipStartTime = 0,
-                    ClipEndTime = file.Duration.Value
+                    ClipLengthTime = file.Duration.Value
                 };
                 DragAndDrop.VideoClips.Add(clip);
                 layer++;
@@ -407,8 +407,7 @@ public partial class TimelineControl : UserControl
             foreach (var clip in selectedClips)
             {
                 clip.OldLayer = clip.Layer;
-                clip.OldTimelineStartInSeconds = clip.TimelineStartTime;
-                clip.OldTimelineEndInSeconds = clip.TimelineEndTime;
+                clip.OldTimelineStartTime = clip.TimelineStartTime;
             }
             Invalidate();
             return;
@@ -443,9 +442,8 @@ public partial class TimelineControl : UserControl
             {
                 clip.Layer = clip.OldLayer + diff.Layer;
                 if (clip.Layer < 0) clip.Layer = 0;
-                clip.TimelineStartTime = clip.OldTimelineStartInSeconds + diff.CurrentTime;
-                clip.TimelineEndTime = clip.OldTimelineEndInSeconds + diff.CurrentTime;
-                Debug.WriteLine($"Dragging {diff.CurrentTime}x{diff.Layer} {clip.OldTimelineStartInSeconds}+{diff.CurrentTime.ToString("F3")}={clip.TimelineStartTime}");
+                clip.TimelineStartTime = clip.OldTimelineStartTime + diff.CurrentTime;
+                Debug.WriteLine($"Dragging {diff.CurrentTime}x{diff.Layer} {clip.OldTimelineStartTime}+{diff.CurrentTime.ToString("F3")}={clip.TimelineStartTime}");
             }
 
             Invalidate();

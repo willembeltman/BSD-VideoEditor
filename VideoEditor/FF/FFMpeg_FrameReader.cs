@@ -4,22 +4,26 @@ namespace VideoEditor.FF;
 
 public class FFMpeg_FrameReader : IDisposable
 {
-    public FFMpeg_FrameReader(string fullName, Resolution resolution, double startTime = 0, long startIndex = 0)
+    public FFMpeg_FrameReader(string fullName, Resolution resolution, Fps fps, double startTime)
     {
         FullName = fullName;
         Resolution = resolution;
+        Fps = fps;
         StartTime = startTime;
         StartTimeStamp = new TimeStamp(startTime);
+
         ReaderWorker = new Thread(new ThreadStart(FrameReader));
-        Frame1 = new Frame(Resolution, NextFrameIndex);
-        Frame2 = new Frame(Resolution, NextFrameIndex);
+        Frame1 = new Frame(Resolution, OutputFrameIndex);
+        Frame2 = new Frame(Resolution, ReaderFrameIndex);
         NextFrameReadyEvent = new AutoResetEvent(false);
         ReadNextFrameEvent = new AutoResetEvent(true);
-        NextFrameIndex = startIndex;
+
+        ReaderTime = startTime;
     }
 
     public string FullName { get; }
     public Resolution Resolution { get; }
+    public Fps Fps { get; }
     public double StartTime { get; }
     public TimeStamp StartTimeStamp { get; }
     public Exception? ReaderException { get; private set; }
@@ -36,31 +40,39 @@ public class FFMpeg_FrameReader : IDisposable
     private volatile bool EndOfVideo1;
     private volatile bool EndOfVideo2;
 
-    private long NextFrameIndex;
-    private long RequestedFrameIndex;
+    public long RequestedFrameIndex { get; private set; }
 
-    public Frame CurrentFrame => FrameSwitch ? Frame1 : Frame2;
-    public long CurrentFrameIndex => NextFrameIndex - 1;
-    public bool EndOfVideo => FrameSwitch ? EndOfVideo1 : EndOfVideo2;
-    private Frame NextFrame => FrameSwitch ? Frame2 : Frame1;
-    private bool NextEndOfVideo
+    public long OutputFrameIndex => ReaderFrameIndex - 1;
+    public double OutputTime => Convert.ToDouble(OutputFrameIndex) * Fps.Divider / Fps.Base;
+    public Frame OutputFrame => FrameSwitch ? Frame2 : Frame1;
+    public bool OutputEndOfVideo => FrameSwitch ? EndOfVideo2 : EndOfVideo1;
+
+    private long ReaderFrameIndex { get; set; }
+    private double ReaderTime
     {
-        get => FrameSwitch ? EndOfVideo2 : EndOfVideo1;
+        get => Convert.ToDouble(ReaderFrameIndex) * Fps.Divider / Fps.Base;
+        set => ReaderFrameIndex = Convert.ToInt64(value * Fps.Base / Fps.Divider);
+    }
+    private Frame ReaderFrame => FrameSwitch ? Frame1 : Frame2;
+    private bool ReaderEndOfVideo
+    {
+        get => FrameSwitch ? EndOfVideo1 : EndOfVideo2;
         set
         {
             if (FrameSwitch)
-                EndOfVideo2 = value;
-            else
                 EndOfVideo1 = value;
+            else
+                EndOfVideo2 = value;
         }
     }
-    
+
     private void FrameReader()
     {
         try
         {
             var arguments = $"-i \"{FullName}\" " +
                             $"-ss {StartTimeStamp} " +
+                            $"-s {Resolution.Width}x{Resolution.Height} " +
                             $"-pix_fmt rgba -f rawvideo -";
 
             var processStartInfo = new ProcessStartInfo
@@ -76,11 +88,11 @@ public class FFMpeg_FrameReader : IDisposable
             using var process = Process.Start(processStartInfo) ?? throw new Exception("Cannot create process");
             using var stream = process.StandardOutput.BaseStream;
 
-            while (!KillSwitch && !NextEndOfVideo)
+            while (!KillSwitch && !ReaderEndOfVideo)
             {
                 ReadNextFrameEvent.WaitOne();
 
-                while (RequestedFrameIndex >= NextFrameIndex)
+                while (RequestedFrameIndex >= ReaderFrameIndex)
                 {
                     if (!Read(stream)) break;
                 }
@@ -92,7 +104,7 @@ public class FFMpeg_FrameReader : IDisposable
         {
             ReaderException = ex;
             KillSwitch = true;
-            NextEndOfVideo = true;
+            ReaderEndOfVideo = true;
         }
         finally
         {
@@ -102,39 +114,39 @@ public class FFMpeg_FrameReader : IDisposable
 
     private bool Read(Stream stream)
     {
-        if (KillSwitch || NextEndOfVideo) return false;
+        if (KillSwitch || ReaderEndOfVideo) return false;
 
         var read = 0;
-        while (!KillSwitch && !NextEndOfVideo && read < NextFrame.Buffer.Length)
+        while (!KillSwitch && !ReaderEndOfVideo && read < ReaderFrame.Buffer.Length)
         {
-            var partialread = stream.Read(NextFrame.Buffer, read, NextFrame.Buffer.Length - read);
+            var partialread = stream.Read(ReaderFrame.Buffer, read, ReaderFrame.Buffer.Length - read);
             read += partialread;
-            NextEndOfVideo = partialread <= 0;
+            ReaderEndOfVideo = partialread <= 0;
         }
 
-        if (KillSwitch || NextEndOfVideo) return false;
+        if (KillSwitch || ReaderEndOfVideo) return false;
 
-        NextFrame.Index = NextFrameIndex;
-        NextFrameIndex++;
+        ReaderFrame.Index = ReaderFrameIndex;
+        ReaderFrameIndex++;
 
         return true;
     }
 
-    public Frame? GetFrame(long frameIndex, long nextFrameIndex)
+    public Frame? MoveNext(long frameIndex, long nextFrameIndex)
     {
-        if (EndOfVideo || KillSwitch) return null;
+        if (OutputEndOfVideo || KillSwitch) return null;
 
         if (frameIndex > nextFrameIndex)
             throw new ArgumentOutOfRangeException(
                 $"{nameof(frameIndex)} cannot be larger then {nameof(nextFrameIndex)}");
 
-        if (frameIndex < CurrentFrameIndex)
+        if (frameIndex < OutputFrameIndex)
             throw new ArgumentOutOfRangeException(
-                $"{nameof(frameIndex)} cannot be smaller then {nameof(CurrentFrameIndex)}");
+                $"{nameof(frameIndex)} cannot be smaller then {nameof(OutputFrameIndex)}");
 
-        if (nextFrameIndex < NextFrameIndex)
+        if (nextFrameIndex < ReaderFrameIndex)
             throw new ArgumentOutOfRangeException(
-                $"{nameof(nextFrameIndex)} cannot be smaller then {nameof(NextFrameIndex)}");
+                $"{nameof(nextFrameIndex)} cannot be smaller then {nameof(ReaderFrameIndex)}");
 
         if (!IsStarted)
         {
@@ -142,21 +154,21 @@ public class FFMpeg_FrameReader : IDisposable
             ReaderWorker.Start();
         }
 
-        if (frameIndex != CurrentFrameIndex)
+        if (frameIndex != OutputFrameIndex)
         {
             NextFrameReadyEvent.WaitOne();
 
             FrameSwitch = !FrameSwitch;
-            if (EndOfVideo || KillSwitch) return null;
+            if (OutputEndOfVideo || KillSwitch) return null;
 
-            if (CurrentFrameIndex < frameIndex)
+            if (OutputFrameIndex < frameIndex)
             {
                 RequestedFrameIndex = frameIndex;
                 ReadNextFrameEvent.Set();
                 NextFrameReadyEvent.WaitOne();
 
                 FrameSwitch = !FrameSwitch;
-                if (EndOfVideo || KillSwitch) return null;
+                if (OutputEndOfVideo || KillSwitch) return null;
             }
         }
 
@@ -166,7 +178,7 @@ public class FFMpeg_FrameReader : IDisposable
             ReadNextFrameEvent.Set();
         }
 
-        return CurrentFrame;
+        return OutputFrame;
     }
 
     public void Dispose()

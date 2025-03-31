@@ -32,11 +32,11 @@ public class Timeline
     public int FirstVisibleAudioLayer { get; set; } = 0;
     public int VisibleAudioLayers { get; set; } = 3;
 
-    public long CurrentTimeIndex { get; set; } = 0;
+    public long CurrentFrameIndex { get; set; } = 0;
     public double CurrentTime
     {
-        get => Convert.ToDouble(CurrentTimeIndex) * Fps.Divider / Fps.Base;
-        set => CurrentTimeIndex = Convert.ToInt64(value * Fps.Base / Fps.Divider);
+        get => Convert.ToDouble(CurrentFrameIndex) * Fps.Divider / Fps.Base;
+        set => CurrentFrameIndex = Convert.ToInt64(value * Fps.Base / Fps.Divider);
     }
     public TimeStamp CurrentTimeStamp
     {
@@ -44,11 +44,11 @@ public class Timeline
         set => CurrentTime = value.TotalSeconds;
     }
 
-    public long NextTimeIndex => CurrentTimeIndex + 1;
+    public long NextFrameIndex => CurrentFrameIndex + 1;
     public double NextTime
     {
-        get => Convert.ToDouble(NextTimeIndex) * Fps.Divider / Fps.Base;
-        set => CurrentTimeIndex = Convert.ToInt64(value * Fps.Base / Fps.Divider) - 1;
+        get => Convert.ToDouble(NextFrameIndex) * Fps.Divider / Fps.Base;
+        set => CurrentFrameIndex = Convert.ToInt64(value * Fps.Base / Fps.Divider) - 1;
     }
     public TimeStamp NextTimeStamp
     {

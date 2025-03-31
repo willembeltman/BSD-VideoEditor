@@ -9,23 +9,23 @@ public class TimelineClipAudio : TimelineClip, ITimelineClip
 
     public double TimelineStartTime
     {
-        get => Convert.ToDouble(TimelineStartIndex) / Timeline.SampleRate;
-        set => TimelineStartIndex = Convert.ToInt64(value * Timeline.SampleRate);
+        get => Convert.ToDouble(TimelineStartFrameIndex) / Timeline.SampleRate;
+        set => TimelineStartFrameIndex = Convert.ToInt64(value * Timeline.SampleRate);
     }
     public double TimelineEndTime
     {
-        get => Convert.ToDouble(TimelineEndIndex) / Timeline.SampleRate;
-        set => TimelineEndIndex = Convert.ToInt64(value * Timeline.SampleRate);
+        get => Convert.ToDouble(TimelineEndFrameIndex) / Timeline.SampleRate;
+        set => TimelineEndFrameIndex = Convert.ToInt64(value * Timeline.SampleRate);
     }
     public double ClipStartTime
     {
-        get => Convert.ToDouble(ClipStartIndex) / StreamInfo.SampleRate!.Value;
-        set => ClipStartIndex = Convert.ToInt64(value * StreamInfo.SampleRate!.Value);
+        get => Convert.ToDouble(ClipStartFrameIndex) / StreamInfo.SampleRate!.Value;
+        set => ClipStartFrameIndex = Convert.ToInt64(value * StreamInfo.SampleRate!.Value);
     }
     public double ClipEndTime
     {
-        get => Convert.ToDouble(ClipEndIndex) / StreamInfo.SampleRate!.Value;
-        set => ClipEndIndex = Convert.ToInt64(value * StreamInfo.SampleRate!.Value);
+        get => Convert.ToDouble(ClipEndFrameIndex) / StreamInfo.SampleRate!.Value;
+        set => ClipEndFrameIndex = Convert.ToInt64(value * StreamInfo.SampleRate!.Value);
     }
 
     public bool IsVideoClip => false;

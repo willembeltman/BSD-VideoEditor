@@ -1,4 +1,5 @@
 ﻿using VideoEditor.Static;
+using VideoEditor.Types;
 
 namespace VideoEditor.UI;
 
@@ -6,19 +7,17 @@ public partial class DisplayControl : UserControl
 {
     public DisplayControl()
     {
-        InitializeComponent();
         Engine.DisplayControl = this;
-        videoControl = new DisplayControlDX2D();
-        Controls.Add(videoControl);
-        videoControl.Dock = DockStyle.Fill;
+        DirectXDisplayControl = new DisplayControlDX2D();
+        Controls.Add(DirectXDisplayControl);
+        DirectXDisplayControl.Dock = DockStyle.Fill;
+        InitializeComponent();
     }
 
-    DisplayControlDX2D videoControl { get; }
+    public DisplayControlDX2D DirectXDisplayControl { get; }
 
     private void DisplayControl_Resize(object sender, EventArgs e)
     {
-        //if (Engine == null) return;
-
         var width = ClientRectangle.Width;
         var height = ClientRectangle.Height;
 
@@ -37,35 +36,16 @@ public partial class DisplayControl : UserControl
         var offsetX = (ClientRectangle.Width - width) / 2;
         var offsetY = (ClientRectangle.Height - height) / 2;
 
-        videoControl.Top = offsetY;
-        videoControl.Left = offsetX;
-        videoControl.Width = width;
-        videoControl.Height = height;
-
-        //videoElement.Height = videoElement.Width * Engine.Timeline.Settings.Resolution.Height / Engine.Timeline.Settings.Resolution.Width;
-
-        //if (videoElement.Height > Convert.ToInt32((ClientRectangle.Height - Constants.Margin * 3) * VerdelingY))
-        //{
-        //    videoElement.Height = Convert.ToInt32((ClientRectangle.Height - Constants.Margin * 3) * VerdelingY);
-        //    videoElement.Width = videoElement.Height * Engine.Timeline.Settings.Resolution.Width / Engine.Timeline.Settings.Resolution.Height;
-        //    videoElement.Left = (ClientRectangle.Width - Constants.Margin * 2 - videoElement.Width) / 2 + Constants.Margin;
-        //}
+        DirectXDisplayControl.Top = offsetY;
+        DirectXDisplayControl.Left = offsetX;
+        DirectXDisplayControl.Width = width;
+        DirectXDisplayControl.Height = height;
     }
 
-    public void SetFrame(byte[] frameBuffer, int width, int height)
+    public void SetFrame(Frame frame)
     {
-        videoControl.SetFrame(frameBuffer, width, height);
+        DirectXDisplayControl.SetFrame(frame);
     }
 
-    public void GetFrame()
-    {
-        foreach (var video in Engine.Timeline.VideoClips)
-        {
-            var frame = video.GetCurrentFrame();
-            if (frame != null)
-            {
-                videoControl.SetFrame(frame, Engine.Timeline.Resolution.Width, Engine.Timeline.Resolution.Height);
-            }
-        }
-    }
+    public Resolution Resolution => new Resolution(DirectXDisplayControl.Width, DirectXDisplayControl.Height);
 }
