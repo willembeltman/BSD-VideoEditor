@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Windows.Forms;
 using VideoEditor.Types;
 using VideoEditor.UI;
 using DisplayControl = VideoEditor.UI.DisplayControl;
@@ -19,7 +18,6 @@ public static class Engine
     static Thread? TheThread { get; set; }
 
     static Stopwatch Stopwatch { get; set; } = Stopwatch.StartNew();
-    static AutoResetEvent Invoke { get; set; } = new AutoResetEvent(false);
     static double StartTime { get; set; }
 
     public static FpsCounter FpsCounter { get; set; } = new FpsCounter();
@@ -36,7 +34,6 @@ public static class Engine
         if (TheThread == null) return;
 
         IsRunning = false;
-        Invoke.Set();
         if (TheThread != Thread.CurrentThread)
             TheThread.Join();
     }
@@ -48,7 +45,6 @@ public static class Engine
             Stopwatch.Restart();
             StartTime = Timeline.CurrentTime;
             IsPlaying = true;
-            Invoke.Set();
         }
     }
     public static void Stop()
@@ -60,42 +56,40 @@ public static class Engine
     {
         while (IsRunning)
         {
-            //if (!Invoke.WaitOne(1000)) continue;
-            while (IsRunning) // (IsPlaying && IsRunning)
+            // Calculate wait till next frame
+            var wait = Convert.ToInt32(Timeline.NextTime * 1000 - Stopwatch.ElapsedMilliseconds);
+
+            // Sleep the thread if needed
+            if (wait > 0)
+                Thread.Sleep(wait);
+            else if (!IsPlaying) // Prevent 
+                Thread.Sleep(Convert.ToInt32(1000 / Timeline.Fps.Value));
+
+            if (IsPlaying)
             {
-                // Calculate wait till next frame
-                var wait = Convert.ToInt32(Timeline.NextTime * 1000 - Stopwatch.ElapsedMilliseconds);
-
-                // Sleep the thread if needed
-                if (wait > 0) Thread.Sleep(wait);
-                else Thread.Sleep(Convert.ToInt32(1000 / Timeline.Fps.Value));
-
-                if (IsPlaying)
-                {
-                    // Set the current time (after sleeping)
-                    Timeline.CurrentTime = StartTime + Stopwatch.Elapsed.TotalSeconds;
-                }
-
-                // Get the frames for the current time
-                var clipframes = Timeline.CurrentVideoClips
-                    .Select(clip => new ClipFrame(clip, clip.GetCurrentFrame()))
-                    .Where(a => a.Frame != null)
-                    .OrderBy(a => a.Clip.Layer)
-                    .ToArray();
-
-                // Merge frames to one frame
-                var frame = CreateFrame(clipframes);
-                if (frame == null) continue;
-
-                // The display the frame
-                DisplayControl?.SetFrame(frame);
-                TimelineControl?.Invalidate();
-                FpsCounter.Tick();
+                // Set the current time (after sleeping)
+                Timeline.CurrentTime = StartTime + Stopwatch.Elapsed.TotalSeconds;
             }
+
+            // Get the frames (for the current time)
+            var clipframes = Timeline.CurrentVideoClips
+                .Select(clip => new ClipFrame(clip, clip.GetCurrentFrame()))
+                .Where(a => a.Frame != null)
+                .OrderBy(a => a.Clip.Layer)
+                .ToArray();
+
+            // Merge frames to one frame
+            var frame = FlattenFrames(clipframes);
+            if (frame == null) continue;
+
+            // Then display the frame
+            DisplayControl?.SetFrame(frame);
+            TimelineControl?.Invalidate();
+            FpsCounter.Tick();
         }
     }
 
-    private static Frame? CreateFrame(ClipFrame[] clipframes)
+    private static Frame? FlattenFrames(ClipFrame[] clipframes)
     {
         // TODO make a frame of all frames
         var clipframe = clipframes.FirstOrDefault();
