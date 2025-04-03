@@ -7,10 +7,12 @@ namespace VideoEditor.UI;
 
 public partial class TimelineControl : UserControl
 {
-    public TimelineControl()
+    public TimelineControl(Engine engine)
     {
-        InitializeComponent();
+        Engine = engine;
         Engine.TimelineControl = this;
+
+        InitializeComponent();
     }
 
     DragAndDrop DragAndDrop { get; } = new();
@@ -25,6 +27,8 @@ public partial class TimelineControl : UserControl
         ClientRectangle.Width,
         ClientRectangle.Height - HScrollBarControl.Height);
     int MiddleOffset => HScrollBarControl.Height / 2;
+
+    public Engine Engine { get; }
 
     private void TimelineControl_Load(object sender, EventArgs e)
     {
@@ -257,7 +261,7 @@ public partial class TimelineControl : UserControl
             var layer = layerIndex;
             foreach (var videoStream in file.VideoStreams.OrderBy(a => a.Index))
             {
-                var clip = new TimelineClipVideo(Timeline, videoStream, group)
+                var clip = new TimelineClipVideo(Engine, Timeline, videoStream, group)
                 {
                     Layer = layer,
                     TimelineStartTime = start,
@@ -272,7 +276,7 @@ public partial class TimelineControl : UserControl
             layer = 0;
             foreach (var audioStream in file.AudioStreams.OrderBy(a => a.Index))
             {
-                var clip = new TimelineClipAudio(Timeline, audioStream, group)
+                var clip = new TimelineClipAudio(Engine, Timeline, audioStream, group)
                 {
                     Layer = layer,
                     TimelineStartTime = start,

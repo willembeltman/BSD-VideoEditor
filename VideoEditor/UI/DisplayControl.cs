@@ -1,12 +1,12 @@
-﻿using VideoEditor.Static;
-using VideoEditor.Types;
+﻿using VideoEditor.Types;
 
 namespace VideoEditor.UI;
 
 public partial class DisplayControl : UserControl
 {
-    public DisplayControl()
+    public DisplayControl(Engine engine)
     {
+        Engine = engine;
         Engine.DisplayControl = this;
         DirectXDisplayControl = new DisplayControlDX2D();
         Controls.Add(DirectXDisplayControl);
@@ -48,4 +48,6 @@ public partial class DisplayControl : UserControl
     }
 
     public Resolution Resolution => new Resolution(DirectXDisplayControl.Width, DirectXDisplayControl.Height);
+
+    public Engine Engine { get; }
 }

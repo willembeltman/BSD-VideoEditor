@@ -1,12 +1,12 @@
 ﻿using VideoEditor.FF;
-using VideoEditor.Static;
 using VideoEditor.Types;
 
 namespace VideoEditor;
 
 public class TimelineClipVideo : TimelineClip, ITimelineClip, IDisposable
 {
-    public TimelineClipVideo(Timeline timeline, StreamInfo streamInfo, TimelineClipGroup group) : base(timeline, streamInfo, group)
+    public TimelineClipVideo(Engine engine, Timeline timeline, StreamInfo streamInfo, TimelineClipGroup group) 
+        : base(engine, timeline, streamInfo, group)
     {
     }
 
@@ -72,7 +72,7 @@ public class TimelineClipVideo : TimelineClip, ITimelineClip, IDisposable
         else if (Engine.DisplayControl.Resolution != CurrentResolution) reload = true;
         else if (RequestedCurrentTime < CurrentTime) reload = true;
         else if (RequestedCurrentTime > CurrentTime + 5) reload = true;
-        else if (Source.OutputFrameIndex > RequestedCurrentFrameIndex) reload = true;
+        else if (Source.CurrentFrameIndex > RequestedCurrentFrameIndex) reload = true;
 
         if (reload)
         {
@@ -90,7 +90,7 @@ public class TimelineClipVideo : TimelineClip, ITimelineClip, IDisposable
 
         if (Source == null) return null; // kan niet
 
-        if (Source.OutputFrameIndex < RequestedCurrentFrameIndex)
+        if (Source.CurrentFrameIndex < RequestedCurrentFrameIndex)
             Source.MoveNext(RequestedCurrentFrameIndex, RequestedNextFrameIndex);
 
         //while (!(CurrentTime <= Timeline.CurrentTime && Timeline.CurrentTime < RequestedNextTime))
@@ -98,8 +98,8 @@ public class TimelineClipVideo : TimelineClip, ITimelineClip, IDisposable
         //    Source.MoveNext(CurrentClipIndex, NextTimelineTime);
         //    CurrentIndex++;
         //}
-        if (Source.OutputFrame == null) return null;
-        return Source.OutputFrame;
+        if (Source.CurrentFrame == null) return null;
+        return Source.CurrentFrame;
     }
 
 

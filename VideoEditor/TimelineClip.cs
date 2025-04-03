@@ -2,13 +2,15 @@
 
 public class TimelineClip
 {
-    public TimelineClip(Timeline timeline, StreamInfo streamInfo, TimelineClipGroup group)
+    public TimelineClip(Engine engine, Timeline timeline, StreamInfo streamInfo, TimelineClipGroup group)
     {
+        Engine = engine;
         Timeline = timeline;
         StreamInfo = streamInfo;
         Group = group;
     }
 
+    public Engine Engine { get; }
     public Timeline Timeline { get; }
     public StreamInfo StreamInfo { get; }
     public int Layer { get; set; }

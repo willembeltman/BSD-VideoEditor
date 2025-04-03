@@ -42,7 +42,8 @@
             // lblFps
             // 
             lblFps.AutoSize = true;
-            lblFps.Location = new Point(212, 0);
+            lblFps.BackColor = Color.Beige;
+            lblFps.Location = new Point(3, 4);
             lblFps.Name = "lblFps";
             lblFps.Size = new Size(38, 15);
             lblFps.TabIndex = 1;

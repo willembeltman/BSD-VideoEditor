@@ -1,18 +1,19 @@
-﻿using VideoEditor.Static;
-
-namespace VideoEditor.UI;
+﻿namespace VideoEditor.UI;
 
 public partial class PropertiesControl : UserControl
 {
-    public PropertiesControl()
+    public PropertiesControl(Engine engine)
     {
-        InitializeComponent();
+        Engine = engine;
         Engine.PropertiesControl = this;
+        InitializeComponent();
     }
+
+    public Engine Engine { get; }
 
     internal void UpdateFps()
     {
-        lblFps.Text = $"{Engine.FpsCounter.Fps}fps";
+        lblFps.Text = $"{Engine.FpsCounter.Fps} fps";
     }
 
     private void PropertiesControl_Resize(object sender, EventArgs e)

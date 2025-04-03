@@ -9,14 +9,16 @@ public partial class MainForm : Form
 {
     public MainForm()
     {
-        InitializeComponent();
+        Engine = new Engine();
         Engine.MainForm = this;
+        InitializeComponent();
     }
 
     int TimelineHeight { get; set; } = 200;
     int PropertiesWidth { get; set; } = 320;
     bool IsMovingX { get; set; }
     bool IsMovingY { get; set; }
+    public Engine Engine { get; }
 
     private void MainForm_Load(object sender, EventArgs e)
     {

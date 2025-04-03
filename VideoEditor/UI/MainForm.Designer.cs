@@ -51,9 +51,9 @@
             helpContentsToolStripMenuItem = new ToolStripMenuItem();
             toolStripSeparator4 = new ToolStripSeparator();
             aboutToolStripMenuItem = new ToolStripMenuItem();
-            timelineControl = new UI.TimelineControl();
-            displayControl = new UI.DisplayControl();
-            propertiesControl = new UI.PropertiesControl();
+            timelineControl = new UI.TimelineControl(Engine);
+            displayControl = new UI.DisplayControl(Engine);
+            propertiesControl = new UI.PropertiesControl(Engine);
             timer = new System.Windows.Forms.Timer(components);
             menuStrip.SuspendLayout();
             SuspendLayout();

@@ -1,35 +1,36 @@
 ﻿using System.Diagnostics;
+using VideoEditor.Static;
 using VideoEditor.Types;
 using VideoEditor.UI;
 using DisplayControl = VideoEditor.UI.DisplayControl;
 
-namespace VideoEditor.Static;
+namespace VideoEditor;
 
-public static class Engine
+public class Engine
 {
-    public static Project Project { get; set; } = new Project();
-    public static bool IsRunning { get; set; } = true;
-    public static bool IsPlaying { get; private set; } = false;
+    public Project Project { get; set; } = new Project();
+    public bool IsRunning { get; set; } = true;
+    public bool IsPlaying { get; private set; } = false;
 
-    public static TimelineControl? TimelineControl { get; set; }
-    public static DisplayControl? DisplayControl { get; set; }
-    public static MainForm? MainForm { get; set; }
-    public static PropertiesControl? PropertiesControl { get; set; }
-    static Thread? TheThread { get; set; }
+    public TimelineControl? TimelineControl { get; set; }
+    public DisplayControl? DisplayControl { get; set; }
+    public MainForm? MainForm { get; set; }
+    public PropertiesControl? PropertiesControl { get; set; }
+    Thread? TheThread { get; set; }
 
-    static Stopwatch Stopwatch { get; set; } = Stopwatch.StartNew();
-    static double StartTime { get; set; }
+    Stopwatch Stopwatch { get; set; } = Stopwatch.StartNew();
+    double StartTime { get; set; }
 
-    public static FpsCounter FpsCounter { get; set; } = new FpsCounter();
-    public static Timeline Timeline => Project.CurrentTimeline;
+    public FpsCounter FpsCounter { get; set; } = new FpsCounter();
+    public Timeline Timeline => Project.CurrentTimeline;
 
 
-    public static void StartEngine()
+    public void StartEngine()
     {
         TheThread = new Thread(new ThreadStart(TheThreadJob));
         TheThread.Start();
     }
-    public static void StopEngine()
+    public void StopEngine()
     {
         if (TheThread == null) return;
 
@@ -38,7 +39,7 @@ public static class Engine
             TheThread.Join();
     }
 
-    public static void Play()
+    public void Play()
     {
         if (!IsPlaying)
         {
@@ -47,23 +48,25 @@ public static class Engine
             IsPlaying = true;
         }
     }
-    public static void Stop()
+    public void Stop()
     {
         IsPlaying = false;
     }
 
-    private static void TheThreadJob()
+    private void TheThreadJob()
     {
         while (IsRunning)
         {
             // Calculate wait till next frame
-            var wait = Convert.ToInt32(Timeline.NextTime * 1000 - Stopwatch.ElapsedMilliseconds);
+            var wait = Convert.ToInt32(Timeline.NextTime * 1000 - StartTime * 1000 - Stopwatch.ElapsedMilliseconds);
+            var fpswait = Convert.ToInt32(1000 / Timeline.Fps.Value);
 
             // Sleep the thread if needed
-            if (wait > 0)
+            if (wait > 0 && wait < fpswait)
                 Thread.Sleep(wait);
+            
             else if (!IsPlaying) // Prevent 
-                Thread.Sleep(Convert.ToInt32(1000 / Timeline.Fps.Value));
+                Thread.Sleep(fpswait);
 
             if (IsPlaying)
             {
@@ -78,6 +81,9 @@ public static class Engine
                 .OrderBy(a => a.Clip.Layer)
                 .ToArray();
 
+            // Update fps counter
+            FpsCounter.Tick();
+
             // Merge frames to one frame
             var frame = FlattenFrames(clipframes);
             if (frame == null) continue;
@@ -85,11 +91,10 @@ public static class Engine
             // Then display the frame
             DisplayControl?.SetFrame(frame);
             TimelineControl?.Invalidate();
-            FpsCounter.Tick();
         }
     }
 
-    private static Frame? FlattenFrames(ClipFrame[] clipframes)
+    private Frame? FlattenFrames(ClipFrame[] clipframes)
     {
         // TODO make a frame of all frames
         var clipframe = clipframes.FirstOrDefault();
