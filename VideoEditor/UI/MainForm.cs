@@ -1,7 +1,4 @@
-using System.Diagnostics;
-using VideoEditor.FF;
 using VideoEditor.Static;
-using VideoEditor.UI;
 
 namespace VideoEditor;
 
@@ -14,16 +11,17 @@ public partial class MainForm : Form
         InitializeComponent();
     }
 
+    public Engine Engine { get; }
+
     int TimelineHeight { get; set; } = 200;
     int PropertiesWidth { get; set; } = 320;
     bool IsMovingX { get; set; }
     bool IsMovingY { get; set; }
-    public Engine Engine { get; }
 
     private void MainForm_Load(object sender, EventArgs e)
     {
         MainForm_Resize(sender, e);
-        Engine.StartEngine();
+        Engine.Thread.Start();
     }
 
     private void MainForm_Resize(object sender, EventArgs e)
@@ -134,51 +132,11 @@ public partial class MainForm : Form
 
     private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
     {
-        Engine.StopEngine();
+        Engine.Dispose();
     }
 
     private void timer_Tick(object sender, EventArgs e)
     {
         propertiesControl.UpdateFps();
     }
-
-    //private void test2ToolStripMenuItem_Click(object sender, EventArgs e)
-    //{
-    //    var fullname = @"D:\Willem\Videos\2025-03-07 09-43-50.mkv";
-    //    using var ding = new FFMpeg_FrameReader(fullname, new Types.Resolution());
-
-    //    var skip = 1;
-    //    var index = 0;
-    //    var index2 = 0;
-    //    var stopwatch = Stopwatch.StartNew();
-
-    //    //bool stop = false;
-    //    //while (!stop)
-    //    //{
-    //    //    var frame = ding.GetFrame(index, index + skip);
-    //    //    stop = frame == null;
-    //    //    index += skip;
-
-    //    //    //Thread.Sleep(10);
-    //    //    if (index2 % 100 == 0)
-    //    //        Debug.WriteLine($"{Convert.ToDouble(index2) / stopwatch.Elapsed.TotalSeconds}fps");
-    //    //    index2++;
-    //    //}
-
-    //    var next = skip;
-    //    var reader = FFMpeg.ReadFrames(fullname, new Types.Resolution());
-    //    foreach (var frame in reader)
-    //    {
-    //        if (next == index)
-    //        {
-    //            next += skip;
-
-    //            //Thread.Sleep(10);
-    //            if (index2 % 100 == 0)
-    //                Debug.WriteLine($"{Convert.ToDouble(index2) / stopwatch.Elapsed.TotalSeconds}fps");
-    //            index2++;
-    //        }
-    //        index++;
-    //    }
-    //}
 }

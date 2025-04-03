@@ -1,6 +1,6 @@
 ﻿namespace VideoEditor;
 
-public class TimelineClipAudio : TimelineClip, ITimelineClip
+public class TimelineClipAudio : TimelineClip, ITimelineClip, IDisposable
 {
     public TimelineClipAudio(Engine engine, Timeline timeline, StreamInfo streamInfo, TimelineClipGroup group)
         : base(engine, timeline, streamInfo, group)
@@ -32,5 +32,8 @@ public class TimelineClipAudio : TimelineClip, ITimelineClip
     public bool IsVideoClip => false;
     public bool IsAudioClip => true;
 
+    public void Dispose()
+    {
+    }
 }
 

@@ -1,6 +1,7 @@
-﻿namespace VideoEditor;
+﻿
+namespace VideoEditor;
 
-public class Project
+public class Project : IDisposable
 {
     public Project()
     {
@@ -13,4 +14,10 @@ public class Project
 
     public string? Path { get; set; }
     public Timeline CurrentTimeline { get; set; }
+
+    public void Dispose()
+    {
+        foreach (var timeline in Timelines)
+            timeline.Dispose();
+    }
 }

@@ -6,38 +6,28 @@ using DisplayControl = VideoEditor.UI.DisplayControl;
 
 namespace VideoEditor;
 
-public class Engine
+public class Engine : IDisposable
 {
+    public Engine()
+    {
+        Thread = new Thread(new ThreadStart(Kernel));
+    }
+
+    public Thread Thread { get; }
+    public MainForm MainForm { get; set; }
+    public TimelineControl TimelineControl { get; set; }
+    public DisplayControl DisplayControl { get; set; }
+    public PropertiesControl PropertiesControl { get; set; }
+
     public Project Project { get; set; } = new Project();
     public bool IsRunning { get; set; } = true;
     public bool IsPlaying { get; private set; } = false;
-
-    public TimelineControl? TimelineControl { get; set; }
-    public DisplayControl? DisplayControl { get; set; }
-    public MainForm? MainForm { get; set; }
-    public PropertiesControl? PropertiesControl { get; set; }
-    Thread? TheThread { get; set; }
 
     Stopwatch Stopwatch { get; set; } = Stopwatch.StartNew();
     double StartTime { get; set; }
 
     public FpsCounter FpsCounter { get; set; } = new FpsCounter();
     public Timeline Timeline => Project.CurrentTimeline;
-
-
-    public void StartEngine()
-    {
-        TheThread = new Thread(new ThreadStart(TheThreadJob));
-        TheThread.Start();
-    }
-    public void StopEngine()
-    {
-        if (TheThread == null) return;
-
-        IsRunning = false;
-        if (TheThread != Thread.CurrentThread)
-            TheThread.Join();
-    }
 
     public void Play()
     {
@@ -53,7 +43,7 @@ public class Engine
         IsPlaying = false;
     }
 
-    private void TheThreadJob()
+    private void Kernel()
     {
         while (IsRunning)
         {
@@ -64,7 +54,7 @@ public class Engine
             // Sleep the thread if needed
             if (wait > 0 && wait < fpswait)
                 Thread.Sleep(wait);
-            
+
             else if (!IsPlaying) // Prevent 
                 Thread.Sleep(fpswait);
 
@@ -99,5 +89,14 @@ public class Engine
         // TODO make a frame of all frames
         var clipframe = clipframes.FirstOrDefault();
         return clipframe?.Frame;
+    }
+
+    public void Dispose()
+    {
+        Project.Dispose();
+
+        IsRunning = false;
+        if (Thread != Thread.CurrentThread)
+            Thread.Join();
     }
 }

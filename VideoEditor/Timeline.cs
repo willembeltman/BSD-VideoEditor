@@ -1,7 +1,7 @@
 ﻿using VideoEditor.Types;
 namespace VideoEditor;
 
-public class Timeline
+public class Timeline : IDisposable
 {
     public Timeline(Project project)
     {
@@ -59,4 +59,12 @@ public class Timeline
     public TimelineClipVideo[] CurrentVideoClips => VideoClips
         .Where(a => a.TimelineStartTime <= CurrentTime && CurrentTime < a.TimelineEndTime)
         .ToArray();
+
+    public void Dispose()
+    {
+        foreach (var videoclip in VideoClips)
+            videoclip.Dispose();
+        foreach (var audioclip in AudioClips)
+            audioclip.Dispose();
+    }
 }
