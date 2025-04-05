@@ -8,6 +8,7 @@ using Format = SharpDX.DXGI.Format;
 using SharpDX.Mathematics.Interop;
 using VideoEditor.Types;
 using VideoEditor.Static;
+using System.ComponentModel;
 
 namespace VideoEditor.UI;
 
@@ -23,6 +24,8 @@ public class DisplayControlDX2D : BaseControlDX2D
 
         ResumeLayout(false);
     }
+
+    public Thread Thread { get; }
 
     Timeline Timeline => Engine.Timeline;
 

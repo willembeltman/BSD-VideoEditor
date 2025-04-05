@@ -14,6 +14,7 @@ using System.Diagnostics;
 using VideoEditor.Enums;
 using VideoEditor.Static;
 using System.Security.Policy;
+using System.ComponentModel;
 
 namespace VideoEditor.UI;
 
@@ -49,6 +50,8 @@ public class TimelineControlDX2D : BaseControlDX2D
 
         ResumeLayout(false);
     }
+
+    public Thread Thread { get; }
 
     DragAndDrop DragAndDrop { get; } = new();
     Dragging SelectedClipsDragging { get; } = new();

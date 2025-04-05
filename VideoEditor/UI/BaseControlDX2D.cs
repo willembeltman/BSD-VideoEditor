@@ -34,12 +34,6 @@ namespace VideoEditor.UI
         public AutoResetEvent BeginAutoResetEvent { get; }
         public AutoResetEvent DoneAutoResetEvent { get; }
 
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public Thread Thread { get; internal set; }
-
-        public int PhysicalWidth => (int)(Width * Scaling);
-        public int PhysicalHeight => (int)(Height * Scaling);
-
         protected override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);
@@ -47,6 +41,9 @@ namespace VideoEditor.UI
             Scaling = new WindowsScaling(Handle);
             Factory = new Factory();
             ImagingFactory = new ImagingFactory();
+
+            int PhysicalWidth = (int)(Width * Scaling);
+            int PhysicalHeight = (int)(Height * Scaling);
 
             var renderTargetProperties = new RenderTargetProperties
             {
@@ -68,6 +65,9 @@ namespace VideoEditor.UI
             lock (this)
             {
                 base.OnResize(e);
+                if (Scaling == null) return;
+                int PhysicalWidth = (int)(Width * Scaling);
+                int PhysicalHeight = (int)(Height * Scaling);
                 RenderTarget?.Resize(new Size2(PhysicalWidth, PhysicalHeight));
             }
         }
