@@ -9,95 +9,130 @@ using BitmapInterpolationMode = SharpDX.Direct2D1.BitmapInterpolationMode;
 using Format = SharpDX.DXGI.Format;
 using SharpDX.Mathematics.Interop;
 using VideoEditor.Types;
+using VideoEditor.Static;
+using System.Diagnostics;
 
 namespace VideoEditor.UI;
 
 public class DisplayControlDX2D : Control
 {
-    private Factory? _factory;
-    private WindowRenderTarget? _renderTarget;
-    private Bitmap? _bitmap;
-    private ImagingFactory? _wicFactory;
+    private Engine Engine;
 
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern int GetDpiForWindow(IntPtr hwnd);
-    private float WindowScaling => GetDpiForWindow(Handle) / 96.0f;
-    private int PhysicalWidth => (int)(Width * WindowScaling);
-    private int PhysicalHeight => (int)(Height * WindowScaling);
+    private WindowsScaling? Scaling;
+    private Factory? Factory;
+    private WindowRenderTarget? RenderTarget;
+    private Bitmap? Bitmap;
+    private ImagingFactory? ImagingFactory;
 
-    public DisplayControlDX2D()
+    public DisplayControlDX2D(Engine engine)
     {
+        Engine = engine;
+        FpsCounter = new FpsCounter();
+        Thread = new Thread(new ThreadStart(Kernel));
+
         SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.Opaque, true);
     }
 
-    public void SetFrame(Frame frame)
+    public FpsCounter FpsCounter { get; }
+    public Thread Thread { get; }
+
+    private int PhysicalWidth => (int)(Width * Scaling);
+    private int PhysicalHeight => (int)(Height * Scaling);
+
+    Timeline Timeline => Engine.Timeline;
+    SleepHelper SleepHelper => Engine.SleepHelper;
+
+    private void Kernel()
     {
-        if (_bitmap == null || _bitmap.PixelSize.Width != frame.Resolution.Width || _bitmap.PixelSize.Height != frame.Resolution.Height)
+        while (Engine.IsRunning)
         {
-            _bitmap?.Dispose();
-
-            var bitmapProperties = new BitmapProperties(new PixelFormat(Format.R8G8B8A8_UNorm, AlphaMode.Ignore));
-            _bitmap = new Bitmap(_renderTarget, new Size2(frame.Resolution.Width, frame.Resolution.Height), bitmapProperties);
+            Thread.Sleep(SleepHelper.SleepTillNextFrame() + 4);
+            //Debug.WriteLine(Timeline.CurrentFrameIndex + " Display");
+            Draw();
+            FpsCounter.Tick();
         }
-
-        // Update de bitmap rechtstreeks met de framebuffer
-        _bitmap.CopyFromMemory(frame.Buffer, frame.Resolution.Width * 4);
-
-        Draw();
     }
 
     private void Draw()
     {
-        if (_renderTarget == null || _bitmap == null)
+        if (RenderTarget == null)
             return;
 
-        _renderTarget.BeginDraw();
-        _renderTarget.Clear(new Color4(0, 0, 0, 1)); // Zwarte achtergrond
-
-        float controlWidth = Width;
-        float controlHeight = Height;
-        float imageWidth = _bitmap.PixelSize.Width;
-        float imageHeight = _bitmap.PixelSize.Height;
-
-        // Bereken de aspect ratio van de afbeelding
-        float imageAspect = imageWidth / imageHeight;
-        float controlAspect = controlWidth / controlHeight;
-
-        float destWidth, destHeight;
-        float offsetX, offsetY;
-
-        if (imageAspect > controlAspect)
+        lock (this)
         {
-            // Beeld is breder dan de control -> Pas hoogte aan
-            destWidth = controlWidth;
-            destHeight = controlWidth / imageAspect;
-            offsetX = 0;
-            offsetY = (controlHeight - destHeight) / 2; // Centreer verticaal
+            float controlWidth = Width;
+            float controlHeight = Height;
+            float imageWidth = Timeline.Resolution.Width;
+            float imageHeight = Timeline.Resolution.Height;
+
+            // Bereken de aspect ratio van de afbeelding
+            float imageAspect = imageWidth / imageHeight;
+            float controlAspect = controlWidth / controlHeight;
+
+            float destWidth, destHeight;
+            float offsetX, offsetY;
+
+            if (imageAspect > controlAspect)
+            {
+                // Beeld is breder dan de control -> Pas hoogte aan
+                destWidth = controlWidth;
+                destHeight = controlWidth / imageAspect;
+                offsetX = 0;
+                offsetY = (controlHeight - destHeight) / 2; // Centreer verticaal
+            }
+            else
+            {
+                // Beeld is hoger dan de control -> Pas breedte aan
+                destHeight = controlHeight;
+                destWidth = controlHeight * imageAspect;
+                offsetX = (controlWidth - destWidth) / 2; // Centreer horizontaal
+                offsetY = 0;
+            }
+
+            // Maak een rectangle met correcte scaling en centrering
+            var destRect = new RawRectangleF(offsetX, offsetY, offsetX + destWidth, offsetY + destHeight);
+            var resolution = new Resolution(Convert.ToInt32(destWidth), Convert.ToInt32(destHeight));
+
+            if (Bitmap == null || Bitmap.PixelSize.Width != resolution.Width || Bitmap.PixelSize.Height != resolution.Height)
+            {
+                Bitmap?.Dispose();
+
+                var bitmapProperties = new BitmapProperties(new PixelFormat(Format.R8G8B8A8_UNorm, AlphaMode.Ignore));
+                Bitmap = new Bitmap(RenderTarget, new Size2(resolution.Width, resolution.Height), bitmapProperties);
+            }
+
+            RenderTarget.BeginDraw();
+
+            var frames = Timeline.CurrentVideoClips
+                .OrderBy(a => a.Layer)
+                .Select(clip => clip.GetCurrentFrame(resolution))
+                .Where(a => a != null)
+                .ToArray();
+
+            RenderTarget.Clear(new Color4(0, 0, 0, 1)); // Zwarte achtergrond
+
+            foreach (var frame in frames)
+            {
+                if (frame == null) continue;
+
+                // Update de bitmap rechtstreeks met de framebuffer
+                Bitmap.CopyFromMemory((byte[])frame.Buffer, resolution.Width * 4);
+
+                // Tekenen met GPU-scaling en behoud van aspect ratio
+                RenderTarget.DrawBitmap(Bitmap, destRect, 1.0f, BitmapInterpolationMode.Linear);
+            }
+
+            RenderTarget.EndDraw();
         }
-        else
-        {
-            // Beeld is hoger dan de control -> Pas breedte aan
-            destHeight = controlHeight;
-            destWidth = controlHeight * imageAspect;
-            offsetX = (controlWidth - destWidth) / 2; // Centreer horizontaal
-            offsetY = 0;
-        }
-
-        // Maak een rectangle met correcte scaling en centrering
-        var destRect = new RawRectangleF(offsetX, offsetY, offsetX + destWidth, offsetY + destHeight);
-
-        // Tekenen met GPU-scaling en behoud van aspect ratio
-        _renderTarget.DrawBitmap(_bitmap, destRect, 1.0f, BitmapInterpolationMode.Linear);
-
-        _renderTarget.EndDraw();
     }
 
     protected override void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
 
-        _factory = new Factory();
-        _wicFactory = new ImagingFactory();
+        Scaling = new WindowsScaling(Handle);
+        Factory = new Factory();
+        ImagingFactory = new ImagingFactory();
 
         var renderTargetProperties = new RenderTargetProperties
         {
@@ -111,26 +146,23 @@ public class DisplayControlDX2D : Control
             PresentOptions = PresentOptions.Immediately
         };
 
-        _renderTarget = new WindowRenderTarget(_factory, renderTargetProperties, hwndProperties);
+        RenderTarget = new WindowRenderTarget(Factory, renderTargetProperties, hwndProperties);
     }
-
-    protected override void OnPaint(PaintEventArgs e)
-    {
-        Draw();
-    }
-
     protected override void OnResize(EventArgs e)
     {
-        base.OnResize(e);
-        _renderTarget?.Resize(new Size2(PhysicalWidth, PhysicalHeight));
+        lock (this)
+        {
+            base.OnResize(e);
+            RenderTarget?.Resize(new Size2(PhysicalWidth, PhysicalHeight));
+        }
     }
 
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
-        _bitmap?.Dispose();
-        _renderTarget?.Dispose();
-        _factory?.Dispose();
-        _wicFactory?.Dispose();
+        Bitmap?.Dispose();
+        RenderTarget?.Dispose();
+        Factory?.Dispose();
+        ImagingFactory?.Dispose();
     }
 }

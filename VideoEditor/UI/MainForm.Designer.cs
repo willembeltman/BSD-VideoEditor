@@ -51,9 +51,6 @@
             helpContentsToolStripMenuItem = new ToolStripMenuItem();
             toolStripSeparator4 = new ToolStripSeparator();
             aboutToolStripMenuItem = new ToolStripMenuItem();
-            timelineControl = new UI.TimelineControl(Engine);
-            displayControl = new UI.DisplayControl(Engine);
-            propertiesControl = new UI.PropertiesControl(Engine);
             timer = new System.Windows.Forms.Timer(components);
             menuStrip.SuspendLayout();
             SuspendLayout();
@@ -195,47 +192,15 @@
             aboutToolStripMenuItem.Size = new Size(148, 22);
             aboutToolStripMenuItem.Text = "About";
             // 
-            // timelineControl
-            // 
-            timelineControl.AllowDrop = true;
-            timelineControl.BackColor = Color.Black;
-            timelineControl.Location = new Point(9, 298);
-            timelineControl.Margin = new Padding(2);
-            timelineControl.Name = "timelineControl";
-            timelineControl.Size = new Size(907, 220);
-            timelineControl.TabIndex = 3;
-            // 
-            // displayControl
-            // 
-            displayControl.BackColor = SystemColors.ControlDarkDark;
-            displayControl.Location = new Point(8, 28);
-            displayControl.Margin = new Padding(1);
-            displayControl.Name = "displayControl";
-            displayControl.Size = new Size(650, 255);
-            displayControl.TabIndex = 4;
-            // 
-            // propertiesControl
-            // 
-            propertiesControl.BackColor = SystemColors.ControlDarkDark;
-            propertiesControl.Location = new Point(672, 28);
-            propertiesControl.Margin = new Padding(1);
-            propertiesControl.Name = "propertiesControl";
-            propertiesControl.Size = new Size(244, 255);
-            propertiesControl.TabIndex = 5;
-            // 
             // timer
             // 
             timer.Enabled = true;
-            timer.Tick += timer_Tick;
             // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(924, 529);
-            Controls.Add(propertiesControl);
-            Controls.Add(displayControl);
-            Controls.Add(timelineControl);
             Controls.Add(menuStrip);
             MainMenuStrip = menuStrip;
             Margin = new Padding(2);
@@ -269,8 +234,6 @@
         private ToolStripMenuItem mediaToolStripMenuItem;
         private ToolStripMenuItem timelineToolStripMenuItem;
         private ToolStripMenuItem helpToolStripMenuItem;
-        private UI.TimelineControl timelineControl;
-        private UI.DisplayControl displayControl;
         private ToolStripMenuItem helpContentsToolStripMenuItem;
         private ToolStripSeparator toolStripSeparator4;
         private ToolStripMenuItem aboutToolStripMenuItem;
@@ -278,7 +241,6 @@
         private ToolStripMenuItem colorToolStripMenuItem;
         private ToolStripMenuItem audioToolStripMenuItem;
         private ToolStripMenuItem exportToolStripMenuItem1;
-        private UI.PropertiesControl propertiesControl;
         private ToolStripMenuItem getFrameToolStripMenuItem;
         private ToolStripMenuItem test2ToolStripMenuItem;
         private System.Windows.Forms.Timer timer;

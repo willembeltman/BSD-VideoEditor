@@ -5,8 +5,8 @@ namespace VideoEditor;
 
 public class TimelineClipVideo : TimelineClip, ITimelineClip, IDisposable
 {
-    public TimelineClipVideo(Engine engine, Timeline timeline, StreamInfo streamInfo, TimelineClipGroup group) 
-        : base(engine, timeline, streamInfo, group)
+    public TimelineClipVideo(Timeline timeline, StreamInfo streamInfo, TimelineClipGroup group) 
+        : base(timeline, streamInfo, group)
     {
     }
 
@@ -48,7 +48,6 @@ public class TimelineClipVideo : TimelineClip, ITimelineClip, IDisposable
     Resolution CurrentResolution { get; set; }
     FFMpeg_FrameReader? Source { get; set; }
 
-
     double CurrentTime
     {
         get => Convert.ToDouble(CurrentIndex) * StreamInfo.Fps!.Value.Divider / StreamInfo.Fps!.Value.Base;
@@ -62,14 +61,13 @@ public class TimelineClipVideo : TimelineClip, ITimelineClip, IDisposable
     double RequestedCurrentTime => Convert.ToDouble(RequestedCurrentFrameIndex) * StreamInfo.Fps!.Value.Divider / StreamInfo.Fps!.Value.Base;
     double RequestedNextTime => Convert.ToDouble(RequestedNextFrameIndex) * StreamInfo.Fps!.Value.Divider / StreamInfo.Fps!.Value.Base;
 
-    public Frame? GetCurrentFrame()
+    public Frame? GetCurrentFrame(Resolution resolution)
     {
-        if (Engine.DisplayControl == null) return null;
         if (StreamInfo.Fps == null) return null;
 
         var reload = false;
         if (Source == null) reload = true;
-        else if (Engine.DisplayControl.Resolution != CurrentResolution) reload = true;
+        else if (CurrentResolution != resolution) reload = true;
         else if (RequestedCurrentTime < CurrentTime) reload = true;
         else if (RequestedCurrentTime > CurrentTime + 5) reload = true;
         else if (Source.CurrentFrameIndex > RequestedCurrentFrameIndex) reload = true;
@@ -81,7 +79,7 @@ public class TimelineClipVideo : TimelineClip, ITimelineClip, IDisposable
                 Source.Dispose();
             }
 
-            CurrentResolution = Engine.DisplayControl.Resolution;
+            CurrentResolution = resolution;
             CurrentTime = RequestedCurrentTime;
             if (CurrentTime < 0) return null;
             if (CurrentTime > TimelineEndTime - TimelineStartTime) return null;
@@ -93,43 +91,13 @@ public class TimelineClipVideo : TimelineClip, ITimelineClip, IDisposable
         if (Source.CurrentFrameIndex < RequestedCurrentFrameIndex)
             Source.MoveNext(RequestedCurrentFrameIndex, RequestedNextFrameIndex);
 
-        //while (!(CurrentTime <= Timeline.CurrentTime && Timeline.CurrentTime < RequestedNextTime))
-        //{
-        //    Source.MoveNext(CurrentClipIndex, NextTimelineTime);
-        //    CurrentIndex++;
-        //}
         if (Source.CurrentFrame == null) return null;
         return Source.CurrentFrame;
     }
-
 
     public void Dispose()
     {
         Source?.Dispose();
     }
-
-    //bool IsRunning { get; set; }
-    //Thread? Thread { get; set; }
-    //public void Start()
-    //{
-    //    IsRunning = true;
-    //    Thread = new Thread(new ThreadStart(TheThread));
-    //    Thread.Start();
-    //}
-    //public void Dispose()
-    //{
-    //    IsRunning = false;
-    //    if (Thread != null && Thread.CurrentThread != Thread) Thread.Join();
-    //    Thread = null;
-    //}
-    //public void TheThread()
-    //{
-    //    while (Engine.IsRunning && IsRunning)
-    //    {
-    //        var currentTime = Timeline.CurrentTime;
-
-    //    }
-    //}
-
 }
 

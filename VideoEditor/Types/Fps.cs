@@ -69,5 +69,10 @@ public readonly struct Fps
         result = new Fps(@base, divider);
         return true;
     }
+
+    public static implicit operator double(Fps windowsScaling)
+    {
+        return windowsScaling.Value;
+    }
 }
 

@@ -28,37 +28,44 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             vScrollBar1 = new VScrollBar();
             lblFps = new Label();
+            UpdateTimer = new System.Windows.Forms.Timer(components);
             SuspendLayout();
             // 
             // vScrollBar1
             // 
-            vScrollBar1.Location = new Point(253, 0);
+            vScrollBar1.Location = new Point(361, 0);
             vScrollBar1.Name = "vScrollBar1";
-            vScrollBar1.Size = new Size(32, 273);
+            vScrollBar1.Size = new Size(32, 455);
             vScrollBar1.TabIndex = 0;
             // 
             // lblFps
             // 
             lblFps.AutoSize = true;
             lblFps.BackColor = Color.Beige;
-            lblFps.Location = new Point(3, 4);
+            lblFps.Location = new Point(4, 7);
+            lblFps.Margin = new Padding(4, 0, 4, 0);
             lblFps.Name = "lblFps";
-            lblFps.Size = new Size(38, 15);
+            lblFps.Size = new Size(59, 25);
             lblFps.TabIndex = 1;
             lblFps.Text = "label1";
             // 
+            // UpdateTimer
+            // 
+            UpdateTimer.Enabled = true;
+            UpdateTimer.Tick += UpdateTimer_Tick;
+            // 
             // PropertiesControl
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.ControlDarkDark;
             Controls.Add(lblFps);
             Controls.Add(vScrollBar1);
-            Margin = new Padding(2);
             Name = "PropertiesControl";
-            Size = new Size(281, 273);
+            Size = new Size(401, 455);
             Resize += PropertiesControl_Resize;
             ResumeLayout(false);
             PerformLayout();
@@ -68,5 +75,6 @@
 
         private VScrollBar vScrollBar1;
         private Label lblFps;
+        private System.Windows.Forms.Timer UpdateTimer;
     }
 }

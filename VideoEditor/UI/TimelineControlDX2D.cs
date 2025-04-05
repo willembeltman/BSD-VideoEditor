@@ -1,19 +1,65 @@
-﻿using System.Diagnostics;
+﻿using SharpDX;
+using SharpDX.Direct2D1;
+using SharpDX.WIC;
+using PixelFormat = SharpDX.Direct2D1.PixelFormat;
+using Factory = SharpDX.Direct2D1.Factory;
+using AlphaMode = SharpDX.Direct2D1.AlphaMode;
+using Format = SharpDX.DXGI.Format;
+using Rectangle = System.Drawing.Rectangle;
+using Point = System.Drawing.Point;
+using Color = System.Drawing.Color;
+using SharpDX.Mathematics.Interop;
+using VideoEditor.Types;
+using System.Diagnostics;
 using VideoEditor.Enums;
 using VideoEditor.Static;
-using VideoEditor.Types;
 
 namespace VideoEditor.UI;
 
-public partial class TimelineControl : UserControl
+public class TimelineControlDX2D : Control
 {
-    public TimelineControl(Engine engine)
+    private Engine Engine;
+    private HScrollBar HScrollBarControl;
+
+    private WindowsScaling? Scaling;
+    private Factory? Factory;
+    private ImagingFactory? ImagingFactory;
+    private WindowRenderTarget? RenderTarget;
+    private SolidColorBrushes? Brushes;
+
+    public TimelineControlDX2D(Engine engine)
     {
         Engine = engine;
-        //Engine.TimelineControl = this;
+        Thread = new Thread(new ThreadStart(Kernel));
+        FpsCounter = new FpsCounter();
 
-        InitializeComponent();
+        SuspendLayout();
+
+        HScrollBarControl = new HScrollBar();
+        HScrollBarControl.Scroll += ScrollBarControl_Scroll;
+        Controls.Add(HScrollBarControl);
+
+        AllowDrop = true;
+        BackColor = Color.Black;
+        Size = new Size(665, 430);
+
+        DragDrop += TimelineControl_DragDrop;
+        DragEnter += TimelineControl_DragEnter;
+        DragOver += TimelineControl_DragOver;
+        DragLeave += TimelineControl_DragLeave;
+        KeyDown += TimelineControl_KeyDown;
+        MouseDown += TimelineControl_MouseDown;
+        MouseMove += TimelineControl_MouseMove;
+        MouseUp += TimelineControl_MouseUp;
+        MouseWheel += TimelineControl_MouseWheel;
+
+        SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.Opaque, true);
+
+        ResumeLayout(false);
     }
+
+    public FpsCounter FpsCounter { get; }
+    public Thread Thread { get; }
 
     DragAndDrop DragAndDrop { get; } = new();
     Dragging SelectedClipsDragging { get; } = new();
@@ -21,34 +67,87 @@ public partial class TimelineControl : UserControl
     Scrolling Scrolling { get; } = new();
 
     Timeline Timeline => Engine.Timeline;
+    SleepHelper SleepHelper => Engine.SleepHelper;
+
     Rectangle TimelineRectangle => new Rectangle(
         ClientRectangle.Left,
         ClientRectangle.Top,
         ClientRectangle.Width,
         ClientRectangle.Height - HScrollBarControl.Height);
     int MiddleOffset => HScrollBarControl.Height / 2;
+    int PhysicalWidth => (int)(Width * Scaling);
+    int PhysicalHeight => (int)(Height * Scaling);
 
-    public Engine Engine { get; }
-
-    private void TimelineControl_Load(object sender, EventArgs e)
+    protected override void OnHandleCreated(EventArgs e)
     {
+        base.OnHandleCreated(e);
+
+        Scaling = new WindowsScaling(Handle);
+        Factory = new Factory();
+        ImagingFactory = new ImagingFactory();
+
+        var renderTargetProperties = new RenderTargetProperties
+        {
+            PixelFormat = new PixelFormat(Format.B8G8R8A8_UNorm, AlphaMode.Ignore)
+        };
+
+        var hwndProperties = new HwndRenderTargetProperties
+        {
+            Hwnd = Handle,
+            PixelSize = new Size2(PhysicalWidth, PhysicalHeight),
+            PresentOptions = PresentOptions.Immediately
+        };
+
+        RenderTarget = new WindowRenderTarget(Factory, renderTargetProperties, hwndProperties);
+        Brushes = new SolidColorBrushes(RenderTarget);
+
         SetupScrollbar();
     }
-
-    private void TimelineControl_Paint(object? sender, PaintEventArgs e)
+    protected override void OnResize(EventArgs e)
     {
-        var g = e.Graphics;
-        g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-        g.Clear(Color.Black);
+        base.OnResize(e);
 
-        DrawTimeMarkers(g);
-        DrawVideoClips(g);
-        DrawPlayerPosition(g);
+        lock (this)
+        {
+            RenderTarget?.Resize(new Size2(PhysicalWidth, PhysicalHeight));
+        }
+
+        HScrollBarControl.Left = 0;
+        HScrollBarControl.Top = ClientRectangle.Height - HScrollBarControl.Height;
+        HScrollBarControl.Width = ClientRectangle.Width;
     }
-    private void DrawTimeMarkers(Graphics g)
+
+    public void Kernel()
     {
-        using var pen = new Pen(Color.FromArgb(0, 0, 128), 1);
-        using var pen2 = new Pen(Color.FromArgb(64, 0, 0), 1);
+        while (Engine.IsRunning)
+        {
+            Thread.Sleep(SleepHelper.SleepTillNextFrame() + 4);
+            //Debug.WriteLine(Timeline.CurrentFrameIndex + " Timeline");
+            Draw();
+            FpsCounter.Tick();
+        }
+    }
+
+    public void Draw()
+    {
+        if (RenderTarget == null)
+            return;
+
+        lock (this)
+        {
+            RenderTarget.BeginDraw();
+            RenderTarget.Clear(new Color4(0, 0, 0, 1));
+
+            DrawTimeMarkers();
+            DrawVideoClips();
+            DrawPlayerPosition();
+
+            RenderTarget.EndDraw();
+        }
+    }
+
+    private void DrawTimeMarkers()
+    {
         using var font = new Font("Arial", Constants.TextSize);
         using var brush = new SolidBrush(Color.White);
 
@@ -59,22 +158,22 @@ public partial class TimelineControl : UserControl
         for (var i = 0; i < Timeline.VisibleVideoLayers; i++)
         {
             var y = TimelineRectangle.Top + middle - i * videoBlockHeight - MiddleOffset;
-            g.DrawLine(pen2, 0, y, Width, y);
+            RenderTarget.DrawLine(new RawVector2(0, y), new RawVector2(Width, y), Brushes.HorizontalLines);
 
-            var text = $"{i + Timeline.FirstVisibleVideoLayer}";
-            var textSize = g.MeasureString(text, font);
-            var textY = y - videoBlockHeight / 2 - (int)(textSize.Height / 2);
-            g.DrawString(text, font, brush, 2, textY);
+            //var text = $"{i + Timeline.FirstVisibleVideoLayer}";
+            //var textSize = RenderTarget.MeasureString(text, font);
+            //var textY = y - videoBlockHeight / 2 - (int)(textSize.Height / 2);
+            //RenderTarget.DrawString(text, font, brush, 2, textY);
         }
         for (var i = 0; i < Timeline.VisibleAudioLayers; i++)
         {
             var y = TimelineRectangle.Top + middle + i * audioBlockHeight + MiddleOffset;
-            g.DrawLine(pen2, 0, y, Width, y);
+            RenderTarget.DrawLine(new RawVector2(0, y), new RawVector2(Width, y), Brushes.HorizontalLines);
 
-            var text = $"{i + Timeline.FirstVisibleAudioLayer}";
-            var textSize = g.MeasureString(text, font);
-            var textY = y + audioBlockHeight / 2 - (int)(textSize.Height / 2);
-            g.DrawString(text, font, brush, 2, textY);
+            //var text = $"{i + Timeline.FirstVisibleAudioLayer}";
+            //var textSize = RenderTarget.MeasureString(text, font);
+            //var textY = y + audioBlockHeight / 2 - (int)(textSize.Height / 2);
+            //RenderTarget.DrawString(text, font, brush, 2, textY);
         }
 
         var timeIncrease = 0.01D;
@@ -90,16 +189,16 @@ public partial class TimelineControl : UserControl
         {
             var x = Convert.ToInt32((sec - Timeline.VisibleStart) / Timeline.VisibleWidth * Width);
             if (x >= Width) break;
-            g.DrawLine(pen, x, 0, x, Height);
+            RenderTarget.DrawLine(new RawVector2(x, 0), new RawVector2(x, Height), Brushes.VerticalLines);
 
-            var text = $"{sec.ToString("F" + decimals)}s";
-            var textSize = g.MeasureString(text, font);
-            var textY = TimelineRectangle.Top + middle - (int)(textSize.Height / 2);
-            g.DrawString(text, font, brush, x + 2, textY);
+            //var text = $"{sec.ToString("F" + decimals)}s";
+            //var textSize = RenderTarget.MeasureString(text, font);
+            //var textY = TimelineRectangle.Top + middle - (int)(textSize.Height / 2);
+            //RenderTarget.DrawString(text, font, brush, x + 2, textY);
         }
 
     }
-    private void DrawVideoClips(Graphics g)
+    private void DrawVideoClips()
     {
         var clips = Timeline.AllClips.Concat(DragAndDrop.AllClips);
         foreach (var clip in clips)
@@ -113,15 +212,15 @@ public partial class TimelineControl : UserControl
                 if (rect.Top > TimelineRectangle.Height || rect.Bottom < 0) continue; // Clip buiten zichtbare range
 
                 var selected = Timeline.SelectedClips.Contains(clip);
-                var fillBrush = selected ? Brushes.Red : clip.IsVideoClip ? Brushes.DarkBlue : Brushes.Aqua;
-                var borderPen = Pens.White;
+                var fillBrush = selected ? Brushes.SelectedClip : clip.IsVideoClip ? Brushes.VideoClip : Brushes.AudioClip;
+                var borderPen = Brushes.ClipBorder;
 
-                g.FillRectangle(fillBrush, rect);
-                g.DrawRectangle(borderPen, rect);
+                RenderTarget.FillRectangle(rect, fillBrush);
+                RenderTarget.DrawRectangle(rect, borderPen);
             }
         }
     }
-    private void DrawPlayerPosition(Graphics g)
+    private void DrawPlayerPosition()
     {
         using var pen = new Pen(Color.Red, 2);
 
@@ -131,7 +230,7 @@ public partial class TimelineControl : UserControl
         // Zorg ervoor dat de lijn binnen de zichtbare regio valt
         if (x >= 0 && x <= Width)
         {
-            g.DrawLine(pen, x, 0, x, Height);
+            RenderTarget.DrawLine(new RawVector2(x, 0), new RawVector2(x, Height), Brushes.PositionLine);
         }
     }
 
@@ -155,7 +254,6 @@ public partial class TimelineControl : UserControl
         {
             ScrollY(scrollDelta, timelinePosition.Value);
         }
-        Invalidate();
         SetupScrollbar();
     }
     private void ScrollY(int delta, TimelinePosition timelinePosition)
@@ -215,20 +313,13 @@ public partial class TimelineControl : UserControl
         HScrollBarControl.LargeChange = Convert.ToInt32(Math.Floor(Timeline.VisibleWidth));
     }
 
-    private void ScrollBarControl_Scroll(object sender, ScrollEventArgs e)
+    private void ScrollBarControl_Scroll(object? sender, ScrollEventArgs e)
     {
         Timeline.VisibleStart = e.NewValue;
-        Invalidate();
-    }
-    private void TimelineControl_Resize(object sender, EventArgs e)
-    {
-        HScrollBarControl.Left = 0;
-        HScrollBarControl.Top = ClientRectangle.Height - HScrollBarControl.Height;
-        HScrollBarControl.Width = ClientRectangle.Width;
-        Invalidate();
     }
 
-    private void TimelineControl_DragEnter(object sender, DragEventArgs e)
+
+    private void TimelineControl_DragEnter(object? sender, DragEventArgs e)
     {
         var fullNames = GetDragAndDropFilenames(e);
         if (fullNames.Length == 0)
@@ -290,9 +381,8 @@ public partial class TimelineControl : UserControl
 
             DragAndDrop.Files.Add(file);
         }
-        Invalidate();
     }
-    private void TimelineControl_DragOver(object sender, DragEventArgs e)
+    private void TimelineControl_DragOver(object? sender, DragEventArgs e)
     {
         var fullNames = GetDragAndDropFilenames(e);
         if (fullNames.Length == 0)
@@ -350,10 +440,9 @@ public partial class TimelineControl : UserControl
             }
         }
 
-        Invalidate();
         SetupScrollbar();
     }
-    private void TimelineControl_DragDrop(object sender, DragEventArgs e)
+    private void TimelineControl_DragDrop(object? sender, DragEventArgs e)
     {
         var fullNames = GetDragAndDropFilenames(e);
         if (fullNames.Length == 0) return;
@@ -363,10 +452,9 @@ public partial class TimelineControl : UserControl
 
         TimelineControl_DragLeave(sender, e);
     }
-    private void TimelineControl_DragLeave(object sender, EventArgs e)
+    private void TimelineControl_DragLeave(object? sender, EventArgs e)
     {
         DragAndDrop.Clear();
-        Invalidate();
         SetupScrollbar();
     }
     private string[] GetDragAndDropFilenames(DragEventArgs e)
@@ -382,7 +470,7 @@ public partial class TimelineControl : UserControl
             .ToArray();
     }
 
-    private void TimelineControl_MouseDown(object sender, MouseEventArgs e)
+    private void TimelineControl_MouseDown(object? sender, MouseEventArgs e)
     {
         /// Er zijn 3 verschillende mogelijkheden:
         /// 1. Niets is geselecteerd en je selecteerd een clip/groep = Selecteren
@@ -400,7 +488,6 @@ public partial class TimelineControl : UserControl
         {
             MiddleDragging.Set(startpoint, startposition);
             Timeline.CurrentTime = startposition.Value.CurrentTime;
-            Invalidate();
             return;
         }
 
@@ -413,16 +500,13 @@ public partial class TimelineControl : UserControl
                 clip.OldLayer = clip.Layer;
                 clip.OldTimelineStartTime = clip.TimelineStartTime;
             }
-            Invalidate();
             return;
         }
 
         Timeline.SelectedClips.Clear();
         Timeline.SelectedClips.AddRange(selectedClips);
-
-        Invalidate();
     }
-    private void TimelineControl_MouseMove(object sender, MouseEventArgs e)
+    private void TimelineControl_MouseMove(object? sender, MouseEventArgs e)
     {
         if (!MiddleDragging.IsDragging && !SelectedClipsDragging.IsDragging) return;
 
@@ -435,7 +519,6 @@ public partial class TimelineControl : UserControl
         if (MiddleDragging.IsDragging && endPosition.Value.TimelinePart == TimelinePart.Middle)
         {
             Timeline.CurrentTime = endPosition.Value.CurrentTime;
-            Invalidate();
             return;
         }
 
@@ -449,12 +532,10 @@ public partial class TimelineControl : UserControl
                 clip.TimelineStartTime = clip.OldTimelineStartTime + diff.CurrentTime;
                 Debug.WriteLine($"Dragging {diff.CurrentTime}x{diff.Layer} {clip.OldTimelineStartTime}+{diff.CurrentTime.ToString("F3")}={clip.TimelineStartTime}");
             }
-
-            Invalidate();
             return;
         }
     }
-    private void TimelineControl_MouseUp(object sender, MouseEventArgs e)
+    private void TimelineControl_MouseUp(object? sender, MouseEventArgs e)
     {
         MiddleDragging.IsDragging = false;
         SelectedClipsDragging.IsDragging = false;
@@ -519,7 +600,7 @@ public partial class TimelineControl : UserControl
         }
         return null;
     }
-    private Rectangle CalculateRectangle(ITimelineClip clip)
+    private RawRectangleF CalculateRectangle(ITimelineClip clip)
     {
         int middle = TimelineRectangle.Height / 2;
         int videoBlockHeight = (middle - HScrollBarControl.Height / 2) / Timeline.VisibleVideoLayers;
@@ -533,24 +614,33 @@ public partial class TimelineControl : UserControl
         {
             var layer = clip.Layer - Timeline.FirstVisibleVideoLayer;
             var y = middle - MiddleOffset - videoBlockHeight - layer * videoBlockHeight;
-            var rect = new Rectangle(x1, y + Constants.Margin / 2, width, videoBlockHeight - Constants.Margin);
+            var rect = new RawRectangleF(x1, y + Constants.Margin / 2, x1 + width, y + Constants.Margin / 2 + videoBlockHeight - Constants.Margin);
             return rect;
         }
         else
         {
             var layer = clip.Layer - Timeline.FirstVisibleAudioLayer;
             var y = middle + MiddleOffset + (clip.Layer - Timeline.FirstVisibleAudioLayer) * audioBlockHeight;
-            var rect = new Rectangle(x1, y + Constants.Margin / 2, width, audioBlockHeight - Constants.Margin);
+            var rect = new RawRectangleF(x1, y + Constants.Margin / 2, x1 + width, y + Constants.Margin / 2 + audioBlockHeight - Constants.Margin);
             return rect;
         }
     }
 
-    private void TimelineControl_KeyDown(object sender, KeyEventArgs e)
+    private void TimelineControl_KeyDown(object? sender, KeyEventArgs e)
     {
         if (e.KeyCode == Keys.Delete || e.KeyCode == Keys.Back)
         {
             // Delete
 
         }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+        Brushes?.Dispose();
+        RenderTarget?.Dispose();
+        Factory?.Dispose();
+        ImagingFactory?.Dispose();
     }
 }

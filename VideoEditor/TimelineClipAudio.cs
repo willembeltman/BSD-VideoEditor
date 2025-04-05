@@ -2,8 +2,8 @@
 
 public class TimelineClipAudio : TimelineClip, ITimelineClip, IDisposable
 {
-    public TimelineClipAudio(Engine engine, Timeline timeline, StreamInfo streamInfo, TimelineClipGroup group)
-        : base(engine, timeline, streamInfo, group)
+    public TimelineClipAudio(Timeline timeline, StreamInfo streamInfo, TimelineClipGroup group)
+        : base(timeline, streamInfo, group)
     {
     }
 

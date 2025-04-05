@@ -1,17 +1,50 @@
+using SharpDX.DXGI;
 using VideoEditor.Static;
+using VideoEditor.UI;
 
 namespace VideoEditor;
 
-public partial class MainForm : Form
+public partial class MainForm : Form, IEngineForm
 {
     public MainForm()
     {
-        Engine = new Engine();
-        Engine.MainForm = this;
+        Engine = new Engine(this);
+
+        TimelineControl = new TimelineControlDX2D(Engine);
+        TimelineControl.AllowDrop = true;
+        TimelineControl.BackColor = Color.Black;
+        TimelineControl.Location = new Point(9, 298);
+        TimelineControl.Margin = new Padding(2);
+        TimelineControl.Name = "timelineControl";
+        TimelineControl.Size = new Size(907, 220);
+        TimelineControl.TabIndex = 3;
+        Controls.Add(TimelineControl);
+
+        DisplayControl = new DisplayControlDX2D(Engine);
+        DisplayControl.BackColor = SystemColors.ControlDarkDark;
+        DisplayControl.Location = new Point(8, 28);
+        DisplayControl.Margin = new Padding(1);
+        DisplayControl.Name = "displayControl";
+        DisplayControl.Size = new Size(650, 255);
+        DisplayControl.TabIndex = 4;
+        Controls.Add(DisplayControl);
+
+        PropertiesControl = new PropertiesControl(Engine);
+        PropertiesControl.BackColor = SystemColors.ControlDarkDark;
+        PropertiesControl.Location = new Point(672, 28);
+        PropertiesControl.Margin = new Padding(1);
+        PropertiesControl.Name = "propertiesControl";
+        PropertiesControl.Size = new Size(244, 255);
+        PropertiesControl.TabIndex = 5;
+        Controls.Add(PropertiesControl);
+
         InitializeComponent();
     }
 
     public Engine Engine { get; }
+    public TimelineControlDX2D TimelineControl { get; }
+    public DisplayControlDX2D DisplayControl { get; }
+    public PropertiesControl PropertiesControl { get; }
 
     int TimelineHeight { get; set; } = 200;
     int PropertiesWidth { get; set; } = 320;
@@ -21,9 +54,9 @@ public partial class MainForm : Form
     private void MainForm_Load(object sender, EventArgs e)
     {
         MainForm_Resize(sender, e);
-        Engine.Thread.Start();
-    }
+        Engine.StartAll();
 
+    }
     private void MainForm_Resize(object sender, EventArgs e)
     {
         var nettowidth = ClientRectangle.Width - Constants.Margin;
@@ -44,22 +77,21 @@ public partial class MainForm : Form
             linkerwidth = screenWidthBasedOnHeight;
         }
 
-        displayControl.Top = menuStrip.Bottom;
-        displayControl.Left = 0;
-        displayControl.Width = linkerwidth;
-        displayControl.Height = topheight;
+        DisplayControl.Top = menuStrip.Bottom;
+        DisplayControl.Left = 0;
+        DisplayControl.Width = linkerwidth;
+        DisplayControl.Height = topheight;
 
-        propertiesControl.Top = menuStrip.Bottom;
-        propertiesControl.Left = displayControl.Right + Constants.Margin;
-        propertiesControl.Width = nettowidth - linkerwidth;
-        propertiesControl.Height = topheight;
+        PropertiesControl.Top = menuStrip.Bottom;
+        PropertiesControl.Left = DisplayControl.Right + Constants.Margin;
+        PropertiesControl.Width = nettowidth - linkerwidth;
+        PropertiesControl.Height = topheight;
 
-        timelineControl.Top = displayControl.Bottom + Constants.Margin;
-        timelineControl.Left = 0;
-        timelineControl.Width = ClientRectangle.Width;
-        timelineControl.Height = nettoheight - topheight;
+        TimelineControl.Top = DisplayControl.Bottom + Constants.Margin;
+        TimelineControl.Left = 0;
+        TimelineControl.Width = ClientRectangle.Width;
+        TimelineControl.Height = nettoheight - topheight;
     }
-
     private void MainForm_MouseMove(object sender, MouseEventArgs e)
     {
         var moved = false;
@@ -101,11 +133,11 @@ public partial class MainForm : Form
     }
     public bool MouseIsOverXResizer(MouseEventArgs e)
     {
-        return e.X > displayControl.Right && e.X < propertiesControl.Left;
+        return e.X > DisplayControl.Right && e.X < PropertiesControl.Left;
     }
     public bool MouseIsOverYResizer(MouseEventArgs e)
     {
-        return e.Y > displayControl.Bottom && e.Y < timelineControl.Top;
+        return e.Y > DisplayControl.Bottom && e.Y < TimelineControl.Top;
     }
     private void MainForm_MouseDown(object sender, MouseEventArgs e)
     {
@@ -133,10 +165,5 @@ public partial class MainForm : Form
     private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
     {
         Engine.Dispose();
-    }
-
-    private void timer_Tick(object sender, EventArgs e)
-    {
-        propertiesControl.UpdateFps();
     }
 }

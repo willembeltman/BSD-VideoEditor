@@ -7,7 +7,7 @@ public class Timeline : IDisposable
     {
         Project = project;
         Resolution = new Resolution(1920, 1080);
-        Fps = new Fps(25, 1);
+        Fps = new Fps(30, 1);
         SampleRate = 48000;
         AudioChannels = 2;
     }
