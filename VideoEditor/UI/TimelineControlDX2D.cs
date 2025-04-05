@@ -32,6 +32,7 @@ public class TimelineControlDX2D : Control
         Engine = engine;
         Thread = new Thread(new ThreadStart(Kernel));
         FpsCounter = new FpsCounter();
+        AutoResetEvent = new AutoResetEvent(false);
 
         SuspendLayout();
 
@@ -60,6 +61,7 @@ public class TimelineControlDX2D : Control
 
     public FpsCounter FpsCounter { get; }
     public Thread Thread { get; }
+    public AutoResetEvent AutoResetEvent { get; }
 
     DragAndDrop DragAndDrop { get; } = new();
     Dragging SelectedClipsDragging { get; } = new();
@@ -67,7 +69,6 @@ public class TimelineControlDX2D : Control
     Scrolling Scrolling { get; } = new();
 
     Timeline Timeline => Engine.Timeline;
-    SleepHelper SleepHelper => Engine.SleepHelper;
 
     Rectangle TimelineRectangle => new Rectangle(
         ClientRectangle.Left,
@@ -117,18 +118,16 @@ public class TimelineControlDX2D : Control
         HScrollBarControl.Width = ClientRectangle.Width;
     }
 
-    public void Kernel()
+    private void Kernel()
     {
         while (Engine.IsRunning)
         {
-            Thread.Sleep(SleepHelper.SleepTillNextFrame() + 4);
-            //Debug.WriteLine(Timeline.CurrentFrameIndex + " Timeline");
+            if (!AutoResetEvent.WaitOne(100)) continue;
             Draw();
             FpsCounter.Tick();
         }
     }
-
-    public void Draw()
+    private void Draw()
     {
         if (RenderTarget == null)
             return;
@@ -144,6 +143,11 @@ public class TimelineControlDX2D : Control
 
             RenderTarget.EndDraw();
         }
+    }
+
+    public void SignalUpdate()
+    {
+        AutoResetEvent.Set();
     }
 
     private void DrawTimeMarkers()
@@ -643,4 +647,5 @@ public class TimelineControlDX2D : Control
         Factory?.Dispose();
         ImagingFactory?.Dispose();
     }
+
 }

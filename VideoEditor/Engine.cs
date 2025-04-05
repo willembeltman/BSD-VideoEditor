@@ -29,7 +29,6 @@ public class Engine : IDisposable
     Stopwatch Stopwatch { get; set; } = Stopwatch.StartNew();
     double StartTime { get; set; }
 
-    public FpsCounter FpsCounter { get; set; } = new FpsCounter();
     public Timeline Timeline => Project.CurrentTimeline;
 
     public void StartAll()
@@ -57,13 +56,12 @@ public class Engine : IDisposable
     {
         while (IsRunning)
         {
-            //var sleep = SleepHelper.SleepTillNextFrame();
+            var sleep = SleepHelper.SleepTillNextFrame();
+            Thread.Sleep(sleep);
 
             //Debug.WriteLine(sleep.ToString());
 
-            //Thread.Sleep(sleep / 4);
-
-            Thread.Sleep(5);
+            //Thread.Sleep(1);
 
             if (IsPlaying)
             {
@@ -71,9 +69,10 @@ public class Engine : IDisposable
                 Timeline.CurrentTime = StartTime + Stopwatch.Elapsed.TotalSeconds;
             }
 
-            //Debug.WriteLine(Timeline.CurrentFrameIndex + " Engine");
+            TimelineControl.SignalUpdate();
+            DisplayControl.SignalUpdate();
 
-            FpsCounter.Tick();
+            //Debug.WriteLine(Timeline.CurrentFrameIndex + " Engine");
         }
     }
 

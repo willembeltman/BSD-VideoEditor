@@ -29,12 +29,14 @@ public class DisplayControlDX2D : Control
         Engine = engine;
         FpsCounter = new FpsCounter();
         Thread = new Thread(new ThreadStart(Kernel));
+        AutoResetEvent = new AutoResetEvent(false);
 
         SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.Opaque, true);
     }
 
     public FpsCounter FpsCounter { get; }
     public Thread Thread { get; }
+    public AutoResetEvent AutoResetEvent { get; }
 
     private int PhysicalWidth => (int)(Width * Scaling);
     private int PhysicalHeight => (int)(Height * Scaling);
@@ -46,13 +48,11 @@ public class DisplayControlDX2D : Control
     {
         while (Engine.IsRunning)
         {
-            Thread.Sleep(SleepHelper.SleepTillNextFrame() + 4);
-            //Debug.WriteLine(Timeline.CurrentFrameIndex + " Display");
+            if (!AutoResetEvent.WaitOne(100)) continue;
             Draw();
             FpsCounter.Tick();
         }
     }
-
     private void Draw()
     {
         if (RenderTarget == null)
@@ -126,6 +126,11 @@ public class DisplayControlDX2D : Control
         }
     }
 
+    public void SignalUpdate()
+    {
+        AutoResetEvent.Set();
+    }
+
     protected override void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
@@ -165,4 +170,5 @@ public class DisplayControlDX2D : Control
         Factory?.Dispose();
         ImagingFactory?.Dispose();
     }
+
 }
