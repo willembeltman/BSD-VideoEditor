@@ -13,26 +13,17 @@ using VideoEditor.Types;
 using System.Diagnostics;
 using VideoEditor.Enums;
 using VideoEditor.Static;
+using System.Security.Policy;
 
 namespace VideoEditor.UI;
 
-public class TimelineControlDX2D : Control
+public class TimelineControlDX2D : BaseControlDX2D
 {
-    private Engine Engine;
     private HScrollBar HScrollBarControl;
 
-    private WindowsScaling? Scaling;
-    private Factory? Factory;
-    private ImagingFactory? ImagingFactory;
-    private WindowRenderTarget? RenderTarget;
-    private SolidColorBrushes? Brushes;
-
-    public TimelineControlDX2D(Engine engine)
+    public TimelineControlDX2D(Engine engine) : base(engine)
     {
-        Engine = engine;
         Thread = new Thread(new ThreadStart(Kernel));
-        FpsCounter = new FpsCounter();
-        AutoResetEvent = new AutoResetEvent(false);
 
         SuspendLayout();
 
@@ -59,10 +50,6 @@ public class TimelineControlDX2D : Control
         ResumeLayout(false);
     }
 
-    public FpsCounter FpsCounter { get; }
-    public Thread Thread { get; }
-    public AutoResetEvent AutoResetEvent { get; }
-
     DragAndDrop DragAndDrop { get; } = new();
     Dragging SelectedClipsDragging { get; } = new();
     Dragging MiddleDragging { get; } = new();
@@ -76,55 +63,22 @@ public class TimelineControlDX2D : Control
         ClientRectangle.Width,
         ClientRectangle.Height - HScrollBarControl.Height);
     int MiddleOffset => HScrollBarControl.Height / 2;
-    int PhysicalWidth => (int)(Width * Scaling);
-    int PhysicalHeight => (int)(Height * Scaling);
 
     protected override void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
 
-        Scaling = new WindowsScaling(Handle);
-        Factory = new Factory();
-        ImagingFactory = new ImagingFactory();
-
-        var renderTargetProperties = new RenderTargetProperties
-        {
-            PixelFormat = new PixelFormat(Format.B8G8R8A8_UNorm, AlphaMode.Ignore)
-        };
-
-        var hwndProperties = new HwndRenderTargetProperties
-        {
-            Hwnd = Handle,
-            PixelSize = new Size2(PhysicalWidth, PhysicalHeight),
-            PresentOptions = PresentOptions.Immediately
-        };
-
-        RenderTarget = new WindowRenderTarget(Factory, renderTargetProperties, hwndProperties);
-        Brushes = new SolidColorBrushes(RenderTarget);
-
         SetupScrollbar();
-    }
-    protected override void OnResize(EventArgs e)
-    {
-        base.OnResize(e);
-
-        lock (this)
-        {
-            RenderTarget?.Resize(new Size2(PhysicalWidth, PhysicalHeight));
-        }
-
-        HScrollBarControl.Left = 0;
-        HScrollBarControl.Top = ClientRectangle.Height - HScrollBarControl.Height;
-        HScrollBarControl.Width = ClientRectangle.Width;
     }
 
     private void Kernel()
     {
         while (Engine.IsRunning)
         {
-            if (!AutoResetEvent.WaitOne(100)) continue;
+            if (!BeginAutoResetEvent.WaitOne(100)) continue;
             Draw();
             FpsCounter.Tick();
+            DoneAutoResetEvent.Set();
         }
     }
     private void Draw()
@@ -145,9 +99,13 @@ public class TimelineControlDX2D : Control
         }
     }
 
-    public void SignalUpdate()
+    public void Begin()
     {
-        AutoResetEvent.Set();
+        BeginAutoResetEvent.Set();
+    }
+    public bool Done()
+    {
+        return DoneAutoResetEvent.WaitOne(500);
     }
 
     private void DrawTimeMarkers()

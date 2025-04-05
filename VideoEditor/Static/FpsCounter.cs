@@ -5,6 +5,7 @@ namespace VideoEditor.Static
 {
     public class FpsCounter
     {
+        const int secterug = 5;
         Stopwatch Stopwatch = Stopwatch.StartNew();
         ConcurrentQueue<double> fpslist = new ConcurrentQueue<double>();
         public void Tick()
@@ -12,20 +13,20 @@ namespace VideoEditor.Static
             var currenttime = Stopwatch.Elapsed.TotalSeconds;
             fpslist.Enqueue(currenttime);
 
-            var dequeueLenght = fpslist.Count(time => time < currenttime - 10);
+            var dequeueLenght = fpslist.Count(time => time < currenttime - secterug);
             for (int i = 0; i < dequeueLenght; i++)
             {
                 fpslist.TryDequeue(out var result);
             }
         }
 
-        public int Fps
+        public double GetFps()
         {
-            get
-            {
-                return fpslist
-                    .Count(time => time >= Stopwatch.Elapsed.TotalSeconds - 1);
-            }
+            var now = Stopwatch.Elapsed.TotalSeconds;
+            var list = fpslist
+                .Where(time => time >= now - secterug)
+                .ToArray();
+            return Convert.ToDouble(list.Length) / Math.Min(secterug, now);
         }
     }
 }

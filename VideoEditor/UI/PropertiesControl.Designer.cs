@@ -45,7 +45,7 @@
             // 
             lblFps.AutoSize = true;
             lblFps.BackColor = Color.Beige;
-            lblFps.Location = new Point(4, 7);
+            lblFps.Location = new Point(8, 8);
             lblFps.Margin = new Padding(4, 0, 4, 0);
             lblFps.Name = "lblFps";
             lblFps.Size = new Size(59, 25);

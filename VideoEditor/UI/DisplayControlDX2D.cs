@@ -1,56 +1,39 @@
 ﻿using SharpDX;
 using SharpDX.Direct2D1;
-using SharpDX.WIC;
 using Bitmap = SharpDX.Direct2D1.Bitmap;
 using PixelFormat = SharpDX.Direct2D1.PixelFormat;
-using Factory = SharpDX.Direct2D1.Factory;
 using AlphaMode = SharpDX.Direct2D1.AlphaMode;
 using BitmapInterpolationMode = SharpDX.Direct2D1.BitmapInterpolationMode;
 using Format = SharpDX.DXGI.Format;
 using SharpDX.Mathematics.Interop;
 using VideoEditor.Types;
 using VideoEditor.Static;
-using System.Diagnostics;
 
 namespace VideoEditor.UI;
 
-public class DisplayControlDX2D : Control
+public class DisplayControlDX2D : BaseControlDX2D
 {
-    private Engine Engine;
-
-    private WindowsScaling? Scaling;
-    private Factory? Factory;
-    private WindowRenderTarget? RenderTarget;
-    private Bitmap? Bitmap;
-    private ImagingFactory? ImagingFactory;
-
-    public DisplayControlDX2D(Engine engine)
+    public DisplayControlDX2D(Engine engine) : base(engine)
     {
-        Engine = engine;
-        FpsCounter = new FpsCounter();
         Thread = new Thread(new ThreadStart(Kernel));
-        AutoResetEvent = new AutoResetEvent(false);
+
+        SuspendLayout();
 
         SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.Opaque, true);
+
+        ResumeLayout(false);
     }
 
-    public FpsCounter FpsCounter { get; }
-    public Thread Thread { get; }
-    public AutoResetEvent AutoResetEvent { get; }
-
-    private int PhysicalWidth => (int)(Width * Scaling);
-    private int PhysicalHeight => (int)(Height * Scaling);
-
     Timeline Timeline => Engine.Timeline;
-    SleepHelper SleepHelper => Engine.SleepHelper;
 
     private void Kernel()
     {
         while (Engine.IsRunning)
         {
-            if (!AutoResetEvent.WaitOne(100)) continue;
+            if (!BeginAutoResetEvent.WaitOne(100)) continue;
             Draw();
             FpsCounter.Tick();
+            DoneAutoResetEvent.Set();
         }
     }
     private void Draw()
@@ -126,41 +109,15 @@ public class DisplayControlDX2D : Control
         }
     }
 
-    public void SignalUpdate()
+    public void Begin()
     {
-        AutoResetEvent.Set();
+        BeginAutoResetEvent.Set();
+    }
+    public bool Done()
+    {
+        return DoneAutoResetEvent.WaitOne(500);
     }
 
-    protected override void OnHandleCreated(EventArgs e)
-    {
-        base.OnHandleCreated(e);
-
-        Scaling = new WindowsScaling(Handle);
-        Factory = new Factory();
-        ImagingFactory = new ImagingFactory();
-
-        var renderTargetProperties = new RenderTargetProperties
-        {
-            PixelFormat = new PixelFormat(Format.B8G8R8A8_UNorm, AlphaMode.Ignore)
-        };
-
-        var hwndProperties = new HwndRenderTargetProperties
-        {
-            Hwnd = Handle,
-            PixelSize = new Size2(PhysicalWidth, PhysicalHeight),
-            PresentOptions = PresentOptions.Immediately
-        };
-
-        RenderTarget = new WindowRenderTarget(Factory, renderTargetProperties, hwndProperties);
-    }
-    protected override void OnResize(EventArgs e)
-    {
-        lock (this)
-        {
-            base.OnResize(e);
-            RenderTarget?.Resize(new Size2(PhysicalWidth, PhysicalHeight));
-        }
-    }
 
     protected override void Dispose(bool disposing)
     {

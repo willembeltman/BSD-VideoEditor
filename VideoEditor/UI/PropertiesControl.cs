@@ -19,6 +19,8 @@ public partial class PropertiesControl : UserControl
 
     private void UpdateTimer_Tick(object sender, EventArgs e)
     {
-        lblFps.Text = $"{Engine.TimelineControl.FpsCounter.Fps} / {Engine.DisplayControl.FpsCounter.Fps} fps";
+        lblFps.Text = $"Timeline: {Engine.TimelineControl.FpsCounter.GetFps():F1} fps\r\n" +
+            $"Display: {Engine.DisplayControl.FpsCounter.GetFps():F1} fps\r\n" +
+            $"Frame: {Engine.FrameTime:F1} ms";
     }
 }

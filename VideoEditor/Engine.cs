@@ -31,6 +31,8 @@ public class Engine : IDisposable
 
     public Timeline Timeline => Project.CurrentTimeline;
 
+    public double FrameTime { get; private set; }
+
     public void StartAll()
     {
         Thread.Start();
@@ -63,14 +65,23 @@ public class Engine : IDisposable
 
             //Thread.Sleep(1);
 
+            var start = Stopwatch.Elapsed.TotalMilliseconds;
+
             if (IsPlaying)
             {
                 // Set the current time so everybody will update
                 Timeline.CurrentTime = StartTime + Stopwatch.Elapsed.TotalSeconds;
             }
 
-            TimelineControl.SignalUpdate();
-            DisplayControl.SignalUpdate();
+            TimelineControl.Begin();
+            DisplayControl.Begin();
+
+            TimelineControl.Done();
+            DisplayControl.Done();
+
+            var end = Stopwatch.Elapsed.TotalMilliseconds;
+
+            FrameTime = end - start;
 
             //Debug.WriteLine(Timeline.CurrentFrameIndex + " Engine");
         }
