@@ -154,7 +154,7 @@ public partial class MainForm : Form, IEngineForm
         Cursor = Cursors.Default;
     }
 
-    private void getFrameToolStripMenuItem_Click(object sender, EventArgs e)
+    private void playPauseToolStripMenuItem_Click(object sender, EventArgs e)
     {
         if (Engine.IsPlaying)
             Engine.Stop();
