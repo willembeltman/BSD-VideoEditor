@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
+using VideoEditor.Helpers;
 using VideoEditor.Static;
-using VideoEditor.Types;
 using VideoEditor.UI;
 
 namespace VideoEditor;
@@ -58,32 +58,28 @@ public class Engine : IDisposable
     {
         while (IsRunning)
         {
-            var sleep = SleepHelper.SleepTillNextFrame();
+            var sleep = SleepHelper.GetSleepTimeTillNextFrame();
             Thread.Sleep(sleep);
-
-            //Debug.WriteLine(sleep.ToString());
-
-            //Thread.Sleep(1);
 
             var start = Stopwatch.Elapsed.TotalMilliseconds;
 
             if (IsPlaying)
             {
-                // Set the current time so everybody will update
+                // Set the current time so frameindex get's updated
                 Timeline.CurrentTime = StartTime + Stopwatch.Elapsed.TotalSeconds;
             }
 
-            TimelineControl.Begin();
-            DisplayControl.Begin();
+            // Start draw refresh in Timeline and Display Thread
+            TimelineControl.StartGraphicsRefresh();
+            DisplayControl.StartGraphicsRefresh();
 
-            TimelineControl.Done();
-            DisplayControl.Done();
+            // Wait for draw refresh in Timeline and Display Thread
+            TimelineControl.WaitTillGraphicsRefreshIsDone();
+            DisplayControl.WaitTillGraphicsRefreshIsDone();
 
             var end = Stopwatch.Elapsed.TotalMilliseconds;
 
             FrameTime = end - start;
-
-            //Debug.WriteLine(Timeline.CurrentFrameIndex + " Engine");
         }
     }
 

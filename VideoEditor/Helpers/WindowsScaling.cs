@@ -1,4 +1,4 @@
-﻿namespace VideoEditor.Types;
+﻿namespace VideoEditor.Helpers;
 
 public class WindowsScaling
 {

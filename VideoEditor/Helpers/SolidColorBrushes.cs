@@ -1,7 +1,7 @@
 ﻿using SharpDX.Direct2D1;
 using SharpDX.Mathematics.Interop;
 
-namespace VideoEditor.Types
+namespace VideoEditor.Helpers
 {
     public class SolidColorBrushes : IDisposable
     {
@@ -21,6 +21,7 @@ namespace VideoEditor.Types
             AudioClip = new SolidColorBrush(RenderTarget, new RawColor4(0.1f, 0.1f, 0.7f, 1.0f));
             SelectedClip = new SolidColorBrush(RenderTarget, new RawColor4(1.0f, 0.0f, 0.0f, 1.0f));
             ClipBorder = new SolidColorBrush(RenderTarget, new RawColor4(1.0f, 1.0f, 1.0f, 1.0f));
+            Text = new SolidColorBrush(RenderTarget, new RawColor4(1.0f, 1.0f, 1.0f, 1.0f));
         }
 
         public SolidColorBrush White { get; }
@@ -36,6 +37,7 @@ namespace VideoEditor.Types
         public SolidColorBrush AudioClip { get; }
         public SolidColorBrush SelectedClip { get; }
         public SolidColorBrush ClipBorder { get; }
+        public SolidColorBrush Text { get; }
 
         public void Dispose()
         {

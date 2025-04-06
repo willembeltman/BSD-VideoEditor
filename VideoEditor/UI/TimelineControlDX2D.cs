@@ -1,20 +1,15 @@
 ﻿using SharpDX;
-using SharpDX.Direct2D1;
-using SharpDX.WIC;
-using PixelFormat = SharpDX.Direct2D1.PixelFormat;
-using Factory = SharpDX.Direct2D1.Factory;
-using AlphaMode = SharpDX.Direct2D1.AlphaMode;
-using Format = SharpDX.DXGI.Format;
 using Rectangle = System.Drawing.Rectangle;
 using Point = System.Drawing.Point;
 using Color = System.Drawing.Color;
+using FontStyle = SharpDX.DirectWrite.FontStyle;
 using SharpDX.Mathematics.Interop;
 using VideoEditor.Types;
 using System.Diagnostics;
 using VideoEditor.Enums;
 using VideoEditor.Static;
-using System.Security.Policy;
-using System.ComponentModel;
+using SharpDX.DirectWrite;
+using VideoEditor.Helpers;
 
 namespace VideoEditor.UI;
 
@@ -29,7 +24,11 @@ public class TimelineControlDX2D : BaseControlDX2D
         SuspendLayout();
 
         HScrollBarControl = new HScrollBar();
+        HScrollBarControl.Height = 32;
+        HScrollBarControl.Width = Width;
+        HScrollBarControl.Top = 0;
         HScrollBarControl.Scroll += ScrollBarControl_Scroll;
+        HScrollBarControl.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;        
         Controls.Add(HScrollBarControl);
 
         AllowDrop = true;
@@ -76,16 +75,24 @@ public class TimelineControlDX2D : BaseControlDX2D
 
     private void Kernel()
     {
+        var dwriteFactory = TextResources.DirectWriteFactory;
+        using var textFormat = new TextFormat(dwriteFactory, "Arial", FontWeight.Normal, FontStyle.Normal, FontStretch.Normal, Constants.TextSize)
+        {
+            TextAlignment = TextAlignment.Leading,
+            ParagraphAlignment = ParagraphAlignment.Near
+        };
+
         while (Engine.IsRunning)
         {
             if (!BeginAutoResetEvent.WaitOne(100)) continue;
-            Draw();
+            Draw(dwriteFactory, textFormat);
             FpsCounter.Tick();
             DoneAutoResetEvent.Set();
         }
     }
-    private void Draw()
+    private void Draw(Factory dwriteFactory, TextFormat textFormat)
     {
+        //return;
         if (RenderTarget == null)
             return;
 
@@ -94,7 +101,7 @@ public class TimelineControlDX2D : BaseControlDX2D
             RenderTarget.BeginDraw();
             RenderTarget.Clear(new Color4(0, 0, 0, 1));
 
-            DrawTimeMarkers();
+            DrawTimeMarkers(dwriteFactory, textFormat);
             DrawVideoClips();
             DrawPlayerPosition();
 
@@ -102,47 +109,54 @@ public class TimelineControlDX2D : BaseControlDX2D
         }
     }
 
-    public void Begin()
+    public void StartGraphicsRefresh()
     {
         BeginAutoResetEvent.Set();
     }
-    public bool Done()
+    public bool WaitTillGraphicsRefreshIsDone()
     {
         return DoneAutoResetEvent.WaitOne(500);
     }
 
-    private void DrawTimeMarkers()
+    private void DrawTimeMarkers(Factory dwriteFactory, TextFormat textFormat)
     {
-        using var font = new Font("Arial", Constants.TextSize);
-        using var brush = new SolidBrush(Color.White);
-
         int middle = TimelineRectangle.Height / 2;
         int videoBlockHeight = (middle - MiddleOffset) / Timeline.VisibleVideoLayers;
         int audioBlockHeight = (middle - MiddleOffset) / Timeline.VisibleAudioLayers;
 
+        // Vertical lines + layer numbers
         for (var i = 0; i < Timeline.VisibleVideoLayers; i++)
         {
             var y = TimelineRectangle.Top + middle - i * videoBlockHeight - MiddleOffset;
-            RenderTarget.DrawLine(new RawVector2(0, y), new RawVector2(Width, y), Brushes.HorizontalLines);
+            var start = new RawVector2(0, y);
+            var end = new RawVector2(TimelineRectangle.Width, y);
+            RenderTarget.DrawLine(start, end, Brushes.HorizontalLines);
 
-            //var text = $"{i + Timeline.FirstVisibleVideoLayer}";
-            //var textSize = RenderTarget.MeasureString(text, font);
-            //var textY = y - videoBlockHeight / 2 - (int)(textSize.Height / 2);
-            //RenderTarget.DrawString(text, font, brush, 2, textY);
+            var text = $"{i + Timeline.FirstVisibleVideoLayer}";
+            using var layout = new TextLayout(dwriteFactory, text, textFormat, 100, 100); // 100x100 is max grootte van tekst
+
+            var textY = y - videoBlockHeight / 2 - layout.Metrics.Height / 2;
+            var textPosition = new RawVector2(2, (float)textY);
+            RenderTarget.DrawTextLayout(textPosition, layout, Brushes.Text);
         }
         for (var i = 0; i < Timeline.VisibleAudioLayers; i++)
         {
             var y = TimelineRectangle.Top + middle + i * audioBlockHeight + MiddleOffset;
-            RenderTarget.DrawLine(new RawVector2(0, y), new RawVector2(Width, y), Brushes.HorizontalLines);
+            var start = new RawVector2(0, y);
+            var end = new RawVector2(TimelineRectangle.Width, y);
+            RenderTarget.DrawLine(start, end, Brushes.HorizontalLines);
 
-            //var text = $"{i + Timeline.FirstVisibleAudioLayer}";
-            //var textSize = RenderTarget.MeasureString(text, font);
-            //var textY = y + audioBlockHeight / 2 - (int)(textSize.Height / 2);
-            //RenderTarget.DrawString(text, font, brush, 2, textY);
+            var text = $"{i + Timeline.FirstVisibleAudioLayer}";
+            using var layout = new TextLayout(dwriteFactory, text, textFormat, 100, 100);
+
+            var textY = y + audioBlockHeight / 2 - layout.Metrics.Height / 2;
+            var textPosition = new RawVector2(2, (float)textY);
+            RenderTarget.DrawTextLayout(textPosition, layout, Brushes.Text);
         }
 
-        var timeIncrease = 0.01D;
-        var decimals = 2;
+        // Tijd stap bepalen
+        var timeIncrease = 0.00001D;
+        var decimals = 5;
         while (Width / Timeline.VisibleWidth * timeIncrease < 50)
         {
             timeIncrease *= 10;
@@ -150,18 +164,21 @@ public class TimelineControlDX2D : BaseControlDX2D
         }
         if (decimals < 0) decimals = 0;
 
+        // Horizontal lines + time 
         for (var sec = 0D; sec < double.MaxValue; sec += timeIncrease)
         {
             var x = Convert.ToInt32((sec - Timeline.VisibleStart) / Timeline.VisibleWidth * Width);
             if (x >= Width) break;
-            RenderTarget.DrawLine(new RawVector2(x, 0), new RawVector2(x, Height), Brushes.VerticalLines);
+            var start = new RawVector2(x, 0);
+            var end = new RawVector2(x, TimelineRectangle.Height);
+            RenderTarget.DrawLine(start, end, Brushes.VerticalLines);
 
-            //var text = $"{sec.ToString("F" + decimals)}s";
-            //var textSize = RenderTarget.MeasureString(text, font);
-            //var textY = TimelineRectangle.Top + middle - (int)(textSize.Height / 2);
-            //RenderTarget.DrawString(text, font, brush, x + 2, textY);
+            var text = $"{sec.ToString("F" + decimals)}s";
+            using var layout = new TextLayout(dwriteFactory, text, textFormat, 100, 100);
+            var textY = TimelineRectangle.Top + middle - layout.Metrics.Height / 2;
+            var textPosition = new RawVector2(x + 2, (float)textY);
+            RenderTarget.DrawTextLayout(textPosition, layout, Brushes.Text);
         }
-
     }
     private void DrawVideoClips()
     {
@@ -195,7 +212,7 @@ public class TimelineControlDX2D : BaseControlDX2D
         // Zorg ervoor dat de lijn binnen de zichtbare regio valt
         if (x >= 0 && x <= Width)
         {
-            RenderTarget.DrawLine(new RawVector2(x, 0), new RawVector2(x, Height), Brushes.PositionLine);
+            RenderTarget.DrawLine(new RawVector2(x, 0), new RawVector2(x, TimelineRectangle.Height), Brushes.PositionLine);
         }
     }
 
@@ -282,7 +299,6 @@ public class TimelineControlDX2D : BaseControlDX2D
     {
         Timeline.VisibleStart = e.NewValue;
     }
-
 
     private void TimelineControl_DragEnter(object? sender, DragEventArgs e)
     {

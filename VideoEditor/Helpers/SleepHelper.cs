@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
+using VideoEditor.Types;
 
-namespace VideoEditor.Types;
+namespace VideoEditor.Helpers;
 
 public class SleepHelper
 {
@@ -15,7 +16,7 @@ public class SleepHelper
 
     private Fps Fps => Engine.Timeline.Fps;
 
-    public int SleepTillNextFrame()
+    public int GetSleepTimeTillNextFrame()
     {
         double offset = 0;
 

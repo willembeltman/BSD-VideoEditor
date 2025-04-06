@@ -41,6 +41,7 @@ public class DisplayControlDX2D : BaseControlDX2D
     }
     private void Draw()
     {
+        //return;
         if (RenderTarget == null)
             return;
 
@@ -112,11 +113,11 @@ public class DisplayControlDX2D : BaseControlDX2D
         }
     }
 
-    public void Begin()
+    public void StartGraphicsRefresh()
     {
         BeginAutoResetEvent.Set();
     }
-    public bool Done()
+    public bool WaitTillGraphicsRefreshIsDone()
     {
         return DoneAutoResetEvent.WaitOne(500);
     }

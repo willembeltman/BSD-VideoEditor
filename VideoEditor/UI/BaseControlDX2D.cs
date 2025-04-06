@@ -1,17 +1,17 @@
 ﻿using VideoEditor.Static;
-using System.ComponentModel;
 using SharpDX.Direct2D1;
 using SharpDX.WIC;
-using VideoEditor.Types;
 using Factory = SharpDX.Direct2D1.Factory;
 using Bitmap = SharpDX.Direct2D1.Bitmap;
 using SharpDX;
 using PixelFormat = SharpDX.Direct2D1.PixelFormat;
 using AlphaMode = SharpDX.Direct2D1.AlphaMode;
 using Format = SharpDX.DXGI.Format;
+using VideoEditor.Helpers;
 
 namespace VideoEditor.UI
 {
+
     public class BaseControlDX2D : Control
     {
         protected WindowsScaling? Scaling;
