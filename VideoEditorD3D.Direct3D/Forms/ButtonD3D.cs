@@ -5,7 +5,7 @@ namespace VideoEditorD3D.Direct3D.Forms
 {
     public class ButtonD3D : ControlD3D
     {
-        public ButtonD3D(IApplicationD3D application, FormD3D? parentForm, ControlD3D? parentControl) : base(application, parentForm, parentControl)
+        public ButtonD3D(IApplication application, FormD3D? parentForm, ControlD3D? parentControl) : base(application, parentForm, parentControl)
         {
             Background = CreateCanvasLayer();
             Foreground = CreateCanvasLayer();
@@ -61,7 +61,7 @@ namespace VideoEditorD3D.Direct3D.Forms
             }
         }
 
-        public override void Draw()
+        public override void OnDraw()
         {
             Background.StartDrawing();
             Foreground.StartDrawing();

@@ -4,6 +4,6 @@ using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Forms;
 
-public class FormD3D(IApplicationD3D application) : ControlD3D(application, null, null), ICanvas
+public class FormD3D(IApplication application) : ControlD3D(application, null, null), ICanvas
 {
 }

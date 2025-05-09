@@ -3,13 +3,13 @@ using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Forms;
 
-public class ControlD3D(IApplicationD3D application, FormD3D? parentForm, ControlD3D? parentControl)
+public class ControlD3D(IApplication application, FormD3D? parentForm, ControlD3D? parentControl)
 {
-    public virtual IApplicationD3D Application { get; } = application;
+    public virtual IApplication Application { get; } = application;
     public FormD3D? ParentForm { get; } = parentForm;
     public ControlD3D? ParentControl { get; } = parentControl;
 
-    private bool Validated;
+    private bool Dirty;
     private int _Left = 0;
     private int _Top = 0;
     private int _Width = 480;
@@ -78,7 +78,7 @@ public class ControlD3D(IApplicationD3D application, FormD3D? parentForm, Contro
         }
     }
 
-    public virtual void Draw()
+    public virtual void OnDraw()
     {
 
     }
@@ -88,7 +88,7 @@ public class ControlD3D(IApplicationD3D application, FormD3D? parentForm, Contro
         {
             control.Invalidate();
         }
-        Validated = false;
+        Dirty = true;
     }
     public virtual void OnResize()
     {
@@ -261,10 +261,10 @@ public class ControlD3D(IApplicationD3D application, FormD3D? parentForm, Contro
 
     public IEnumerable<CanvasLayer> GetCanvasLayers()
     {
-        if (!Validated)
+        if (Dirty)
         {
-            Draw();
-            Validated = true;
+            OnDraw();
+            Dirty = false;
         }
 
         foreach (var layer in CanvasLayers)

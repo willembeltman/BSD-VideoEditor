@@ -105,10 +105,10 @@ public partial class Application : Form, IApplication
     AllTimers IApplication.Timers => Timers;
     bool IApplication.KillSwitch { get => KillSwitch; set => KillSwitch = value; }
 
-    Device IApplicationD3D.Device => _Device!;
-    Characters IApplicationD3D.Characters => _Characters!;
-    int IApplicationD3D.Width => _PhysicalWidth!.Value;
-    int IApplicationD3D.Height => _PhysicalHeight!.Value;
+    Device Direct3D.Interfaces.IApplication.Device => _Device!;
+    Characters Direct3D.Interfaces.IApplication.Characters => _Characters!;
+    int Direct3D.Interfaces.IApplication.Width => _PhysicalWidth!.Value;
+    int Direct3D.Interfaces.IApplication.Height => _PhysicalHeight!.Value;
 
 
     #endregion
@@ -291,7 +291,7 @@ public partial class Application : Form, IApplication
                 var swapChainDesc = new SwapChainDescription()
                 {
                     BufferCount = 1,
-                    ModeDescription = new ModeDescription(realWidth, realHeight, new Rational(120, 1), Format.R8G8B8A8_UNorm),
+                    ModeDescription = new ModeDescription(realWidth, realHeight, new Rational(60, 1), Format.R8G8B8A8_UNorm),
                     Usage = Usage.RenderTargetOutput,
                     OutputHandle = Handle,
                     SampleDescription = new SampleDescription(sampleSize, 0),
@@ -323,7 +323,7 @@ public partial class Application : Form, IApplication
                 _DeviceContext.PixelShader.SetSampler(0, _SamplerState);
 
                 _Characters = new Characters(this);
-                _CurrentForm = new MainForm(this)
+                _CurrentForm = new MainFormD3D(this)
                 {
                     Width = realWidth,
                     Height = realHeight
@@ -441,7 +441,7 @@ public partial class Application : Form, IApplication
 
         try
         {
-            Timers.FpsTimer.SleepTillNextFrame(new Fps(1, 25));
+            Timers.FpsTimer.SleepTillNextFrame(new Fps(1, 60));
 
             var currentForm = _CurrentForm;
             if (IsNotReadyToDraw || currentForm == null)

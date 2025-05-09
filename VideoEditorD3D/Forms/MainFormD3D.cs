@@ -1,19 +1,18 @@
 ﻿using SharpDX.Mathematics.Interop;
 using VideoEditorD3D.Direct3D.Forms;
-using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Forms
 {
-    public class MainForm : FormD3D
+    public class MainFormD3D : FormD3D
     {
-        public FrameD3D Frame { get; }
+        public DisplayControlD3D Frame { get; }
         public List<ButtonD3D> Buttons { get; }
         public override IApplication Application { get; }
 
-        public MainForm(IApplication application) : base(application)
+        public MainFormD3D(IApplication application) : base(application)
         {
             Application = application;
-            Frame = new FrameD3D(application, this, this)
+            Frame = new DisplayControlD3D(application, this, this)
             {
                 BackgroundColor = new RawColor4(0, 0, 1, 1)
             };

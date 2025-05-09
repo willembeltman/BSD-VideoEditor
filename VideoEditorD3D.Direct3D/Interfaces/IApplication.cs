@@ -2,7 +2,7 @@
 
 namespace VideoEditorD3D.Direct3D.Interfaces;
 
-public interface IApplicationD3D
+public interface IApplication
 {
     Device Device { get; }
     Characters Characters { get; }

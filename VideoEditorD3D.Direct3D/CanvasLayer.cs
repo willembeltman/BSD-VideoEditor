@@ -11,9 +11,9 @@ using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D;
 
-public class CanvasLayer(IApplicationD3D application) : IDisposable
+public class CanvasLayer(IApplication application) : IDisposable
 {
-    private IApplicationD3D Application { get; } = application;
+    private IApplication Application { get; } = application;
 
     public List<Vertex> LineVertices { get; } = [];
     public List<Vertex> FillVertices { get; } = [];

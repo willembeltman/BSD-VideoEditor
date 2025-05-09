@@ -1,11 +1,12 @@
-﻿using VideoEditorD3D.Direct3D.Interfaces;
+﻿using VideoEditorD3D.Direct3D;
+using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Types;
 
-namespace VideoEditorD3D.Direct3D.Forms
+namespace VideoEditorD3D.Forms
 {
-    public class FrameD3D : ControlD3D
+    public class DisplayControlD3D : ControlD3D
     {
-        public FrameD3D(IApplicationD3D application, FormD3D? parentForm, ControlD3D? parentControl) : base(application, parentForm, parentControl)
+        public DisplayControlD3D(IApplication application, FormD3D? parentForm, ControlD3D? parentControl) : base(application, parentForm, parentControl)
         {
             Background = CreateCanvasLayer();
             Foreground = CreateCanvasLayer();
@@ -29,7 +30,7 @@ namespace VideoEditorD3D.Direct3D.Forms
             }
         }
 
-        public override void Draw()
+        public override void OnDraw()
         {
             Background.StartDrawing();
             Foreground.StartDrawing();
