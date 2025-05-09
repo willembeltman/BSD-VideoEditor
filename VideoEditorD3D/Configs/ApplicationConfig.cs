@@ -1,31 +1,30 @@
 ﻿
 using Newtonsoft.Json;
 
-namespace VideoEditorD3D.Configs
-{
-    public class ApplicationConfig
-    {
-        public string? LastDatabaseFullName { get; set; } = null;
+namespace VideoEditorD3D.Configs;
 
-        public static ApplicationConfig Load()
+public class ApplicationConfig
+{
+    public string? LastDatabaseFullName { get; set; } = null;
+
+    public static ApplicationConfig Load()
+    {
+        if (File.Exists("application.json"))
         {
-            if (File.Exists("application.json"))
-            {
-                var json = File.ReadAllText("application.json");
-                var config = JsonConvert.DeserializeObject<ApplicationConfig>(json);
-                return config!;
-            }
-            else
-            {
-                var json = JsonConvert.SerializeObject(new ApplicationConfig());
-                File.WriteAllText("application.json", json);
-                throw new Exception("made a new application config, please review it");
-            }
+            var json = File.ReadAllText("application.json");
+            var config = JsonConvert.DeserializeObject<ApplicationConfig>(json);
+            return config!;
         }
-        public void Save()
+        else
         {
-            var json = JsonConvert.SerializeObject(this);
+            var json = JsonConvert.SerializeObject(new ApplicationConfig());
             File.WriteAllText("application.json", json);
+            throw new Exception("made a new application config, please review it");
         }
+    }
+    public void Save()
+    {
+        var json = JsonConvert.SerializeObject(this);
+        File.WriteAllText("application.json", json);
     }
 }

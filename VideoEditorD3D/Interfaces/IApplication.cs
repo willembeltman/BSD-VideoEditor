@@ -6,23 +6,22 @@ using VideoEditorD3D.Engine;
 using VideoEditorD3D.Loggers;
 using VideoEditorD3D.Timers;
 
-namespace VideoEditorD3D.Interfaces
+namespace VideoEditorD3D.Interfaces;
+
+public interface IApplication
 {
-    public interface IApplication
-    {
-        ApplicationConfig Config { get; }
-        ProjectDbContext Database { get; }
-        Device Device { get; }
-        ConsoleLogger Logger { get; }
-        Stopwatch Stopwatch { get; }
-        CharacterCollection Characters { get; }
-        Drawer Drawer { get; }
-        Timeline Timeline { get; }
-        AllTimers Timers { get; }
+    ApplicationConfig Config { get; }
+    ProjectDbContext Database { get; }
+    Device Device { get; }
+    ConsoleLogger Logger { get; }
+    Stopwatch Stopwatch { get; }
+    CharacterCollection Characters { get; }
+    Drawer Drawer { get; }
+    Timeline Timeline { get; }
+    AllTimers Timers { get; }
 
-        int Height { get; }
-        int Width { get; }
+    int Height { get; }
+    int Width { get; }
 
-        void Draw();
-    }
+    void Draw();
 }

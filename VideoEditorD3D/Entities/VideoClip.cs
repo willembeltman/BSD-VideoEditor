@@ -1,9 +1,8 @@
-﻿using VideoEditorD3D.Database;
+﻿using VideoEditorD3D.Database.Interfaces;
 
-namespace VideoEditorD3D.Entities
+namespace VideoEditorD3D.Entities;
+
+public class VideoClip : IEntity
 {
-    public class VideoClip : IEntity
-    {
-        public long Id { get; set; }
-    }
+    public long Id { get; set; }
 }

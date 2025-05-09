@@ -1,14 +1,13 @@
 ﻿using SharpDX.Mathematics.Interop;
 using System.Runtime.InteropServices;
 
-namespace VideoEditorD3D.Direct3D.Types
+namespace VideoEditorD3D.Direct3D.Types;
+
+[StructLayout(LayoutKind.Sequential)]
+public struct Vertex
 {
-    [StructLayout(LayoutKind.Sequential)]
-    public struct Vertex
-    {
-        public RawVector2 Position;
-        public RawColor4 Color;
-    }
+    public RawVector2 Position;
+    public RawColor4 Color;
 }
 
 

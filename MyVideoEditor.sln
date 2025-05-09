@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditor", "VideoEditor\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorD3D", "VideoEditorD3D\VideoEditorD3D.csproj", "{6E6A9188-9F35-4BCD-959B-BA2A5DB5259B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorD3D.Database", "VideoEditorD3D.Database\VideoEditorD3D.Database.csproj", "{3B367207-D005-48F9-970E-86C3EFC7E95F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorD3D.ZipDatabase", "VideoEditorD3D.Database\VideoEditorD3D.ZipDatabase.csproj", "{3B367207-D005-48F9-970E-86C3EFC7E95F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorD3D.Direct3D", "VideoEditorD3D.Direct3D\VideoEditorD3D.Direct3D.csproj", "{13596C4A-31C5-43BF-A7D5-76FAB7A798DB}"
 EndProject

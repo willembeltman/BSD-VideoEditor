@@ -1,10 +1,9 @@
-﻿using VideoEditorD3D.Database;
+﻿using VideoEditorD3D.Database.Interfaces;
 
-namespace VideoEditorD3D.Entities
+namespace VideoEditorD3D.Entities;
+
+public class MediaFile : IEntity
 {
-    public class MediaFile : IEntity
-    {
-        public long Id { get; set; }
-        public string FullName { get; set; } = string.Empty;
-    }
+    public long Id { get; set; }
+    public string? FullName { get; set; }
 }

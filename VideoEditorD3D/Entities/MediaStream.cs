@@ -1,11 +1,10 @@
-﻿using VideoEditorD3D.Database;
+﻿using VideoEditorD3D.Database.Interfaces;
 
-namespace VideoEditorD3D.Entities
+namespace VideoEditorD3D.Entities;
+
+public class MediaStream : IEntity
 {
-    public class MediaStream : IEntity
-    {
-        public long Id { get; set; }
-        public int Index { get; set; }
-        public string Type { get; set; } = string.Empty;
-    }
+    public long Id { get; set; }
+    public int Index { get; set; }
+    public string? Type { get; set; }
 }
