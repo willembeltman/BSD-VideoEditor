@@ -21,9 +21,7 @@ public struct TextureImage : IDisposable
 
     public void Dispose()
     {
-        if (!IsCached)
-        {
-            Texture.Dispose();
-        }
+        Texture.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

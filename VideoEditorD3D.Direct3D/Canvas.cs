@@ -1,21 +1,15 @@
-﻿using Color = SharpDX.Color;
+﻿using SharpDX.Mathematics.Interop;
 
 namespace VideoEditorD3D.Direct3D;
 
-public class Canvas : IDisposable
+public class Canvas
 {
-    public Canvas(CanvasLayer[] layers, Color? backgroundColor = null)
+    public Canvas(IEnumerable<CanvasLayer> layers, RawColor4? backgroundColor = null)
     {
         Layers = layers;
-        BackgroundColor = backgroundColor ?? new Color(0, 0, 0, 1);
+        BackgroundColor = backgroundColor ?? new RawColor4(0, 0, 0, 1);
     }
 
-    public CanvasLayer[] Layers { get; }
-    public Color BackgroundColor { get; }
-
-    public void Dispose()
-    {
-        foreach (var layer in Layers)
-            layer.Dispose();
-    }
+    public IEnumerable<CanvasLayer> Layers { get; }
+    public RawColor4 BackgroundColor { get; }
 }

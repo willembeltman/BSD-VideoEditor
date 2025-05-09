@@ -9,18 +9,24 @@ using Device = SharpDX.Direct3D11.Device;
 namespace VideoEditorD3D.Direct3D;
 
 public class CanvasLayer(
-    int index,
     Device device,
-    CharacterCollection textCharacters,
+    Characters textCharacters,
     int canvasWidth,
     int canvasHeight) : IDisposable
 {
-    public int Index { get; } = index;
-
     public List<Vertex> LineVertices { get; } = [];
     public List<Vertex> FillVertices { get; } = [];
     public List<TextureImage> Images { get; } = [];
+    public List<TextureImage> Characters { get; } = [];
 
+    public void Clear()
+    {
+        LineVertices.Clear();
+        FillVertices.Clear();
+        foreach(var image in Images)
+            image.Dispose();
+        Images.Clear();
+    }
     public void DrawLine(RawVector2 start, RawVector2 end, RawColor4 color, float strokeWidth)
     {
         if (strokeWidth > 0.9 && strokeWidth < 1.1)
@@ -166,7 +172,7 @@ public class CanvasLayer(
 
                 // En dit in een model stoppen
                 var image = new TextureImage(vertices, texture, true);
-                Images.Add(image);
+                Characters.Add(image);
 
                 currentLeft = right;
             }
@@ -252,4 +258,5 @@ public class CanvasLayer(
 
         GC.SuppressFinalize(this);
     }
+
 }

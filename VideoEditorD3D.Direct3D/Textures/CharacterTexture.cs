@@ -1,14 +1,13 @@
-using SharpDX;
 using SharpDX.Direct3D11;
+using SharpDX.Mathematics.Interop;
 using System.Drawing;
 using VideoEditorD3D.Direct3D.Extentions;
-using Color = SharpDX.Color;
 
 namespace VideoEditorD3D.Direct3D.Textures;
 
 public class CharacterTexture : ITexture
 {
-    public CharacterTexture(char character, string fontName, float fontSize, Color backColor, Color foreColor, Device device)
+    public CharacterTexture(char character, string fontName, float fontSize, RawColor4 backColor, RawColor4 foreColor, Device device)
     {
         Char = character;
         FontName = fontName;

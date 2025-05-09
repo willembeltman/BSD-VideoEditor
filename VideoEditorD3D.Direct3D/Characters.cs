@@ -4,9 +4,9 @@ using Device = SharpDX.Direct3D11.Device;
 
 namespace VideoEditorD3D.Direct3D;
 
-public class CharacterCollection : IDisposable
+public class Characters : IDisposable
 {
-    public CharacterCollection(Device device)
+    public Characters(Device device)
     {
         Device = device;
         TextItems = Array.Empty<CharacterTexture>();
