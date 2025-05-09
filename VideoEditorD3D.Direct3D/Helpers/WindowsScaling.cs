@@ -1,4 +1,4 @@
-namespace VideoEditorD3D.Direct3D;
+namespace VideoEditorD3D.Direct3D.Helpers;
 
 public class WindowsScaling
 {

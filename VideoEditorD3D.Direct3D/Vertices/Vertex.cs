@@ -1,7 +1,7 @@
 ﻿using SharpDX.Mathematics.Interop;
 using System.Runtime.InteropServices;
 
-namespace VideoEditorD3D.Direct3D.Types;
+namespace VideoEditorD3D.Direct3D.Vertices;
 
 [StructLayout(LayoutKind.Sequential)]
 public struct Vertex

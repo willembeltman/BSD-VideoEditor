@@ -24,4 +24,10 @@
     <ProjectReference Include="..\VideoEditorD3D.Timers\VideoEditorD3D.Timers.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="ApplicationForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+
 </Project>

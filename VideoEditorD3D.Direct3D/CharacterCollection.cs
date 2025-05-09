@@ -4,7 +4,7 @@ using VideoEditorD3D.Direct3D.Textures;
 
 namespace VideoEditorD3D.Direct3D;
 
-public class Characters(IApplication Application) : IDisposable
+public class CharacterCollection(IApplicationForm Application) : IDisposable
 {
     private CharacterTexture[] TextItems = [];
 

@@ -1,7 +1,8 @@
 ﻿using VideoEditorD3D.Direct3D.Interfaces;
+using VideoEditorD3D.Direct3D.Vertices;
 using Buffer = SharpDX.Direct3D11.Buffer;
 
-namespace VideoEditorD3D.Direct3D.Types;
+namespace VideoEditorD3D.Direct3D.TextureImages;
 
 public readonly struct CachedTextureImage(TextureVertex[] vertices, Buffer verticesBuffer, ICachedTexture texture) : ITextureImage
 {

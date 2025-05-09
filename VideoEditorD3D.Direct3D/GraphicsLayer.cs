@@ -1,19 +1,19 @@
-﻿using SharpDX;
-using SharpDX.Mathematics.Interop;
-using VideoEditorD3D.Direct3D.Types;
+﻿using SharpDX.Mathematics.Interop;
+using VideoEditorD3D.Direct3D.Vertices;
 using VideoEditorD3D.Direct3D.Extentions;
 using VideoEditorD3D.Direct3D.Textures;
 using VideoEditorD3D.Types;
-using Device = SharpDX.Direct3D11.Device;
-using Buffer = SharpDX.Direct3D11.Buffer;
 using SharpDX.Direct3D11;
 using VideoEditorD3D.Direct3D.Interfaces;
+using VideoEditorD3D.Direct3D.TextureImages;
+using Device = SharpDX.Direct3D11.Device;
+using Buffer = SharpDX.Direct3D11.Buffer;
 
 namespace VideoEditorD3D.Direct3D;
 
-public class CanvasLayer(IApplication application) : IDisposable
+public class GraphicsLayer(IApplicationForm application) : IDisposable
 {
-    private IApplication Application { get; } = application;
+    private IApplicationForm Application { get; } = application;
 
     public List<Vertex> LineVertices { get; } = [];
     public List<Vertex> FillVertices { get; } = [];
@@ -23,7 +23,7 @@ public class CanvasLayer(IApplication application) : IDisposable
     private int CanvasWidth => Application.Width;
     private int CanvasHeight => Application.Height;
     private Device Device => Application.Device;
-    private Characters Characters => Application.Characters;
+    private CharacterCollection Characters => Application.Characters;
 
     public Buffer? LineVerticesBuffer { get; set; }
     public Buffer? FillVerticesBuffer { get; set; }

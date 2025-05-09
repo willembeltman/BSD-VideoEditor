@@ -5,14 +5,14 @@ namespace VideoEditorD3D.Direct3D.Forms
 {
     public class ButtonD3D : ControlD3D
     {
-        public ButtonD3D(IApplication application, FormD3D? parentForm, ControlD3D? parentControl) : base(application, parentForm, parentControl)
+        public ButtonD3D(IApplicationForm application, FormD3D? parentForm, ControlD3D? parentControl) : base(application, parentForm, parentControl)
         {
             Background = CreateCanvasLayer();
             Foreground = CreateCanvasLayer();
         }
 
-        private readonly CanvasLayer Background;
-        private readonly CanvasLayer Foreground;
+        private readonly GraphicsLayer Background;
+        private readonly GraphicsLayer Foreground;
 
         private string _Text = string.Empty;
         public string Text
@@ -35,6 +35,17 @@ namespace VideoEditorD3D.Direct3D.Forms
             set
             {
                 _ForegroundColor = value;
+                Invalidate();
+            }
+        }
+
+        private RawColor4 _BackgroundColor;
+        public RawColor4 BackgroundColor
+        {
+            get => _BackgroundColor;
+            set
+            {
+                _BackgroundColor = value;
                 Invalidate();
             }
         }
@@ -64,12 +75,11 @@ namespace VideoEditorD3D.Direct3D.Forms
         public override void OnDraw()
         {
             Background.StartDrawing();
-            Foreground.StartDrawing();
-
             Background.FillRectangle(Left, Top, Width, Height, BackgroundColor);
-            Foreground.DrawText(Text, Left, Top, Font, FontSize, ForegroundColor, BackgroundColor);
-
             Background.EndDrawing();
+
+            Foreground.StartDrawing();
+            Foreground.DrawText(Text, Left, Top, Font, FontSize, ForegroundColor, BackgroundColor);
             Foreground.EndDrawing();
         }
     }

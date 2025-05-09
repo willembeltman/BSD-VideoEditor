@@ -1,11 +1,13 @@
-﻿using SharpDX.Direct3D11;
+﻿using VideoEditorD3D.Direct3D.Forms;
+using VideoEditorD3D.Loggers;
 
 namespace VideoEditorD3D.Direct3D.Interfaces;
 
-public interface IApplication
+public interface IApplication : IDisposable
 {
-    Device Device { get; }
-    Characters Characters { get; }
-    int Width { get; }
-    int Height { get; }
+    ILogger Logger { get; }
+    bool KillSwitch { get; set; }
+
+    IDrawerThread? OnCreateDrawerThread(IApplicationForm applicationForm);
+    FormD3D OnCreateStartForm(IApplicationForm applicationForm);
 }

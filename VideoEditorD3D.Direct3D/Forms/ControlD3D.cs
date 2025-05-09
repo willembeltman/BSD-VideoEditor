@@ -3,9 +3,9 @@ using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Forms;
 
-public class ControlD3D(IApplication application, FormD3D? parentForm, ControlD3D? parentControl)
+public class ControlD3D(IApplicationForm applicationForm, FormD3D? parentForm, ControlD3D? parentControl)
 {
-    public virtual IApplication Application { get; } = application;
+    public IApplicationForm ApplicationForm { get; } = applicationForm;
     public FormD3D? ParentForm { get; } = parentForm;
     public ControlD3D? ParentControl { get; } = parentControl;
 
@@ -14,9 +14,8 @@ public class ControlD3D(IApplication application, FormD3D? parentForm, ControlD3
     private int _Top = 0;
     private int _Width = 480;
     private int _Height = 640;
-    private RawColor4 _BackgroundColor;
     private ControlD3D[] Controls = [];
-    private CanvasLayer[] CanvasLayers = [];
+    private GraphicsLayer[] CanvasLayers = [];
 
     public int Left
     {
@@ -68,20 +67,7 @@ public class ControlD3D(IApplication application, FormD3D? parentForm, ControlD3
     }
     public int Right => Left + Width;
     public int Bottom => Top + Height;
-    public RawColor4 BackgroundColor
-    {
-        get => _BackgroundColor;
-        set
-        {
-            _BackgroundColor = value;
-            Invalidate();
-        }
-    }
 
-    public virtual void OnDraw()
-    {
-
-    }
     public void Invalidate()
     {
         foreach (var control in Controls)
@@ -90,8 +76,23 @@ public class ControlD3D(IApplication application, FormD3D? parentForm, ControlD3
         }
         Dirty = true;
     }
+    public virtual void OnLoad()
+    {
+        foreach (var control in Controls)
+        {
+            control.OnLoad();
+        }
+    }
+    /// <summary>
+    /// De base.OnDraw hoef je niet aan te roepen, dit wordt via invalidate geregeld
+    /// </summary>
+    public virtual void OnDraw()
+    {
+        // Hoeft niet door te gaan naar beneden, want dat doen we al met invalidate
+    }
     public virtual void OnResize()
     {
+        // Hoeft niet door te gaan naar beneden, want dat doet als het goed is het Form of Control al
         Invalidate();
     }
     public virtual void OnKeyPress(KeyPressEventArgs e)
@@ -181,6 +182,46 @@ public class ControlD3D(IApplication application, FormD3D? parentForm, ControlD3
             }
         }
     }
+    public virtual void OnDragDrop(DragEventArgs e, RawVector2 position)
+    {
+        foreach (var control in Controls)
+        {
+            if (control.Left < position.X && position.X < control.Right &&
+                control.Top < position.Y && position.Y < control.Bottom)
+            {
+                control.OnDragDrop(e, position);
+            }
+        }
+    }
+    public virtual void OnDragEnter(DragEventArgs e, RawVector2 position)
+    {
+        foreach (var control in Controls)
+        {
+            if (control.Left < position.X && position.X < control.Right &&
+                control.Top < position.Y && position.Y < control.Bottom)
+            {
+                control.OnDragEnter(e, position);
+            }
+        }
+    }
+    public virtual void OnDragOver(DragEventArgs e, RawVector2 position)
+    {
+        foreach (var control in Controls)
+        {
+            if (control.Left < position.X && position.X < control.Right &&
+                control.Top < position.Y && position.Y < control.Bottom)
+            {
+                control.OnDragOver(e, position);
+            }
+        }
+    }
+    public virtual void OnDragLeave(EventArgs e)
+    {
+        foreach (var control in Controls)
+        {
+            control.OnDragLeave(e);
+        }
+    }
     public virtual void OnUpdate()
     {
         foreach (var control in Controls)
@@ -223,14 +264,14 @@ public class ControlD3D(IApplication application, FormD3D? parentForm, ControlD3
         Invalidate();
     }
 
-    public void AddCanvasLayer(CanvasLayer layer)
+    public void AddCanvasLayer(GraphicsLayer layer)
     {
-        var newArray = new CanvasLayer[CanvasLayers.Length + 1];
+        var newArray = new GraphicsLayer[CanvasLayers.Length + 1];
         Array.Copy(CanvasLayers, newArray, CanvasLayers.Length);
         newArray[^1] = layer;
         CanvasLayers = newArray;
     }
-    public void RemoveCanvasLayer(CanvasLayer layer)
+    public void RemoveCanvasLayer(GraphicsLayer layer)
     {
         var deleted = 0;
         for (int i = 0; i < CanvasLayers.Length; i++)
@@ -240,7 +281,7 @@ public class ControlD3D(IApplication application, FormD3D? parentForm, ControlD3
                 deleted++;
             }
         }
-        var newArray = new CanvasLayer[CanvasLayers.Length - deleted];
+        var newArray = new GraphicsLayer[CanvasLayers.Length - deleted];
         var newIndex = 0;
         for (int i = 0; i < CanvasLayers.Length; i++)
         {
@@ -252,14 +293,14 @@ public class ControlD3D(IApplication application, FormD3D? parentForm, ControlD3
         }
         CanvasLayers = newArray;
     }
-    public CanvasLayer CreateCanvasLayer()
+    public GraphicsLayer CreateCanvasLayer()
     {
-        var layer = new CanvasLayer(Application);
+        var layer = new GraphicsLayer(ApplicationForm);
         AddCanvasLayer(layer);
         return layer;
     }
 
-    public IEnumerable<CanvasLayer> GetCanvasLayers()
+    public IEnumerable<GraphicsLayer> GetCanvasLayers()
     {
         if (Dirty)
         {

@@ -1,4 +1,4 @@
-﻿using VideoEditorD3D.Direct3D.Types;
+﻿using VideoEditorD3D.Direct3D.Vertices;
 using Buffer = SharpDX.Direct3D11.Buffer;
 
 namespace VideoEditorD3D.Direct3D.Interfaces

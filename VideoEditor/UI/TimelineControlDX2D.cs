@@ -130,21 +130,21 @@ public class TimelineControlDX2D : BaseControlDX2D
             var y = TimelineRectangle.Top + middle - i * videoBlockHeight - MiddleOffset;
             var start = new RawVector2(0, y);
             var end = new RawVector2(TimelineRectangle.Width, y);
-            RenderTarget.DrawLine(start, end, Brushes.HorizontalLines);
+            RenderTarget!.DrawLine(start, end, Brushes!.HorizontalLines);
 
             var text = $"{i + Timeline.FirstVisibleVideoLayer}";
             using var layout = new TextLayout(dwriteFactory, text, textFormat, 100, 100); // 100x100 is max grootte van tekst
 
             var textY = y - videoBlockHeight / 2 - layout.Metrics.Height / 2;
             var textPosition = new RawVector2(2, (float)textY);
-            RenderTarget.DrawTextLayout(textPosition, layout, Brushes.Text);
+            RenderTarget!.DrawTextLayout(textPosition, layout, Brushes.Text);
         }
         for (var i = 0; i < Timeline.VisibleAudioLayers; i++)
         {
             var y = TimelineRectangle.Top + middle + i * audioBlockHeight + MiddleOffset;
             var start = new RawVector2(0, y);
             var end = new RawVector2(TimelineRectangle.Width, y);
-            RenderTarget.DrawLine(start, end, Brushes.HorizontalLines);
+            RenderTarget!.DrawLine(start, end, Brushes!.HorizontalLines);
 
             var text = $"{i + Timeline.FirstVisibleAudioLayer}";
             using var layout = new TextLayout(dwriteFactory, text, textFormat, 100, 100);
@@ -171,13 +171,13 @@ public class TimelineControlDX2D : BaseControlDX2D
             if (x >= Width) break;
             var start = new RawVector2(x, 0);
             var end = new RawVector2(x, TimelineRectangle.Height);
-            RenderTarget.DrawLine(start, end, Brushes.VerticalLines);
+            RenderTarget!.DrawLine(start, end, Brushes!.VerticalLines);
 
             var text = $"{sec.ToString("F" + decimals)}s";
             using var layout = new TextLayout(dwriteFactory, text, textFormat, 100, 100);
             var textY = TimelineRectangle.Top + middle - layout.Metrics.Height / 2;
             var textPosition = new RawVector2(x + 2, (float)textY);
-            RenderTarget.DrawTextLayout(textPosition, layout, Brushes.Text);
+            RenderTarget!.DrawTextLayout(textPosition, layout, Brushes!.Text);
         }
     }
     private void DrawVideoClips()
@@ -194,11 +194,11 @@ public class TimelineControlDX2D : BaseControlDX2D
                 if (rect.Top > TimelineRectangle.Height || rect.Bottom < 0) continue; // Clip buiten zichtbare range
 
                 var selected = Timeline.SelectedClips.Contains(clip);
-                var fillBrush = selected ? Brushes.SelectedClip : clip.IsVideoClip ? Brushes.VideoClip : Brushes.AudioClip;
+                var fillBrush = selected ? Brushes!.SelectedClip : clip.IsVideoClip ? Brushes!.VideoClip : Brushes!.AudioClip;
                 var borderPen = Brushes.ClipBorder;
 
-                RenderTarget.FillRectangle(rect, fillBrush);
-                RenderTarget.DrawRectangle(rect, borderPen);
+                RenderTarget!.FillRectangle(rect, fillBrush);
+                RenderTarget!.DrawRectangle(rect, borderPen);
             }
         }
     }
@@ -212,7 +212,7 @@ public class TimelineControlDX2D : BaseControlDX2D
         // Zorg ervoor dat de lijn binnen de zichtbare regio valt
         if (x >= 0 && x <= Width)
         {
-            RenderTarget.DrawLine(new RawVector2(x, 0), new RawVector2(x, TimelineRectangle.Height), Brushes.PositionLine);
+            RenderTarget!.DrawLine(new RawVector2(x, 0), new RawVector2(x, TimelineRectangle.Height), Brushes!.PositionLine);
         }
     }
 
