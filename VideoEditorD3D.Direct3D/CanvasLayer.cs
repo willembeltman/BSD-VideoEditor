@@ -6,7 +6,7 @@ using VideoEditorD3D.Direct3D.Textures;
 using VideoEditorD3D.Types;
 using Device = SharpDX.Direct3D11.Device;
 
-namespace VideoEditorD3D.Direct3D.Canvas;
+namespace VideoEditorD3D.Direct3D;
 
 public class CanvasLayer(
     int index,

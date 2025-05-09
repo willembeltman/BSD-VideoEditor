@@ -1,8 +1,8 @@
-﻿using VideoEditorD3D.Direct3D.Canvas;
+﻿using VideoEditorD3D.Direct3D;
 
-namespace VideoEditorD3D.Drawers;
+namespace VideoEditorD3D;
 
-public class ApplicationDrawer(ApplicationContext Context)
+public class ApplicationDrawer(Application Context)
 {
     public Canvas DrawCanvas()
     {

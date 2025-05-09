@@ -1,6 +1,6 @@
 ﻿using Color = SharpDX.Color;
 
-namespace VideoEditorD3D.Direct3D.Canvas;
+namespace VideoEditorD3D.Direct3D;
 
 public class Canvas : IDisposable
 {
