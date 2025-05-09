@@ -8,16 +8,17 @@ using Device = SharpDX.Direct3D11.Device;
 
 namespace VideoEditorD3D.Direct3D;
 
-public class CanvasLayer(
-    Device device,
-    Characters textCharacters,
-    int canvasWidth,
-    int canvasHeight) : IDisposable
+public class CanvasLayer(IApplication application) : IDisposable
 {
+    private IApplication Application { get; } = application;
+
     public List<Vertex> LineVertices { get; } = [];
     public List<Vertex> FillVertices { get; } = [];
     public List<TextureImage> Images { get; } = [];
     public List<TextureImage> Characters { get; } = [];
+
+    public int CanvasWidth => Application.PhysicalWidth;
+    public int CanvasHeight => Application.PhysicalHeight;
 
     public void Clear()
     {
@@ -26,6 +27,7 @@ public class CanvasLayer(
         foreach(var image in Images)
             image.Dispose();
         Images.Clear();
+        Characters.Clear();
     }
     public void DrawLine(RawVector2 start, RawVector2 end, RawColor4 color, float strokeWidth)
     {
@@ -58,10 +60,10 @@ public class CanvasLayer(
         var offsetY = ny * halfThicknessy;
 
         // Bereken de 4 hoekpunten van de lijn als rechthoek
-        var v1 = new RawVector2(start.X + offsetX, start.Y + offsetY).ToClipSpace(canvasWidth, canvasHeight);
-        var v2 = new RawVector2(start.X - offsetX, start.Y - offsetY).ToClipSpace(canvasWidth, canvasHeight);
-        var v3 = new RawVector2(end.X - offsetX, end.Y - offsetY).ToClipSpace(canvasWidth, canvasHeight);
-        var v4 = new RawVector2(end.X + offsetX, end.Y + offsetY).ToClipSpace(canvasWidth, canvasHeight);
+        var v1 = new RawVector2(start.X + offsetX, start.Y + offsetY).ToClipSpace(CanvasWidth, CanvasHeight);
+        var v2 = new RawVector2(start.X - offsetX, start.Y - offsetY).ToClipSpace(CanvasWidth, CanvasHeight);
+        var v3 = new RawVector2(end.X - offsetX, end.Y - offsetY).ToClipSpace(CanvasWidth, CanvasHeight);
+        var v4 = new RawVector2(end.X + offsetX, end.Y + offsetY).ToClipSpace(CanvasWidth, CanvasHeight);
 
         // Voeg als 2 driehoeken toe aan FillVerticesList
         FillVertices.Add(new Vertex { Position = v1, Color = color });
@@ -74,8 +76,8 @@ public class CanvasLayer(
     }
     public void DrawLineOnePixelWide(RawVector2 start, RawVector2 end, RawColor4 color)
     {
-        LineVertices.Add(new Vertex { Position = start.ToClipSpace(canvasWidth, canvasHeight), Color = color });
-        LineVertices.Add(new Vertex { Position = end.ToClipSpace(canvasWidth, canvasHeight), Color = color });
+        LineVertices.Add(new Vertex { Position = start.ToClipSpace(CanvasWidth, CanvasHeight), Color = color });
+        LineVertices.Add(new Vertex { Position = end.ToClipSpace(CanvasWidth, CanvasHeight), Color = color });
     }
     public void DrawRectangle(float left, float top, float width, float height, RawColor4 color, float strokeWidth)
     {
@@ -84,10 +86,10 @@ public class CanvasLayer(
 
 
         // Clip space coordinaten
-        var p1 = new RawVector2(left, top).ToClipSpace(canvasWidth, canvasHeight);
-        var p2 = new RawVector2(right, top).ToClipSpace(canvasWidth, canvasHeight);
-        var p3 = new RawVector2(right, bottom).ToClipSpace(canvasWidth, canvasHeight);
-        var p4 = new RawVector2(left, bottom).ToClipSpace(canvasWidth, canvasHeight);
+        var p1 = new RawVector2(left, top).ToClipSpace(CanvasWidth, CanvasHeight);
+        var p2 = new RawVector2(right, top).ToClipSpace(CanvasWidth, CanvasHeight);
+        var p3 = new RawVector2(right, bottom).ToClipSpace(CanvasWidth, CanvasHeight);
+        var p4 = new RawVector2(left, bottom).ToClipSpace(CanvasWidth, CanvasHeight);
 
         // Rand met lijnen
         if (strokeWidth > 0 && color.A > 0)
@@ -111,10 +113,10 @@ public class CanvasLayer(
         float bottom = top + height;
 
         // Clip space coordinaten
-        var p1 = new RawVector2(left, top).ToClipSpace(canvasWidth, canvasHeight);
-        var p2 = new RawVector2(right, top).ToClipSpace(canvasWidth, canvasHeight);
-        var p3 = new RawVector2(right, bottom).ToClipSpace(canvasWidth, canvasHeight);
-        var p4 = new RawVector2(left, bottom).ToClipSpace(canvasWidth, canvasHeight);
+        var p1 = new RawVector2(left, top).ToClipSpace(CanvasWidth, CanvasHeight);
+        var p2 = new RawVector2(right, top).ToClipSpace(CanvasWidth, CanvasHeight);
+        var p3 = new RawVector2(right, bottom).ToClipSpace(CanvasWidth, CanvasHeight);
+        var p4 = new RawVector2(left, bottom).ToClipSpace(CanvasWidth, CanvasHeight);
 
         // Vulling met 2 driehoeken
         if (color.A > 0)
@@ -131,21 +133,21 @@ public class CanvasLayer(
     public void DrawBitmap(float left, float top, float width, float height, System.Drawing.Bitmap bitmap)
     {
         var fillVertices = CreateBitmapVertices(left, top, width, height);
-        var texture = new BitmapTexture(device!, bitmap);
+        var texture = new BitmapTexture(Application.Device, bitmap);
         var image = new TextureImage(fillVertices, texture, false);
         Images.Add(image);
     }
     public void DrawFrame(float left, float top, float width, float height, Frame frame)
     {
         var fillVertices = CreateBitmapVertices(left, top, width, height);
-        var texture = new FrameTexture(device!, frame);
+        var texture = new FrameTexture(Application.Device!, frame);
         var image = new TextureImage(fillVertices, texture, false);
         Images.Add(image);
     }
-    public void DrawText(string text, float left, float top, string font = "Arial", float fontSize = 12f, Color? foreColor = null, Color? backColor = null)
+    public void DrawText(string text, float left, float top, string font = "Arial", float fontSize = 10f, RawColor4? foreColor = null, RawColor4? backColor = null)
     {
-        foreColor ??= Color.White;
-        backColor ??= Color.Transparent;
+        foreColor ??= new RawColor4(1, 1, 1, 1);
+        backColor ??= new RawColor4(0, 0, 0, 0);
 
         var currentLeft = Convert.ToSingle(Math.Round(left));
         var currentTop = Convert.ToSingle(Math.Round(top));
@@ -159,7 +161,7 @@ public class CanvasLayer(
             foreach (var character in row)
             {
                 // Text item aanmaken of ophalen voor het huidige character
-                var texture = textCharacters.GetOrCreate(character, font, fontSize, backColor.Value, foreColor.Value);
+                var texture = Application.Characters.GetOrCreate(character, font, fontSize, backColor.Value, foreColor.Value);
 
                 // Berekenen
                 var right = currentLeft + texture.Width - 1f;
@@ -234,10 +236,10 @@ public class CanvasLayer(
         var roundBottom = top + roundHeight;
 
         // Maak vertices
-        float x0 = roundLeft / canvasWidth * 2f - 1f;
-        float y0 = 1f - roundTop / canvasHeight * 2f;
-        float x1 = roundRight / canvasWidth * 2f - 1f;
-        float y1 = 1f - roundBottom / canvasHeight * 2f;
+        float x0 = roundLeft / CanvasWidth * 2f - 1f;
+        float y0 = 1f - roundTop / CanvasHeight * 2f;
+        float x1 = roundRight / CanvasWidth * 2f - 1f;
+        float y1 = 1f - roundBottom / CanvasHeight * 2f;
 
         var FillVertices = new[]
         {

@@ -2,28 +2,33 @@
 
 namespace VideoEditorD3D.Direct3D.Forms;
 
-public abstract class ControlD3D(FormD3D? parentForm)
+public class ControlD3D(FormD3D? parentForm)
 {
-    private FormD3D? _ParentForm = parentForm;
-    private int _Left = 0;
-    private int _Top = 0;
-    private int _Width = 0;
-    private int _Height = 0;
-
-    private CanvasLayer[] CanvasLayers = [];
-    private bool Validated;
-
+    private readonly FormD3D? _ParentForm = parentForm;
     public virtual FormD3D ParentForm => _ParentForm!;
+    public IApplication Application => ParentForm.Application;
+
     public virtual void OnResize()
     {
         Invalidate();
     }
-    public abstract void Draw();
+
+    public virtual void Draw()
+    {
+
+    }
+
+    private bool Validated;
     public void Invalidate()
     {
+        foreach (var control in Controls)
+        {
+            control.Invalidate();
+        }
         Validated = false;
     }
 
+    private int _Left = 0;
     public int Left
     {
         get => _Left;
@@ -36,6 +41,8 @@ public abstract class ControlD3D(FormD3D? parentForm)
             }
         }
     }
+     
+    private int _Top = 0;
     public int Top
     {
         get => _Top;
@@ -48,6 +55,8 @@ public abstract class ControlD3D(FormD3D? parentForm)
             }
         }
     }
+
+    private int _Width = 480;
     public int Width
     {
         get => _Width;
@@ -60,6 +69,8 @@ public abstract class ControlD3D(FormD3D? parentForm)
             }
         }
     }
+
+    private int _Height = 640;
     public int Height
     {
         get => _Height;
@@ -83,23 +94,13 @@ public abstract class ControlD3D(FormD3D? parentForm)
             Invalidate();
         }
     }
-    private RawColor4 _ForegroundColor;
-    public RawColor4 ForegroundColor
-    {
-        get => _ForegroundColor;
-        set
-        {
-            _ForegroundColor = value;
-            Invalidate();
-        }
-    }
 
-    public ControlD3D[] Controls { get; set; } = [];
+    private ControlD3D[] Controls = [];
     public void AddControl(ControlD3D control)
     {
         var newArray = new ControlD3D[Controls.Length + 1];
         Array.Copy(Controls, newArray, Controls.Length);
-        newArray[newArray.Length - 1] = control;
+        newArray[^1] = control;
         Controls = newArray;
 
         Invalidate();
@@ -129,11 +130,12 @@ public abstract class ControlD3D(FormD3D? parentForm)
         Invalidate();
     }
 
+    private CanvasLayer[] CanvasLayers = [];
     public void AddCanvasLayer(CanvasLayer layer)
     {
         var newArray = new CanvasLayer[CanvasLayers.Length + 1];
         Array.Copy(CanvasLayers, newArray, CanvasLayers.Length);
-        newArray[newArray.Length - 1] = layer;
+        newArray[^1] = layer;
         CanvasLayers = newArray;
     }
     public void RemoveCanvasLayer(CanvasLayer layer)
@@ -160,12 +162,11 @@ public abstract class ControlD3D(FormD3D? parentForm)
     }
     public CanvasLayer CreateCanvasLayer()
     {
-        var layer = new CanvasLayer(ParentForm.Device, ParentForm.Characters, ParentForm.Width, ParentForm.Height);
+        var layer = new CanvasLayer(Application);
         AddCanvasLayer(layer);
         return layer;
     }
-
-    public IEnumerable<CanvasLayer> GetLayers()
+    public IEnumerable<CanvasLayer> GetCanvasLayers()
     {
         if (!Validated)
         {
@@ -179,7 +180,7 @@ public abstract class ControlD3D(FormD3D? parentForm)
         }
         foreach (var control in Controls)
         {
-            foreach (var layer in control.GetLayers())
+            foreach (var layer in control.GetCanvasLayers())
             {
                 yield return layer;
             }

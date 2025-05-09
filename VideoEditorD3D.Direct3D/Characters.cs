@@ -1,4 +1,4 @@
-using SharpDX;
+using SharpDX.Mathematics.Interop;
 using VideoEditorD3D.Direct3D.Textures;
 using Device = SharpDX.Direct3D11.Device;
 
@@ -15,7 +15,7 @@ public class Characters : IDisposable
     CharacterTexture[] TextItems;
     Device Device;
 
-    public CharacterTexture GetOrCreate(char character, string font, float fontSize, Color backColor, Color foreColor)
+    public CharacterTexture GetOrCreate(char character, string font, float fontSize, RawColor4 backColor, RawColor4 foreColor)
     {
         var item = TextItems
             .FirstOrDefault(a =>

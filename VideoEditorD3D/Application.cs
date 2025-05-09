@@ -14,11 +14,42 @@ using VideoEditorD3D.Direct3D.Forms;
 using Device = SharpDX.Direct3D11.Device;
 using Buffer = SharpDX.Direct3D11.Buffer;
 using System.ComponentModel;
+using VideoEditorD3D.Direct3D.Extentions;
 
 namespace VideoEditorD3D;
 
 public partial class Application : Form, IApplication
 {
+    // Initilized in constructor
+    private readonly Lock UILock;
+    private ConsoleLogger Logger;
+    private ApplicationConfig Config;
+    private ApplicationDbContext Db;
+    private Router Router;
+    private Stopwatch Stopwatch;
+    private AllTimers Timers;
+    private bool ReInitialize;
+    private bool Initialized;
+
+    // Initialized at OnHandleCreated
+    private WindowsScaling? _WindowsScaling;
+    private DeviceContext? _DeviceContext;
+    private SwapChain? _SwapChain;
+    private RenderTargetView? _RenderTargetView;
+    private VertexShader? _NormalVertexShader;
+    private PixelShader? _NormalPixelShader;
+    private InputLayout? _NormalInputLayout;
+    private VertexShader? _BitmapVertexShader;
+    private PixelShader? _BitmapPixelShader;
+    private InputLayout? _BitmapInputLayout;
+    private Buffer? _VertexBuffer;
+    private SamplerState? _SamplerState;
+    private Device? _Device;
+    private Characters? _Characters;
+    private FormD3D? _CurrentForm;
+    private int? _PhysicalWidth;
+    private int? _PhysicalHeight;
+
     public Application()
     {
         Logger = new ConsoleLogger();
@@ -40,52 +71,7 @@ public partial class Application : Form, IApplication
 
         InitializeComponent();
     }
-
-    public ConsoleLogger Logger { get; }
-    public ApplicationConfig Config { get; }
-    public ApplicationDbContext Db { get; }
-    public Router Router { get; }
-    public Stopwatch Stopwatch { get; }
-    public AllTimers Timers { get; }
-
-    private readonly Lock UILock;
-    private Device? _Device;
-    private int _PhysicalWidth;
-    private int _PhysicalHeight;
-    private Characters? _Characters;
-    private FormD3D? _CurrentForm;
-
-    private WindowsScaling? WindowsScaling;
-    private DeviceContext? Context;
-    private SwapChain? SwapChain;
-    private RenderTargetView? RenderTargetView;
-    private VertexShader? NormalVertexShader;
-    private PixelShader? NormalPixelShader;
-    private InputLayout? NormalInputLayout;
-    private VertexShader? BitmapVertexShader;
-    private PixelShader? BitmapPixelShader;
-    private InputLayout? BitmapInputLayout;
-    private Buffer? VertexBuffer;
-    private SamplerState? SamplerState;
-
-    private bool ReInitialize;
-    private bool Initialized;
-
-    public Device Device => _Device!;
-    public Characters Characters => _Characters!;
-
-    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-    public FormD3D CurrentForm
-    {
-        get => _CurrentForm!;
-        set
-        {
-            _CurrentForm = value;
-        }
-    }
-    public int PhysicalWidth => _PhysicalWidth;
-    public int PhysicalHeight => _PhysicalHeight;
-
+    
     private bool IsMinimized
     {
         get
@@ -103,6 +89,26 @@ public partial class Application : Form, IApplication
         }
     }
     private bool IsNotReadyToDraw => !Initialized || Width == 0 || Height == 0;
+
+    #region IApplication interface
+
+    ConsoleLogger IApplication.Logger => Logger!;
+    Device IApplication.Device => _Device!;
+    Characters IApplication.Characters => _Characters!;
+    FormD3D IApplication.CurrentForm
+    {
+        get => _CurrentForm!;
+        set => _CurrentForm = value;
+    }
+    int IApplication.PhysicalWidth => _PhysicalWidth!.Value;
+    int IApplication.PhysicalHeight => _PhysicalHeight!.Value;
+    ApplicationConfig IApplication.Config => Config;
+    ApplicationDbContext IApplication.Db => Db;
+    Stopwatch IApplication.Stopwatch => Stopwatch;
+    AllTimers IApplication.Timers => Timers;
+    void IApplication.Draw() => Draw();
+
+    #endregion
 
     private void InitializeComponent()
     {
@@ -123,7 +129,6 @@ public partial class Application : Form, IApplication
     protected override void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
-        WindowsScaling = new WindowsScaling(Handle);
         RecreateSwapChain();
     }
     protected override void OnLoad(EventArgs e)
@@ -133,7 +138,7 @@ public partial class Application : Form, IApplication
     }
     protected override void OnResize(EventArgs e)
     {
-        if (IsNotReadyToDraw || _Device == null || WindowsScaling == null || SwapChain == null)
+        if (IsNotReadyToDraw || _Device == null || _WindowsScaling == null || _SwapChain == null || _CurrentForm == null)
             return;
 
         if (IsMinimized)
@@ -152,10 +157,10 @@ public partial class Application : Form, IApplication
         lock (UILock)
         {
             _Device.ImmediateContext.ClearState();
-            RenderTargetView?.Dispose();
+            _RenderTargetView?.Dispose();
 
-            int newWidth = Convert.ToInt32(Width * WindowsScaling.Scaling);
-            int newHeight = Convert.ToInt32(Height * WindowsScaling.Scaling);
+            int newWidth = Convert.ToInt32(Width * _WindowsScaling.Scaling);
+            int newHeight = Convert.ToInt32(Height * _WindowsScaling.Scaling);
 
             if (newWidth == 0 || newHeight == 0)
                 return;
@@ -163,9 +168,12 @@ public partial class Application : Form, IApplication
             _PhysicalWidth = newWidth;
             _PhysicalHeight = newHeight;
 
+            _CurrentForm.Width = newWidth;
+            _CurrentForm.Height = newHeight;
+
             try
             {
-                SwapChain.ResizeBuffers(1, _PhysicalWidth, _PhysicalHeight, Format.R8G8B8A8_UNorm, SwapChainFlags.None);
+                _SwapChain.ResizeBuffers(1, newWidth, newHeight, Format.R8G8B8A8_UNorm, SwapChainFlags.None);
             }
             catch (SharpDXException ex)
             {
@@ -184,18 +192,26 @@ public partial class Application : Form, IApplication
         {
             try
             {
-                NormalInputLayout?.Dispose();
-                NormalVertexShader?.Dispose();
-                NormalPixelShader?.Dispose();
-                RenderTargetView?.Dispose();
-                SwapChain?.Dispose();
-                Context?.Dispose();
+                _NormalInputLayout?.Dispose();
+                _NormalVertexShader?.Dispose();
+                _NormalPixelShader?.Dispose();
+                _RenderTargetView?.Dispose();
+                _SwapChain?.Dispose();
+                _DeviceContext?.Dispose();
                 _Device?.Dispose();
-                SamplerState?.Dispose();
+                _SamplerState?.Dispose();
                 _Characters?.Dispose();
 
-                _PhysicalWidth = Convert.ToInt32(Width * WindowsScaling!.Scaling);
-                _PhysicalHeight = Convert.ToInt32(Height * WindowsScaling!.Scaling);
+                _WindowsScaling = new WindowsScaling(Handle);
+
+                int newWidth = Convert.ToInt32(Width * _WindowsScaling!.Scaling);
+                int newHeight = Convert.ToInt32(Height * _WindowsScaling!.Scaling);
+
+                if (newWidth == 0 || newHeight == 0)
+                    return;
+
+                _PhysicalWidth = newWidth;
+                _PhysicalHeight = newHeight;
 
                 var sampleSize = 1; // No MSAA
                 using (var tempDevice = new Device(DriverType.Hardware, DeviceCreationFlags.None))
@@ -211,7 +227,7 @@ public partial class Application : Form, IApplication
                 var swapChainDesc = new SwapChainDescription()
                 {
                     BufferCount = 1,
-                    ModeDescription = new ModeDescription(_PhysicalWidth, _PhysicalHeight, new Rational(60, 1), Format.R8G8B8A8_UNorm),
+                    ModeDescription = new ModeDescription(newWidth, newHeight, new Rational(60, 1), Format.R8G8B8A8_UNorm),
                     Usage = Usage.RenderTargetOutput,
                     OutputHandle = Handle,
                     SampleDescription = new SampleDescription(sampleSize, 0),
@@ -223,14 +239,14 @@ public partial class Application : Form, IApplication
                     DriverType.Hardware,
                     DeviceCreationFlags.BgraSupport,
                     swapChainDesc,
-                    out _Device, out SwapChain);
+                    out _Device, out _SwapChain);
 
-                Context = _Device.ImmediateContext;
+                _DeviceContext = _Device.ImmediateContext;
 
                 AfterResizeOrRecreate();
                 CompileShaders();
 
-                SamplerState = new SamplerState(_Device, new SamplerStateDescription
+                _SamplerState = new SamplerState(_Device, new SamplerStateDescription
                 {
                     Filter = Filter.MinMagMipLinear,
                     AddressU = TextureAddressMode.Wrap,
@@ -240,10 +256,14 @@ public partial class Application : Form, IApplication
                     MinimumLod = 0,
                     MaximumLod = float.MaxValue
                 });
-                Context.PixelShader.SetSampler(0, SamplerState);
+                _DeviceContext.PixelShader.SetSampler(0, _SamplerState);
 
                 _Characters = new Characters(_Device);
-                _CurrentForm = new MainForm(this);
+                _CurrentForm = new MainForm(this)
+                {
+                    Width = newWidth,
+                    Height = newHeight
+                };
 
                 ReInitialize = false;
                 Initialized = true;
@@ -257,15 +277,15 @@ public partial class Application : Form, IApplication
     }
     private void AfterResizeOrRecreate()
     {
-        Utilities.Dispose(ref RenderTargetView);
+        Utilities.Dispose(ref _RenderTargetView);
 
-        using (var backBuffer = SwapChain!.GetBackBuffer<Texture2D>(0))
+        using (var backBuffer = _SwapChain!.GetBackBuffer<Texture2D>(0))
         {
-            RenderTargetView = new RenderTargetView(_Device, backBuffer);
+            _RenderTargetView = new RenderTargetView(_Device, backBuffer);
         }
 
-        Context!.OutputMerger.SetRenderTargets(RenderTargetView);
-        Context!.Rasterizer.SetViewport(0, 0, _PhysicalWidth, _PhysicalHeight);
+        _DeviceContext!.OutputMerger.SetRenderTargets(_RenderTargetView);
+        _DeviceContext!.Rasterizer.SetViewport(0, 0, _PhysicalWidth, _PhysicalHeight);
     }
     private void CompileShaders()
     {
@@ -297,11 +317,11 @@ public partial class Application : Form, IApplication
                 }",
             "PSMain", "ps_4_0");
 
-        NormalVertexShader = new VertexShader(_Device, normalVertexShaderByteCode);
-        NormalPixelShader = new PixelShader(_Device, normalPixelShaderByteCode);
+        _NormalVertexShader = new VertexShader(_Device, normalVertexShaderByteCode);
+        _NormalPixelShader = new PixelShader(_Device, normalPixelShaderByteCode);
 
         // Input layout voor normale shader
-        NormalInputLayout = new InputLayout(_Device,
+        _NormalInputLayout = new InputLayout(_Device,
             SharpDX.D3DCompiler.ShaderSignature.GetInputSignature(normalVertexShaderByteCode),
             [
                 new InputElement("POSITION", 0, Format.R32G32_Float, 0, 0),
@@ -339,26 +359,33 @@ public partial class Application : Form, IApplication
                 }",
             "PSMain", "ps_4_0");
 
-        BitmapVertexShader = new VertexShader(_Device, bitmapVertexShaderByteCode);
-        BitmapPixelShader = new PixelShader(_Device, bitmapPixelShaderByteCode);
+        _BitmapVertexShader = new VertexShader(_Device, bitmapVertexShaderByteCode);
+        _BitmapPixelShader = new PixelShader(_Device, bitmapPixelShaderByteCode);
 
         // Input layout voor bitmap shader
-        BitmapInputLayout = new InputLayout(_Device,
+        _BitmapInputLayout = new InputLayout(_Device,
             SharpDX.D3DCompiler.ShaderSignature.GetInputSignature(bitmapVertexShaderByteCode),
             [
                 new InputElement("POSITION", 0, Format.R32G32_Float, 0, 0),
                 new InputElement("TEXCOORD", 0, Format.R32G32_Float, 8, 0)
             ]);
     }
-
-    public void Draw()
+    private void Draw()
     {
         if (IsNotReadyToDraw)
             return;
 
         try
         {
-            LoadDataAndRenderToGpu();
+            var currentForm = _CurrentForm;
+            if (currentForm == null || IsNotReadyToDraw)
+                return;
+
+            Timers.GraphDrawToGpuTimer.Start();
+            lock (UILock) RenderToGpu(currentForm);
+            Timers.GraphDrawToGpuTimer.Stop();
+
+            Timers.FpsTimer.CountFps();
         }
         catch (Exception ex)
         {
@@ -366,89 +393,71 @@ public partial class Application : Form, IApplication
             Logger.WriteException(ex);
 
             // Deze check doen we omdat we niet weten hoeveel tijd er voorbij is gegaan
-            if (IsNotReadyToDraw)
-                return;
-
-            RecreateSwapChain();
+            if (!IsNotReadyToDraw)
+            {
+                RecreateSwapChain();
+            }
         }
     }
-    private void LoadDataAndRenderToGpu()
+    private void RenderToGpu(ICanvas canvas)
     {
-        if (_CurrentForm == null || IsNotReadyToDraw)
+        if (IsNotReadyToDraw || _DeviceContext == null || _Device == null || _SwapChain == null)
             return;
 
-        Timers.GraphCompileCanvasTimer.Start();
-        var canvas = CurrentForm.GetCanvas();
-        Timers.GraphCompileCanvasTimer.Stop();
+        _DeviceContext.ClearRenderTargetView(_RenderTargetView, canvas.BackgroundColor.ToSharpDXColor());
 
-        Timers.GraphDrawToGpuTimer.Start();
-        RenderToGpu(canvas);
-        Timers.GraphDrawToGpuTimer.Stop();
-
-        Timers.FpsTimer.CountFps();
-    }
-    private void RenderToGpu(Canvas canvas)
-    {
-        lock (UILock)
+        foreach (var layer in canvas.GetCanvasLayers())
         {
-            if (IsNotReadyToDraw || Context == null || _Device == null || SwapChain == null)
-                return;
-
-            Context.ClearRenderTargetView(RenderTargetView, canvas.BackgroundColor);
-
-            foreach (var layer in canvas.Layers)
+            // Triangles
+            if (layer.FillVertices.Count > 0)
             {
-                // Triangles
-                if (layer.FillVertices.Count > 0)
-                {
-                    VertexBuffer?.Dispose();
-                    VertexBuffer = Buffer.Create(_Device, BindFlags.VertexBuffer, layer.FillVertices.ToArray());
+                _VertexBuffer?.Dispose();
+                _VertexBuffer = Buffer.Create(_Device, BindFlags.VertexBuffer, layer.FillVertices.ToArray());
 
-                    Context.InputAssembler.InputLayout = NormalInputLayout;
-                    Context.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
-                    Context.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(VertexBuffer, Utilities.SizeOf<Vertex>(), 0));
-                    Context.VertexShader.Set(NormalVertexShader);
-                    Context.PixelShader.Set(NormalPixelShader);
+                _DeviceContext.InputAssembler.InputLayout = _NormalInputLayout;
+                _DeviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
+                _DeviceContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(_VertexBuffer, Utilities.SizeOf<Vertex>(), 0));
+                _DeviceContext.VertexShader.Set(_NormalVertexShader);
+                _DeviceContext.PixelShader.Set(_NormalPixelShader);
 
-                    Context.Draw(layer.FillVertices.Count, 0);
-                }
-
-                // Lines
-                if (layer.LineVertices.Count > 0)
-                {
-                    VertexBuffer?.Dispose();
-                    VertexBuffer = Buffer.Create(_Device, BindFlags.VertexBuffer, layer.LineVertices.ToArray());
-
-                    Context.InputAssembler.InputLayout = NormalInputLayout;
-                    Context.InputAssembler.PrimitiveTopology = PrimitiveTopology.LineList;
-                    Context.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(VertexBuffer, Utilities.SizeOf<Vertex>(), 0));
-                    Context.VertexShader.Set(NormalVertexShader);
-                    Context.PixelShader.Set(NormalPixelShader);
-
-                    Context.Draw(layer.LineVertices.Count, 0);
-                }
-
-                // Images
-                var images = layer.Images
-                    .Concat(layer.Characters);
-                foreach (var image in images)
-                {
-                    VertexBuffer?.Dispose();
-                    VertexBuffer = Buffer.Create(_Device, BindFlags.VertexBuffer, image.Vertices);
-
-                    Context.InputAssembler.InputLayout = BitmapInputLayout;
-                    Context.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
-                    Context.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(VertexBuffer, Utilities.SizeOf<TextureVertex>(), 0));
-                    Context.VertexShader.Set(BitmapVertexShader);
-                    Context.PixelShader.Set(BitmapPixelShader);
-                    Context.PixelShader.SetShaderResource(0, image.Texture.TextureView);
-
-                    Context.Draw(image.Vertices.Length, 0);
-                }
+                _DeviceContext.Draw(layer.FillVertices.Count, 0);
             }
 
-            SwapChain.Present(1, PresentFlags.None);
+            // Lines
+            if (layer.LineVertices.Count > 0)
+            {
+                _VertexBuffer?.Dispose();
+                _VertexBuffer = Buffer.Create(_Device, BindFlags.VertexBuffer, layer.LineVertices.ToArray());
+
+                _DeviceContext.InputAssembler.InputLayout = _NormalInputLayout;
+                _DeviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.LineList;
+                _DeviceContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(_VertexBuffer, Utilities.SizeOf<Vertex>(), 0));
+                _DeviceContext.VertexShader.Set(_NormalVertexShader);
+                _DeviceContext.PixelShader.Set(_NormalPixelShader);
+
+                _DeviceContext.Draw(layer.LineVertices.Count, 0);
+            }
+
+            // Images
+            var images = layer.Images
+                .Concat(layer.Characters);
+            foreach (var image in images)
+            {
+                _VertexBuffer?.Dispose();
+                _VertexBuffer = Buffer.Create(_Device, BindFlags.VertexBuffer, image.Vertices);
+
+                _DeviceContext.InputAssembler.InputLayout = _BitmapInputLayout;
+                _DeviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
+                _DeviceContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(_VertexBuffer, Utilities.SizeOf<TextureVertex>(), 0));
+                _DeviceContext.VertexShader.Set(_BitmapVertexShader);
+                _DeviceContext.PixelShader.Set(_BitmapPixelShader);
+                _DeviceContext.PixelShader.SetShaderResource(0, image.Texture.TextureView);
+
+                _DeviceContext.Draw(image.Vertices.Length, 0);
+            }
         }
+
+        _SwapChain.Present(1, PresentFlags.None);
     }
 
     protected override void Dispose(bool disposing)
@@ -456,13 +465,13 @@ public partial class Application : Form, IApplication
         base.Dispose(disposing);
 
         _Characters?.Dispose();
-        VertexBuffer?.Dispose();
-        NormalInputLayout?.Dispose();
-        NormalVertexShader?.Dispose();
-        NormalPixelShader?.Dispose();
-        RenderTargetView?.Dispose();
-        SwapChain?.Dispose();
-        Context?.Dispose();
+        _VertexBuffer?.Dispose();
+        _NormalInputLayout?.Dispose();
+        _NormalVertexShader?.Dispose();
+        _NormalPixelShader?.Dispose();
+        _RenderTargetView?.Dispose();
+        _SwapChain?.Dispose();
+        _DeviceContext?.Dispose();
         _Device?.Dispose();
         Router.Dispose();
         Db.Dispose();
