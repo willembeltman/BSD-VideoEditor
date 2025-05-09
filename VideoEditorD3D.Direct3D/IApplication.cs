@@ -10,16 +10,16 @@ namespace VideoEditorD3D.Direct3D
 {
     public interface IApplication
     {
-        Characters Characters { get; }
         ApplicationConfig Config { get; }
         FormD3D CurrentForm { get; set; }
         ApplicationDbContext Db { get; }
-        Device Device { get; }
         ConsoleLogger Logger { get; }
-        int PhysicalHeight { get; }
-        int PhysicalWidth { get; }
         Stopwatch Stopwatch { get; }
         AllTimers Timers { get; }
+        Device Device { get; }
+        Characters Characters { get; }
+        int Width { get; }
+        int Height { get; }
 
         void Draw();
     }

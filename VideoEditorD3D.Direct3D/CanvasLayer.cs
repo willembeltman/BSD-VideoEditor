@@ -14,20 +14,22 @@ public class CanvasLayer(IApplication application) : IDisposable
 
     public List<Vertex> LineVertices { get; } = [];
     public List<Vertex> FillVertices { get; } = [];
-    public List<TextureImage> Images { get; } = [];
-    public List<TextureImage> Characters { get; } = [];
+    public List<TextureImage> ImageTextures { get; } = [];
+    public List<TextureImage> CharacterTextures { get; } = [];
 
-    public int CanvasWidth => Application.PhysicalWidth;
-    public int CanvasHeight => Application.PhysicalHeight;
+    private int CanvasWidth => Application.Width;
+    private int CanvasHeight => Application.Height;
+    private Device Device => Application.Device;
+    private Characters Characters => Application.Characters;
 
     public void Clear()
     {
         LineVertices.Clear();
         FillVertices.Clear();
-        foreach(var image in Images)
+        foreach(var image in ImageTextures)
             image.Dispose();
-        Images.Clear();
-        Characters.Clear();
+        ImageTextures.Clear();
+        CharacterTextures.Clear();
     }
     public void DrawLine(RawVector2 start, RawVector2 end, RawColor4 color, float strokeWidth)
     {
@@ -133,16 +135,16 @@ public class CanvasLayer(IApplication application) : IDisposable
     public void DrawBitmap(float left, float top, float width, float height, System.Drawing.Bitmap bitmap)
     {
         var fillVertices = CreateBitmapVertices(left, top, width, height);
-        var texture = new BitmapTexture(Application.Device, bitmap);
+        var texture = new BitmapTexture(Device, bitmap);
         var image = new TextureImage(fillVertices, texture, false);
-        Images.Add(image);
+        ImageTextures.Add(image);
     }
     public void DrawFrame(float left, float top, float width, float height, Frame frame)
     {
         var fillVertices = CreateBitmapVertices(left, top, width, height);
-        var texture = new FrameTexture(Application.Device!, frame);
+        var texture = new FrameTexture(Device!, frame);
         var image = new TextureImage(fillVertices, texture, false);
-        Images.Add(image);
+        ImageTextures.Add(image);
     }
     public void DrawText(string text, float left, float top, string font = "Arial", float fontSize = 10f, RawColor4? foreColor = null, RawColor4? backColor = null)
     {
@@ -161,7 +163,7 @@ public class CanvasLayer(IApplication application) : IDisposable
             foreach (var character in row)
             {
                 // Text item aanmaken of ophalen voor het huidige character
-                var texture = Application.Characters.GetOrCreate(character, font, fontSize, backColor.Value, foreColor.Value);
+                var texture = Characters.GetOrCreate(character, font, fontSize, backColor.Value, foreColor.Value);
 
                 // Berekenen
                 var right = currentLeft + texture.Width - 1f;
@@ -174,7 +176,7 @@ public class CanvasLayer(IApplication application) : IDisposable
 
                 // En dit in een model stoppen
                 var image = new TextureImage(vertices, texture, true);
-                Characters.Add(image);
+                CharacterTextures.Add(image);
 
                 currentLeft = right;
             }
@@ -255,7 +257,7 @@ public class CanvasLayer(IApplication application) : IDisposable
 
     public void Dispose()
     {
-        foreach (var image in Images)
+        foreach (var image in ImageTextures)
             image.Dispose();
 
         GC.SuppressFinalize(this);

@@ -15,6 +15,7 @@ using Device = SharpDX.Direct3D11.Device;
 using Buffer = SharpDX.Direct3D11.Buffer;
 using System.ComponentModel;
 using VideoEditorD3D.Direct3D.Extentions;
+using SharpDX.Mathematics.Interop;
 
 namespace VideoEditorD3D;
 
@@ -100,13 +101,12 @@ public partial class Application : Form, IApplication
         get => _CurrentForm!;
         set => _CurrentForm = value;
     }
-    int IApplication.PhysicalWidth => _PhysicalWidth!.Value;
-    int IApplication.PhysicalHeight => _PhysicalHeight!.Value;
+    int IApplication.Width => _PhysicalWidth!.Value;
+    int IApplication.Height => _PhysicalHeight!.Value;
     ApplicationConfig IApplication.Config => Config;
     ApplicationDbContext IApplication.Db => Db;
     Stopwatch IApplication.Stopwatch => Stopwatch;
     AllTimers IApplication.Timers => Timers;
-    void IApplication.Draw() => Draw();
 
     #endregion
 
@@ -116,16 +116,9 @@ public partial class Application : Form, IApplication
         this.ClientSize = new Size(800, 450);
         this.Text = "Video editor";
         this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.Opaque, true);
-        this.MouseWheel += Router.OnMouseWheel;
-        this.MouseMove += Router.OnMouseMove;
-        this.MouseDown += Router.MouseDown;
-        this.MouseUp += Router.MouseUp;
-        this.MouseClick += Router.MouseClick;
-        this.KeyDown += Router.OnKeyDown;
-        this.KeyUp += Router.OnKeyUp;
-        this.KeyPress += Router.OnKeyPress;
         this.ResumeLayout(false);
     }
+
     protected override void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
@@ -135,6 +128,7 @@ public partial class Application : Form, IApplication
     {
         Router.StartThread();
         CenterToScreen();
+        Stopwatch.Start();
     }
     protected override void OnResize(EventArgs e)
     {
@@ -181,11 +175,69 @@ public partial class Application : Form, IApplication
                 return;
             }
 
-            AfterResizeOrRecreate();
+            AfterResizeOrRecreate(newWidth, newHeight);
         }
 
         base.OnResize(e);
     }
+    protected override void OnKeyPress(KeyPressEventArgs e)
+    {
+        if (_CurrentForm == null) return;
+        _CurrentForm.OnKeyPress(e);
+    }
+    protected override void OnKeyUp(KeyEventArgs e)
+    {
+        if (_CurrentForm == null) return;
+        _CurrentForm.OnKeyUp(e);
+    }
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        if (_CurrentForm == null) return;
+        _CurrentForm.OnKeyDown(e);
+    }
+    protected override void OnMouseClick(MouseEventArgs e)
+    {
+        if (_WindowsScaling == null || _CurrentForm == null) return;
+        var newX = e.X * _WindowsScaling.Scaling;
+        var newY = e.Y * _WindowsScaling.Scaling;
+        _CurrentForm.OnMouseClick(e, new RawVector2(newX, newY));
+    }
+    protected override void OnMouseDoubleClick(MouseEventArgs e)
+    {
+        if (_WindowsScaling == null || _CurrentForm == null) return;
+        var newX = e.X * _WindowsScaling.Scaling;
+        var newY = e.Y * _WindowsScaling.Scaling;
+        _CurrentForm.OnMouseDoubleClick(e, new RawVector2(newX, newY));
+    }
+    protected override void OnMouseUp(MouseEventArgs e)
+    {
+        if (_WindowsScaling == null || _CurrentForm == null) return;
+        var newX = e.X * _WindowsScaling.Scaling;
+        var newY = e.Y * _WindowsScaling.Scaling;
+        _CurrentForm.OnMouseUp(e, new RawVector2(newX, newY));
+    }
+    protected override void OnMouseDown(MouseEventArgs e)
+    {
+        if (_WindowsScaling == null || _CurrentForm == null) return;
+        var newX = e.X * _WindowsScaling.Scaling;
+        var newY = e.Y * _WindowsScaling.Scaling;
+        _CurrentForm.OnMouseDown(e, new RawVector2(newX, newY));
+    }
+    protected override void OnMouseMove(MouseEventArgs e)
+    {
+        if (_WindowsScaling == null || _CurrentForm == null) return;
+        var newX = e.X * _WindowsScaling.Scaling;
+        var newY = e.Y * _WindowsScaling.Scaling;
+        _CurrentForm.OnMouseMove(e, new RawVector2(newX, newY));
+    }
+    protected override void OnMouseWheel(MouseEventArgs e)
+    {
+        if (_WindowsScaling == null || _CurrentForm == null) return;
+        var newX = e.X * _WindowsScaling.Scaling;
+        var newY = e.Y * _WindowsScaling.Scaling;
+        _CurrentForm.OnMouseWheel(e, new RawVector2(newX, newY));
+    }
+
     private void RecreateSwapChain()
     {
         lock (UILock)
@@ -204,30 +256,30 @@ public partial class Application : Form, IApplication
 
                 _WindowsScaling = new WindowsScaling(Handle);
 
-                int newWidth = Convert.ToInt32(Width * _WindowsScaling!.Scaling);
-                int newHeight = Convert.ToInt32(Height * _WindowsScaling!.Scaling);
+                int realWidth = Convert.ToInt32(Width * _WindowsScaling!.Scaling);
+                int realHeight = Convert.ToInt32(Height * _WindowsScaling!.Scaling);
 
-                if (newWidth == 0 || newHeight == 0)
+                if (realWidth == 0 || realHeight == 0)
                     return;
 
-                _PhysicalWidth = newWidth;
-                _PhysicalHeight = newHeight;
+                _PhysicalWidth = realWidth;
+                _PhysicalHeight = realHeight;
 
                 var sampleSize = 1; // No MSAA
-                using (var tempDevice = new Device(DriverType.Hardware, DeviceCreationFlags.None))
-                {
-                    int quality4 = tempDevice.CheckMultisampleQualityLevels(Format.R8G8B8A8_UNorm, 4);
-                    if (quality4 > 0)
-                        sampleSize = 4; // MSAA4 supported
-                    int quality8 = tempDevice.CheckMultisampleQualityLevels(Format.R8G8B8A8_UNorm, 8);
-                    if (quality8 > 0)
-                        sampleSize = 8; // MSAA8 supported
-                }
+                //using (var tempDevice = new Device(DriverType.Hardware, DeviceCreationFlags.None))
+                //{
+                //    int quality4 = tempDevice.CheckMultisampleQualityLevels(Format.R8G8B8A8_UNorm, 4);
+                //    if (quality4 > 0)
+                //        sampleSize = 4; // MSAA4 supported
+                //    int quality8 = tempDevice.CheckMultisampleQualityLevels(Format.R8G8B8A8_UNorm, 8);
+                //    if (quality8 > 0)
+                //        sampleSize = 8; // MSAA8 supported
+                //}
 
                 var swapChainDesc = new SwapChainDescription()
                 {
                     BufferCount = 1,
-                    ModeDescription = new ModeDescription(newWidth, newHeight, new Rational(60, 1), Format.R8G8B8A8_UNorm),
+                    ModeDescription = new ModeDescription(realWidth, realHeight, new Rational(60, 1), Format.R8G8B8A8_UNorm),
                     Usage = Usage.RenderTargetOutput,
                     OutputHandle = Handle,
                     SampleDescription = new SampleDescription(sampleSize, 0),
@@ -243,7 +295,7 @@ public partial class Application : Form, IApplication
 
                 _DeviceContext = _Device.ImmediateContext;
 
-                AfterResizeOrRecreate();
+                AfterResizeOrRecreate(realWidth, realHeight);
                 CompileShaders();
 
                 _SamplerState = new SamplerState(_Device, new SamplerStateDescription
@@ -261,8 +313,8 @@ public partial class Application : Form, IApplication
                 _Characters = new Characters(_Device);
                 _CurrentForm = new MainForm(this)
                 {
-                    Width = newWidth,
-                    Height = newHeight
+                    Width = realWidth,
+                    Height = realHeight
                 };
 
                 ReInitialize = false;
@@ -275,7 +327,7 @@ public partial class Application : Form, IApplication
             }
         }
     }
-    private void AfterResizeOrRecreate()
+    private void AfterResizeOrRecreate(int width, int height)
     {
         Utilities.Dispose(ref _RenderTargetView);
 
@@ -285,7 +337,7 @@ public partial class Application : Form, IApplication
         }
 
         _DeviceContext!.OutputMerger.SetRenderTargets(_RenderTargetView);
-        _DeviceContext!.Rasterizer.SetViewport(0, 0, _PhysicalWidth, _PhysicalHeight);
+        _DeviceContext!.Rasterizer.SetViewport(0, 0, width, height);
     }
     private void CompileShaders()
     {
@@ -370,7 +422,7 @@ public partial class Application : Form, IApplication
                 new InputElement("TEXCOORD", 0, Format.R32G32_Float, 8, 0)
             ]);
     }
-    private void Draw()
+    public void Draw()
     {
         if (IsNotReadyToDraw)
             return;
@@ -381,9 +433,13 @@ public partial class Application : Form, IApplication
             if (currentForm == null || IsNotReadyToDraw)
                 return;
 
-            Timers.GraphDrawToGpuTimer.Start();
+            Timers.OnUpdateTimer.Start();
+            currentForm.OnUpdate();
+            Timers.OnUpdateTimer.Stop();
+
+            Timers.DrawTimer.Start();
             lock (UILock) RenderToGpu(currentForm);
-            Timers.GraphDrawToGpuTimer.Stop();
+            Timers.DrawTimer.Stop();
 
             Timers.FpsTimer.CountFps();
         }
@@ -439,8 +495,8 @@ public partial class Application : Form, IApplication
             }
 
             // Images
-            var images = layer.Images
-                .Concat(layer.Characters);
+            var images = layer.ImageTextures
+                .Concat(layer.CharacterTextures);
             foreach (var image in images)
             {
                 _VertexBuffer?.Dispose();
@@ -457,7 +513,7 @@ public partial class Application : Form, IApplication
             }
         }
 
-        _SwapChain.Present(1, PresentFlags.None);
+        _SwapChain.Present(0, PresentFlags.None);
     }
 
     protected override void Dispose(bool disposing)

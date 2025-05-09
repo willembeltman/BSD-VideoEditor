@@ -1,48 +1,18 @@
-﻿namespace VideoEditorD3D;
+﻿using VideoEditorD3D.Direct3D;
+
+namespace VideoEditorD3D;
 
 public class Router : IDisposable
 {
-    public Router(Application context)
+    public Router(IApplication application)
     {
-        Application = context;
+        Application = application;
         DrawThread = new Thread(new ThreadStart(DrawKernel));
     }
 
-    private readonly Application Application;
+    private readonly IApplication Application;
     private readonly Thread DrawThread;
     private bool KillSwitch;
-
-    public void OnKeyDown(object? sender, KeyEventArgs e)
-    {
-    }
-
-    public void OnKeyPress(object? sender, KeyPressEventArgs e)
-    {
-    }
-
-    public void OnKeyUp(object? sender, KeyEventArgs e)
-    {
-    }
-
-    public void OnMouseWheel(object? sender, MouseEventArgs e)
-    {
-    }
-
-    public void OnMouseMove(object? sender, MouseEventArgs e)
-    {
-    }
-
-    public void MouseDown(object? sender, MouseEventArgs e)
-    {
-    }
-
-    public void MouseUp(object? sender, MouseEventArgs e)
-    {
-    }
-
-    public void MouseClick(object? sender, MouseEventArgs e)
-    {
-    }
 
     public void StartThread()
     {
@@ -54,7 +24,7 @@ public class Router : IDisposable
         while (!KillSwitch)
         {
             Application.Draw();
-            Thread.Sleep(16);
+            //Thread.Sleep(16);
         }
     }
 

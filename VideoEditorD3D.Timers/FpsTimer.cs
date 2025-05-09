@@ -4,16 +4,16 @@ namespace VideoEditorD3D.Timers;
 
 public class FpsTimer
 {
+
+    private readonly Stopwatch Stopwatch;
+    private readonly Queue<double> FpsQueue;
+    public int Fps { get; private set; }
+
     public FpsTimer(Stopwatch stopwatch)
     {
         Stopwatch = stopwatch;
         FpsQueue = new Queue<double>();
     }
-
-    private Stopwatch Stopwatch { get; }
-    private Queue<double> FpsQueue { get; }
-
-    public int Counter { get; private set; }
 
     //public void SleepTillNextFrame()
     //{
@@ -32,6 +32,6 @@ public class FpsTimer
         while (FpsQueue.Count(a => a < currentTime - 1) > 0)
             FpsQueue.Dequeue();
 
-        Counter = FpsQueue.Count();
+        Fps = FpsQueue.Count();
     }
 }

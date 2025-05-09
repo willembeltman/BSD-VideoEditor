@@ -2,33 +2,21 @@
 
 namespace VideoEditorD3D.Direct3D.Forms;
 
-public class ControlD3D(FormD3D? parentForm)
+public class ControlD3D(IApplication application, FormD3D? parentForm, ControlD3D? parentControl)
 {
-    private readonly FormD3D? _ParentForm = parentForm;
-    public virtual FormD3D ParentForm => _ParentForm!;
-    public IApplication Application => ParentForm.Application;
-
-    public virtual void OnResize()
-    {
-        Invalidate();
-    }
-
-    public virtual void Draw()
-    {
-
-    }
+    public IApplication Application { get; } = application;
+    public FormD3D? ParentForm { get; } = parentForm;
+    public ControlD3D? ParentControl { get; } = parentControl;
 
     private bool Validated;
-    public void Invalidate()
-    {
-        foreach (var control in Controls)
-        {
-            control.Invalidate();
-        }
-        Validated = false;
-    }
-
     private int _Left = 0;
+    private int _Top = 0;
+    private int _Width = 480;
+    private int _Height = 640;
+    private RawColor4 _BackgroundColor;
+    private ControlD3D[] Controls = [];
+    private CanvasLayer[] CanvasLayers = [];
+
     public int Left
     {
         get => _Left;
@@ -41,8 +29,6 @@ public class ControlD3D(FormD3D? parentForm)
             }
         }
     }
-     
-    private int _Top = 0;
     public int Top
     {
         get => _Top;
@@ -55,8 +41,6 @@ public class ControlD3D(FormD3D? parentForm)
             }
         }
     }
-
-    private int _Width = 480;
     public int Width
     {
         get => _Width;
@@ -69,8 +53,6 @@ public class ControlD3D(FormD3D? parentForm)
             }
         }
     }
-
-    private int _Height = 640;
     public int Height
     {
         get => _Height;
@@ -83,8 +65,8 @@ public class ControlD3D(FormD3D? parentForm)
             }
         }
     }
-
-    private RawColor4 _BackgroundColor;
+    public int Right => Left + Width;
+    public int Bottom => Top + Height;
     public RawColor4 BackgroundColor
     {
         get => _BackgroundColor;
@@ -95,7 +77,117 @@ public class ControlD3D(FormD3D? parentForm)
         }
     }
 
-    private ControlD3D[] Controls = [];
+    public virtual void Draw()
+    {
+
+    }
+    public void Invalidate()
+    {
+        foreach (var control in Controls)
+        {
+            control.Invalidate();
+        }
+        Validated = false;
+    }
+    public virtual void OnResize()
+    {
+        Invalidate();
+    }
+    public virtual void OnKeyPress(KeyPressEventArgs e)
+    {
+        foreach (var control in Controls)
+        {
+            control.OnKeyPress(e);
+        }
+    }
+    public virtual void OnKeyUp(KeyEventArgs e)
+    {
+        foreach (var control in Controls)
+        {
+            control.OnKeyUp(e);
+        }
+    }
+    public virtual void OnKeyDown(KeyEventArgs e)
+    {
+        foreach (var control in Controls)
+        {
+            control.OnKeyDown(e);
+        }
+    }
+    public virtual void OnMouseClick(MouseEventArgs e, RawVector2 position)
+    {
+        foreach (var control in Controls)
+        {
+            if (control.Left < position.X && position.X < control.Right &&
+                control.Top < position.Y && position.Y < control.Bottom)
+            {
+                control.OnMouseClick(e, position);
+            }
+        }
+    }
+    public virtual void OnMouseDoubleClick(MouseEventArgs e, RawVector2 position)
+    {
+        foreach (var control in Controls)
+        {
+            if (control.Left < position.X && position.X < control.Right &&
+                control.Top < position.Y && position.Y < control.Bottom)
+            {
+                control.OnMouseDoubleClick(e, position);
+            }
+        }
+    }
+    public virtual void OnMouseUp(MouseEventArgs e, RawVector2 position)
+    {
+        foreach (var control in Controls)
+        {
+            if (control.Left < position.X && position.X < control.Right &&
+                control.Top < position.Y && position.Y < control.Bottom)
+            {
+                control.OnMouseUp(e, position);
+            }
+        }
+    }
+    public virtual void OnMouseDown(MouseEventArgs e, RawVector2 position)
+    {
+        foreach (var control in Controls)
+        {
+            if (control.Left < position.X && position.X < control.Right &&
+                control.Top < position.Y && position.Y < control.Bottom)
+            {
+                control.OnMouseDown(e, position);
+            }
+        }
+    }
+    public virtual void OnMouseMove(MouseEventArgs e, RawVector2 position)
+    {
+        foreach (var control in Controls)
+        {
+            if (control.Left < position.X && position.X < control.Right &&
+                control.Top < position.Y && position.Y < control.Bottom)
+            {
+                control.OnMouseMove(e, position);
+            }
+        }
+    }
+    public virtual void OnMouseWheel(MouseEventArgs e, RawVector2 position)
+    {
+        foreach (var control in Controls)
+        {
+            if (control.Left < position.X && position.X < control.Right &&
+                control.Top < position.Y && position.Y < control.Bottom)
+            {
+                control.OnMouseWheel(e, position);
+            }
+        }
+    }
+    public virtual void OnUpdate()
+    {
+        foreach (var control in Controls)
+        {
+            control.OnUpdate();
+        }
+    }
+
     public void AddControl(ControlD3D control)
     {
         var newArray = new ControlD3D[Controls.Length + 1];
@@ -130,7 +222,6 @@ public class ControlD3D(FormD3D? parentForm)
         Invalidate();
     }
 
-    private CanvasLayer[] CanvasLayers = [];
     public void AddCanvasLayer(CanvasLayer layer)
     {
         var newArray = new CanvasLayer[CanvasLayers.Length + 1];
@@ -166,6 +257,7 @@ public class ControlD3D(FormD3D? parentForm)
         AddCanvasLayer(layer);
         return layer;
     }
+
     public IEnumerable<CanvasLayer> GetCanvasLayers()
     {
         if (!Validated)

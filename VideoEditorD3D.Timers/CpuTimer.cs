@@ -1,11 +1,13 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace VideoEditorD3D.Timers;
 
 public class CpuTimer
 {
-    private Queue<double> ElapsedQueue;
-    private int MaxCount;
+    private readonly Stopwatch Stopwatch;
+    private readonly Queue<double> ElapsedQueue;
+    private readonly int MaxCount;
     private double StartTime;
 
     public CpuTimer(Stopwatch stopwatch, int count = 32)
@@ -15,7 +17,6 @@ public class CpuTimer
         MaxCount = count;
     }
 
-    public Stopwatch Stopwatch { get; }
     public double Time { get; private set; }
 
     public void Start()

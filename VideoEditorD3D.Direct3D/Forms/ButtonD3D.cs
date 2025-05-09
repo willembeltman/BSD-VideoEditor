@@ -4,7 +4,7 @@ namespace VideoEditorD3D.Direct3D.Forms
 {
     public class ButtonD3D : ControlD3D
     {
-        public ButtonD3D(FormD3D? parentForm) : base(parentForm)
+        public ButtonD3D(IApplication application, FormD3D? parentForm, ControlD3D? parentControl) : base(application, parentForm, parentControl)
         {
             Background = CreateCanvasLayer();
             Foreground = CreateCanvasLayer();
