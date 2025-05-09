@@ -5,31 +5,52 @@ using VideoEditorD3D.Direct3D.Extentions;
 using VideoEditorD3D.Direct3D.Textures;
 using VideoEditorD3D.Types;
 using Device = SharpDX.Direct3D11.Device;
+using Buffer = SharpDX.Direct3D11.Buffer;
+using SharpDX.Direct3D11;
+using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D;
 
-public class CanvasLayer(IApplication application) : IDisposable
+public class CanvasLayer(IApplicationD3D application) : IDisposable
 {
-    private IApplication Application { get; } = application;
+    private IApplicationD3D Application { get; } = application;
 
     public List<Vertex> LineVertices { get; } = [];
     public List<Vertex> FillVertices { get; } = [];
-    public List<TextureImage> ImageTextures { get; } = [];
-    public List<TextureImage> CharacterTextures { get; } = [];
+    public List<DisposableTextureImage> ImageTextures { get; } = [];
+    public List<CachedTextureImage> CharacterTextures { get; } = [];
 
     private int CanvasWidth => Application.Width;
     private int CanvasHeight => Application.Height;
     private Device Device => Application.Device;
     private Characters Characters => Application.Characters;
 
-    public void Clear()
+    public Buffer? LineVerticesBuffer { get; set; }
+    public Buffer? FillVerticesBuffer { get; set; }
+
+    public void StartDrawing()
     {
+        LineVerticesBuffer?.Dispose();
+        LineVerticesBuffer = null;
+        FillVerticesBuffer?.Dispose();
+        FillVerticesBuffer = null;
+        
+        foreach (var image in ImageTextures)
+            image.Dispose();
+        foreach (var image in CharacterTextures)
+            image.Dispose();
+
         LineVertices.Clear();
         FillVertices.Clear();
-        foreach(var image in ImageTextures)
-            image.Dispose();
         ImageTextures.Clear();
         CharacterTextures.Clear();
+    }
+    public void EndDrawing()
+    {
+        if (LineVertices.Count > 0)
+            LineVerticesBuffer = Buffer.Create(Device, BindFlags.VertexBuffer, LineVertices.ToArray());
+        if (FillVertices.Count > 0)
+            FillVerticesBuffer = Buffer.Create(Device, BindFlags.VertexBuffer, FillVertices.ToArray());
     }
     public void DrawLine(RawVector2 start, RawVector2 end, RawColor4 color, float strokeWidth)
     {
@@ -132,18 +153,20 @@ public class CanvasLayer(IApplication application) : IDisposable
             FillVertices.Add(new Vertex { Position = p1, Color = color });
         }
     }
-    public void DrawBitmap(float left, float top, float width, float height, System.Drawing.Bitmap bitmap)
+    public void DrawBitmap(float left, float top, float width, float height, Bitmap bitmap)
     {
-        var fillVertices = CreateBitmapVertices(left, top, width, height);
+        var vertices = CreateBitmapVertices(left, top, width, height);
+        var verticesBuffer = Buffer.Create(Device, BindFlags.VertexBuffer, vertices);
         var texture = new BitmapTexture(Device, bitmap);
-        var image = new TextureImage(fillVertices, texture, false);
+        var image = new DisposableTextureImage(vertices, verticesBuffer, texture);
         ImageTextures.Add(image);
     }
     public void DrawFrame(float left, float top, float width, float height, Frame frame)
     {
-        var fillVertices = CreateBitmapVertices(left, top, width, height);
+        var vertices = CreateBitmapVertices(left, top, width, height);
+        var verticesBuffer = Buffer.Create(Device, BindFlags.VertexBuffer, vertices);
         var texture = new FrameTexture(Device!, frame);
-        var image = new TextureImage(fillVertices, texture, false);
+        var image = new DisposableTextureImage(vertices, verticesBuffer, texture);
         ImageTextures.Add(image);
     }
     public void DrawText(string text, float left, float top, string font = "Arial", float fontSize = 10f, RawColor4? foreColor = null, RawColor4? backColor = null)
@@ -172,10 +195,11 @@ public class CanvasLayer(IApplication application) : IDisposable
                     currentBottom = bottom;
 
                 // Vertices laten maken
-                var vertices = CreateBitmapVertices(currentLeft, currentTop, texture.TextureBitmap.Bitmap.Width, texture.TextureBitmap.Bitmap.Height);
+                var fillVertices = CreateBitmapVertices(currentLeft, currentTop, texture.TextureBitmap.Bitmap.Width, texture.TextureBitmap.Bitmap.Height);
+                var fillVerticesBuffer = Buffer.Create(Device, BindFlags.VertexBuffer, fillVertices);
 
                 // En dit in een model stoppen
-                var image = new TextureImage(vertices, texture, true);
+                var image = new CachedTextureImage(fillVertices, fillVerticesBuffer, texture);
                 CharacterTextures.Add(image);
 
                 currentLeft = right;

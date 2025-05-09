@@ -1,6 +1,4 @@
-﻿using VideoEditorD3D.Direct3D;
-
-namespace VideoEditorD3D;
+﻿namespace VideoEditorD3D;
 
 public class Router : IDisposable
 {
@@ -12,7 +10,6 @@ public class Router : IDisposable
 
     private readonly IApplication Application;
     private readonly Thread DrawThread;
-    private bool KillSwitch;
 
     public void StartThread()
     {
@@ -21,16 +18,15 @@ public class Router : IDisposable
 
     private void DrawKernel()
     {
-        while (!KillSwitch)
+        while (!Application.KillSwitch)
         {
             Application.Draw();
-            //Thread.Sleep(16);
         }
     }
 
     public void Dispose()
     {
-        KillSwitch = true;
+        Application.KillSwitch = true;
         if (DrawThread != null && DrawThread != Thread.CurrentThread && DrawThread.ThreadState == ThreadState.Running)
         {
             DrawThread.Join();

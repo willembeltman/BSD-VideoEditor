@@ -1,10 +1,11 @@
 ﻿using SharpDX.Mathematics.Interop;
+using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Forms;
 
-public class ControlD3D(IApplication application, FormD3D? parentForm, ControlD3D? parentControl)
+public class ControlD3D(IApplicationD3D application, FormD3D? parentForm, ControlD3D? parentControl)
 {
-    public IApplication Application { get; } = application;
+    public virtual IApplicationD3D Application { get; } = application;
     public FormD3D? ParentForm { get; } = parentForm;
     public ControlD3D? ParentControl { get; } = parentControl;
 

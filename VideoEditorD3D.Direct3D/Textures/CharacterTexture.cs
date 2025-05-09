@@ -2,10 +2,11 @@ using SharpDX.Direct3D11;
 using SharpDX.Mathematics.Interop;
 using System.Drawing;
 using VideoEditorD3D.Direct3D.Extentions;
+using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Textures;
 
-public class CharacterTexture : ITexture
+public class CharacterTexture : ICachedTexture
 {
     public CharacterTexture(char character, string fontName, float fontSize, RawColor4 backColor, RawColor4 foreColor, Device device)
     {
@@ -46,15 +47,14 @@ public class CharacterTexture : ITexture
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.Default;
 
             // Font en brush
-            using (var font = new Font(fontName, fontSize, FontStyle.Regular))
-            using (var brush = new SolidBrush(foreColor.ToSystemDrawingColor()))
-            {
-                // Rect bepalen
-                var rect = new System.Drawing.RectangleF(0, 0, width, height);
+            using var font = new Font(fontName, fontSize, FontStyle.Regular);
+            using var brush = new SolidBrush(foreColor.ToSystemDrawingColor());
 
-                // Tekst tekenen
-                g.DrawString(label, font, brush, rect);
-            }
+            // Rect bepalen
+            var rect = new RectangleF(0, 0, width, height);
+
+            // Tekst tekenen
+            g.DrawString(label, font, brush, rect);
         }
 
         TextureBitmap = new BitmapTexture(device, bitmap);
@@ -68,9 +68,11 @@ public class CharacterTexture : ITexture
     public BitmapTexture TextureBitmap { get; }
     public Texture2D Texture => TextureBitmap.Texture;
     public ShaderResourceView TextureView => TextureBitmap.TextureView;
-
+    
     public void Dispose()
     {
-        // Managed through CharacterCollection (otherwise we are disposing the cache
+        TextureView?.Dispose();
+        Texture?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

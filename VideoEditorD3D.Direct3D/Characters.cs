@@ -1,19 +1,12 @@
 using SharpDX.Mathematics.Interop;
+using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Direct3D.Textures;
-using Device = SharpDX.Direct3D11.Device;
 
 namespace VideoEditorD3D.Direct3D;
 
-public class Characters : IDisposable
+public class Characters(IApplicationD3D Application) : IDisposable
 {
-    public Characters(Device device)
-    {
-        Device = device;
-        TextItems = Array.Empty<CharacterTexture>();
-    }
-
-    CharacterTexture[] TextItems;
-    Device Device;
+    private CharacterTexture[] TextItems = [];
 
     public CharacterTexture GetOrCreate(char character, string font, float fontSize, RawColor4 backColor, RawColor4 foreColor)
     {
@@ -24,10 +17,10 @@ public class Characters : IDisposable
                 a.FontSize == fontSize);
         if (item == null)
         {
-            item = new CharacterTexture(character, font, fontSize, backColor, foreColor, Device);
+            item = new CharacterTexture(character, font, fontSize, backColor, foreColor, Application.Device);
 
             Array.Resize(ref TextItems, TextItems.Length + 1);
-            TextItems[TextItems.Length - 1] = item;
+            TextItems[^1] = item;
             return item;
         }
         return item;
@@ -37,7 +30,8 @@ public class Characters : IDisposable
     {
         foreach (var item in TextItems)
         {
-            item.TextureBitmap.Dispose();
+            item.Dispose();
         }
+        GC.SuppressFinalize(this);
     }
 }

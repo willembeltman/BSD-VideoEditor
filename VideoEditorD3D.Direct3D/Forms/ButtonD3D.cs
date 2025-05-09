@@ -1,10 +1,11 @@
 ﻿using SharpDX.Mathematics.Interop;
+using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Forms
 {
     public class ButtonD3D : ControlD3D
     {
-        public ButtonD3D(IApplication application, FormD3D? parentForm, ControlD3D? parentControl) : base(application, parentForm, parentControl)
+        public ButtonD3D(IApplicationD3D application, FormD3D? parentForm, ControlD3D? parentControl) : base(application, parentForm, parentControl)
         {
             Background = CreateCanvasLayer();
             Foreground = CreateCanvasLayer();
@@ -62,11 +63,14 @@ namespace VideoEditorD3D.Direct3D.Forms
 
         public override void Draw()
         {
-            Background.Clear();
-            Foreground.Clear();
+            Background.StartDrawing();
+            Foreground.StartDrawing();
 
             Background.FillRectangle(Left, Top, Width, Height, BackgroundColor);
             Foreground.DrawText(Text, Left, Top, Font, FontSize, ForegroundColor, BackgroundColor);
+
+            Background.EndDrawing();
+            Foreground.EndDrawing();
         }
     }
 }

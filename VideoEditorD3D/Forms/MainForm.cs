@@ -1,6 +1,6 @@
 ﻿using SharpDX.Mathematics.Interop;
-using VideoEditorD3D.Direct3D;
 using VideoEditorD3D.Direct3D.Forms;
+using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Forms
 {
@@ -8,18 +8,19 @@ namespace VideoEditorD3D.Forms
     {
         public FrameD3D Frame { get; }
         public List<ButtonD3D> Buttons { get; }
+        public override IApplication Application { get; }
 
         public MainForm(IApplication application) : base(application)
         {
+            Application = application;
             Frame = new FrameD3D(application, this, this)
             {
                 BackgroundColor = new RawColor4(0, 0, 1, 1)
             };
             AddControl(Frame);
 
-            
-            Buttons = new List<ButtonD3D>();
-            for (var i = 0; i < 32; i++)
+            Buttons = [];
+            for (var i = 0; i < 16; i++)
             {
                 var button = new ButtonD3D(application, this, this)
                 {
@@ -38,20 +39,21 @@ namespace VideoEditorD3D.Forms
             Frame.Width = Width - 20;
             Frame.Height = Height - 20;
 
-            var y = 10;
-            var h = Height / Buttons.Count;
+            var y = 10d;
+            var h = Convert.ToDouble(Height - 20 - Buttons.Count * 3) / Buttons.Count;
 
             foreach (var button in Buttons)
             {
-                button.Top = y;
+                button.Top = Convert.ToInt32(y);
                 button.Left = 10;
-                button.Width = Width - 20;
-                button.Height = h;
-                y += h;
+                button.Width = Width - 200;
+                button.Height = Convert.ToInt32(h);
+                y += h + 3;
             }
 
             base.OnResize();
         }
+
         public override void OnUpdate()
         {
             foreach (var button in Buttons)

@@ -3,10 +3,11 @@ using SharpDX.DXGI;
 using SharpDX;
 using Device = SharpDX.Direct3D11.Device;
 using System.Drawing;
+using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Textures;
 
-public class BitmapTexture : ITexture
+public class BitmapTexture : IDisposableTexture
 {
     public BitmapTexture(Device device, Bitmap bitmap)
     {
@@ -49,5 +50,6 @@ public class BitmapTexture : ITexture
         TextureView?.Dispose();
         Texture?.Dispose();
         Bitmap?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
