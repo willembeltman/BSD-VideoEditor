@@ -1,6 +1,6 @@
 ﻿using System.IO.Compression;
 
-namespace VideoEditorD3D.ZipDatabase.Extentions;
+namespace VideoEditorD3D.Database.Extentions;
 
 public static class ZipArchiveExtention
 {

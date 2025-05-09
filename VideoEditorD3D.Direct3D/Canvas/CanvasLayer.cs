@@ -1,46 +1,25 @@
 ﻿using SharpDX;
 using SharpDX.Mathematics.Interop;
-using VideoeditorD3D.Direct3D.Types;
+using VideoEditorD3D.Direct3D.Types;
 using VideoEditorD3D.Direct3D.Extentions;
 using VideoEditorD3D.Direct3D.Textures;
-using VideoEditorD3D.Direct3D.Types;
 using VideoEditorD3D.Types;
 using Device = SharpDX.Direct3D11.Device;
 
 namespace VideoEditorD3D.Direct3D.Canvas;
 
-public class CanvasLayer : IDisposable
+public class CanvasLayer(
+    int index,
+    Device device,
+    CharacterCollection textCharacters,
+    int canvasWidth,
+    int canvasHeight) : IDisposable
 {
-    public CanvasLayer(
-        int index,
-        Device device,
-        CharacterCollection textCharacters,
-        int canvasWidth,
-        int canvasHeight)
-    {
-        Index = index;
-        Device = device;
-        TextCharacters = textCharacters;
-        CanvasWidth = canvasWidth;
-        CanvasHeight = canvasHeight;
+    public int Index { get; } = index;
 
-        LineVertices = new List<Vertex>();
-        FillVertices = new List<Vertex>();
-        Images = new List<TextureImage>();
-        Images = new List<TextureImage>();
-    }
-
-    private Device Device;
-    private CharacterCollection TextCharacters;
-    private int CanvasWidth;
-    private int CanvasHeight;
-
-    public int Index { get; }
-
-
-    public List<Vertex> LineVertices { get; }
-    public List<Vertex> FillVertices { get; }
-    public List<TextureImage> Images { get; }
+    public List<Vertex> LineVertices { get; } = [];
+    public List<Vertex> FillVertices { get; } = [];
+    public List<TextureImage> Images { get; } = [];
 
     public void DrawLine(RawVector2 start, RawVector2 end, RawColor4 color, float strokeWidth)
     {
@@ -73,10 +52,10 @@ public class CanvasLayer : IDisposable
         var offsetY = ny * halfThicknessy;
 
         // Bereken de 4 hoekpunten van de lijn als rechthoek
-        var v1 = new RawVector2(start.X + offsetX, start.Y + offsetY).ToClipSpace(CanvasWidth, CanvasHeight);
-        var v2 = new RawVector2(start.X - offsetX, start.Y - offsetY).ToClipSpace(CanvasWidth, CanvasHeight);
-        var v3 = new RawVector2(end.X - offsetX, end.Y - offsetY).ToClipSpace(CanvasWidth, CanvasHeight);
-        var v4 = new RawVector2(end.X + offsetX, end.Y + offsetY).ToClipSpace(CanvasWidth, CanvasHeight);
+        var v1 = new RawVector2(start.X + offsetX, start.Y + offsetY).ToClipSpace(canvasWidth, canvasHeight);
+        var v2 = new RawVector2(start.X - offsetX, start.Y - offsetY).ToClipSpace(canvasWidth, canvasHeight);
+        var v3 = new RawVector2(end.X - offsetX, end.Y - offsetY).ToClipSpace(canvasWidth, canvasHeight);
+        var v4 = new RawVector2(end.X + offsetX, end.Y + offsetY).ToClipSpace(canvasWidth, canvasHeight);
 
         // Voeg als 2 driehoeken toe aan FillVerticesList
         FillVertices.Add(new Vertex { Position = v1, Color = color });
@@ -87,10 +66,10 @@ public class CanvasLayer : IDisposable
         FillVertices.Add(new Vertex { Position = v4, Color = color });
         FillVertices.Add(new Vertex { Position = v1, Color = color });
     }
-    public void DrawLineOnePixelWide(RawVector2 Start, RawVector2 End, RawColor4 Color)
+    public void DrawLineOnePixelWide(RawVector2 start, RawVector2 end, RawColor4 color)
     {
-        LineVertices.Add(new Vertex { Position = Start.ToClipSpace(CanvasWidth, CanvasHeight), Color = Color });
-        LineVertices.Add(new Vertex { Position = End.ToClipSpace(CanvasWidth, CanvasHeight), Color = Color });
+        LineVertices.Add(new Vertex { Position = start.ToClipSpace(canvasWidth, canvasHeight), Color = color });
+        LineVertices.Add(new Vertex { Position = end.ToClipSpace(canvasWidth, canvasHeight), Color = color });
     }
     public void DrawRectangle(float left, float top, float width, float height, RawColor4 color, float strokeWidth)
     {
@@ -99,10 +78,10 @@ public class CanvasLayer : IDisposable
 
 
         // Clip space coordinaten
-        var p1 = new RawVector2(left, top).ToClipSpace(CanvasWidth, CanvasHeight);
-        var p2 = new RawVector2(right, top).ToClipSpace(CanvasWidth, CanvasHeight);
-        var p3 = new RawVector2(right, bottom).ToClipSpace(CanvasWidth, CanvasHeight);
-        var p4 = new RawVector2(left, bottom).ToClipSpace(CanvasWidth, CanvasHeight);
+        var p1 = new RawVector2(left, top).ToClipSpace(canvasWidth, canvasHeight);
+        var p2 = new RawVector2(right, top).ToClipSpace(canvasWidth, canvasHeight);
+        var p3 = new RawVector2(right, bottom).ToClipSpace(canvasWidth, canvasHeight);
+        var p4 = new RawVector2(left, bottom).ToClipSpace(canvasWidth, canvasHeight);
 
         // Rand met lijnen
         if (strokeWidth > 0 && color.A > 0)
@@ -126,10 +105,10 @@ public class CanvasLayer : IDisposable
         float bottom = top + height;
 
         // Clip space coordinaten
-        var p1 = new RawVector2(left, top).ToClipSpace(CanvasWidth, CanvasHeight);
-        var p2 = new RawVector2(right, top).ToClipSpace(CanvasWidth, CanvasHeight);
-        var p3 = new RawVector2(right, bottom).ToClipSpace(CanvasWidth, CanvasHeight);
-        var p4 = new RawVector2(left, bottom).ToClipSpace(CanvasWidth, CanvasHeight);
+        var p1 = new RawVector2(left, top).ToClipSpace(canvasWidth, canvasHeight);
+        var p2 = new RawVector2(right, top).ToClipSpace(canvasWidth, canvasHeight);
+        var p3 = new RawVector2(right, bottom).ToClipSpace(canvasWidth, canvasHeight);
+        var p4 = new RawVector2(left, bottom).ToClipSpace(canvasWidth, canvasHeight);
 
         // Vulling met 2 driehoeken
         if (color.A > 0)
@@ -143,30 +122,30 @@ public class CanvasLayer : IDisposable
             FillVertices.Add(new Vertex { Position = p1, Color = color });
         }
     }
-    public void DrawBitmap(float Left, float Top, float Width, float Height, System.Drawing.Bitmap Bitmap)
+    public void DrawBitmap(float left, float top, float width, float height, System.Drawing.Bitmap bitmap)
     {
-        var fillVertices = CreateBitmapVertices(Left, Top, Width, Height);
-        var texture = new BitmapTexture(Device!, Bitmap);
+        var fillVertices = CreateBitmapVertices(left, top, width, height);
+        var texture = new BitmapTexture(device!, bitmap);
         var image = new TextureImage(fillVertices, texture, false);
         Images.Add(image);
     }
-    public void DrawFrame(float Left, float Top, float Width, float Height, Frame frame)
+    public void DrawFrame(float left, float top, float width, float height, Frame frame)
     {
-        var fillVertices = CreateBitmapVertices(Left, Top, Width, Height);
-        var texture = new FrameTexture(Device!, frame);
+        var fillVertices = CreateBitmapVertices(left, top, width, height);
+        var texture = new FrameTexture(device!, frame);
         var image = new TextureImage(fillVertices, texture, false);
         Images.Add(image);
     }
-    public void DrawText(string Text, float Left, float Top, float Width, float Height, string Font = "Arial", float FontSize = 12f, Color? ForeColor = null, Color? BackColor = null)
+    public void DrawText(string text, float left, float top, string font = "Arial", float fontSize = 12f, Color? foreColor = null, Color? backColor = null)
     {
-        ForeColor = ForeColor ?? Color.White;
-        BackColor = BackColor ?? Color.Transparent;
+        foreColor ??= Color.White;
+        backColor ??= Color.Transparent;
 
-        var currentLeft = Convert.ToSingle(Math.Round(Left));
-        var currentTop = Convert.ToSingle(Math.Round(Top));
+        var currentLeft = Convert.ToSingle(Math.Round(left));
+        var currentTop = Convert.ToSingle(Math.Round(top));
         var currentBottom = float.MaxValue;
 
-        var currentText = Text.Replace("\r", "");
+        var currentText = text.Replace("\r", "");
         var rows = currentText.Split('\n');
 
         foreach (var row in rows)
@@ -174,7 +153,7 @@ public class CanvasLayer : IDisposable
             foreach (var character in row)
             {
                 // Text item aanmaken of ophalen voor het huidige character
-                var texture = TextCharacters.GetOrCreate(character, Font, FontSize, BackColor.Value, ForeColor.Value);
+                var texture = textCharacters.GetOrCreate(character, font, fontSize, backColor.Value, foreColor.Value);
 
                 // Berekenen
                 var right = currentLeft + texture.Width - 1f;
@@ -191,7 +170,7 @@ public class CanvasLayer : IDisposable
 
                 currentLeft = right;
             }
-            currentLeft = Left;
+            currentLeft = left;
             currentTop = currentBottom;
         }
 
@@ -249,10 +228,10 @@ public class CanvasLayer : IDisposable
         var roundBottom = top + roundHeight;
 
         // Maak vertices
-        float x0 = roundLeft / CanvasWidth * 2f - 1f;
-        float y0 = 1f - roundTop / CanvasHeight * 2f;
-        float x1 = roundRight / CanvasWidth * 2f - 1f;
-        float y1 = 1f - roundBottom / CanvasHeight * 2f;
+        float x0 = roundLeft / canvasWidth * 2f - 1f;
+        float y0 = 1f - roundTop / canvasHeight * 2f;
+        float x1 = roundRight / canvasWidth * 2f - 1f;
+        float y1 = 1f - roundBottom / canvasHeight * 2f;
 
         var FillVertices = new[]
         {
@@ -270,5 +249,7 @@ public class CanvasLayer : IDisposable
     {
         foreach (var image in Images)
             image.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 }

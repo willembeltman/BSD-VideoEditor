@@ -2,66 +2,68 @@ using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using SharpDX;
-using Device = SharpDX.Direct3D11.Device;
-using Buffer = SharpDX.Direct3D11.Buffer;
 using System.Diagnostics;
 using VideoEditorD3D.Direct3D;
-using VideoeditorD3D.Direct3D.Types;
+using VideoEditorD3D.Direct3D.Types;
 using VideoEditorD3D.Direct3D.Canvas;
 using VideoEditorD3D.Timers;
 using VideoEditorD3D.Loggers;
 using VideoEditorD3D.Configs;
-using VideoEditorD3D.Interfaces;
-using VideoEditorD3D.Engine;
-using VideoEditorD3D.Direct3D.Types;
+using VideoEditorD3D.Entities;
+using Device = SharpDX.Direct3D11.Device;
+using Buffer = SharpDX.Direct3D11.Buffer;
+using System.ComponentModel;
+using VideoEditorD3D.Drawers;
 
-namespace VideoeditorD3D;
+namespace VideoEditorD3D;
 
-public partial class MainForm : Form, IApplication
+public partial class ApplicationContext : Form
 {
-    public MainForm()
+    public ApplicationContext()
     {
         Logger = new ConsoleLogger();
         Config = ApplicationConfig.Load();
         if (Config.LastDatabaseFullName == null)
         {
-            Database = new ProjectDbContext($"NewProject_{DateTime.Now:yyyy-MM-dd HH-mm}.zip");
+            Database = new ApplicationDbContext($"NewProject_{DateTime.Now:yyyy-MM-dd HH-mm}.zip");
             Config.LastDatabaseFullName = Database.FullName;
             Config.Save();
         }
         else
         {
-            Database = new ProjectDbContext(Config.LastDatabaseFullName);
+            Database = new ApplicationDbContext(Config.LastDatabaseFullName);
         }
-        Timeline = new Timeline(this);
-        Timers = new AllTimers(this);
+        Controller = new Application(this);
         Stopwatch = new Stopwatch();
-        UILock = new object();
+        Timers = new AllTimers(Stopwatch);
+        UILock = new Lock();
 
         this.SuspendLayout();
         this.ClientSize = new System.Drawing.Size(800, 450);
         this.Text = "Video editor";
         this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.Opaque, true);
-        this.MouseWheel += Timeline.OnMouseWheel;
-        this.MouseMove += Timeline.OnMouseMove;
-        this.MouseDown += Timeline.MouseDown;
-        this.MouseUp += Timeline.MouseUp;
-        this.MouseClick += Timeline.MouseClick;
-        this.KeyDown += Timeline.OnKeyDown;
-        this.KeyUp += Timeline.OnKeyUp;
-        this.KeyPress += Timeline.OnKeyPress;
+        this.MouseWheel += Controller.OnMouseWheel;
+        this.MouseMove += Controller.OnMouseMove;
+        this.MouseDown += Controller.MouseDown;
+        this.MouseUp += Controller.MouseUp;
+        this.MouseClick += Controller.MouseClick;
+        this.KeyDown += Controller.OnKeyDown;
+        this.KeyUp += Controller.OnKeyUp;
+        this.KeyPress += Controller.OnKeyPress;
         this.ResumeLayout(false);
     }
 
-    private ConsoleLogger Logger;
-    private ApplicationConfig Config;
-    private ProjectDbContext Database;
-    private Timeline Timeline;
-    private AllTimers Timers;
-    private Stopwatch Stopwatch;
-    private Device? Device;
-    private CharacterCollection? TextCharacters;
-    private object UILock;
+    public ConsoleLogger Logger { get; }
+    public ApplicationConfig Config { get; }
+    public ApplicationDbContext Database { get; }
+    public Application Controller { get; }
+    public Stopwatch Stopwatch { get; }
+    public AllTimers Timers { get; }
+
+    private readonly Lock UILock;
+    private Device? _Device;
+    private int _PhysicalWidth;
+    private int _PhysicalHeight;
     private WindowsScaling? WindowsScaling;
     private DeviceContext? Context;
     private SwapChain? SwapChain;
@@ -74,11 +76,15 @@ public partial class MainForm : Form, IApplication
     private InputLayout? BitmapInputLayout;
     private Buffer? VertexBuffer;
     private SamplerState? SamplerState;
-    private Drawer? Drawer;
+    private CharacterCollection? _Characters;
+    private ApplicationDrawer? Drawer;
     private bool ReInitialize;
     private bool Initialized;
-    private int PhysicalWidth;
-    private int PhysicalHeight;
+
+    public Device Device => _Device!;
+    public CharacterCollection Characters => _Characters!;
+    public int PhysicalWidth => _PhysicalWidth;
+    public int PhysicalHeight => _PhysicalHeight;
 
     private bool IsMinimized
     {
@@ -97,17 +103,6 @@ public partial class MainForm : Form, IApplication
         }
     }
     private bool IsNotReadyToDraw => !Initialized || Width == 0 || Height == 0;
-    ConsoleLogger IApplication.Logger => Logger;
-    ApplicationConfig IApplication.Config => Config;
-    ProjectDbContext IApplication.Database => Database;
-    Timeline IApplication.Timeline => Timeline;
-    AllTimers IApplication.Timers => Timers;
-    Stopwatch IApplication.Stopwatch => Stopwatch;
-    int IApplication.Width => PhysicalWidth;
-    int IApplication.Height => PhysicalHeight;
-    Device IApplication.Device => Device!;
-    CharacterCollection IApplication.Characters => TextCharacters!;
-    Drawer IApplication.Drawer => Drawer!;
 
     protected override void OnHandleCreated(EventArgs e)
     {
@@ -117,13 +112,12 @@ public partial class MainForm : Form, IApplication
     }
     protected override void OnLoad(EventArgs e)
     {
-        Timeline.StartThread();
-
-        Database.ProjectSettings.Value.TestString = "Hoi dit is een test";
+        Controller.StartThread();
+        CenterToScreen();
     }
     protected override void OnResize(EventArgs e)
     {
-        if (IsNotReadyToDraw || Device == null || WindowsScaling == null || SwapChain == null)
+        if (IsNotReadyToDraw || _Device == null || WindowsScaling == null || SwapChain == null)
             return;
 
         if (IsMinimized)
@@ -141,7 +135,7 @@ public partial class MainForm : Form, IApplication
 
         lock (UILock)
         {
-            Device.ImmediateContext.ClearState();
+            _Device.ImmediateContext.ClearState();
             RenderTargetView?.Dispose();
 
             int newWidth = Convert.ToInt32(Width * WindowsScaling.Scaling);
@@ -150,12 +144,12 @@ public partial class MainForm : Form, IApplication
             if (newWidth == 0 || newHeight == 0)
                 return;
 
-            PhysicalWidth = newWidth;
-            PhysicalHeight = newHeight;
+            _PhysicalWidth = newWidth;
+            _PhysicalHeight = newHeight;
 
             try
             {
-                SwapChain.ResizeBuffers(1, PhysicalWidth, PhysicalHeight, Format.R8G8B8A8_UNorm, SwapChainFlags.None);
+                SwapChain.ResizeBuffers(1, _PhysicalWidth, _PhysicalHeight, Format.R8G8B8A8_UNorm, SwapChainFlags.None);
             }
             catch (SharpDXException ex)
             {
@@ -180,12 +174,12 @@ public partial class MainForm : Form, IApplication
                 RenderTargetView?.Dispose();
                 SwapChain?.Dispose();
                 Context?.Dispose();
-                Device?.Dispose();
+                _Device?.Dispose();
                 SamplerState?.Dispose();
-                TextCharacters?.Dispose();
+                _Characters?.Dispose();
 
-                PhysicalWidth = Convert.ToInt32(Width * WindowsScaling!.Scaling);
-                PhysicalHeight = Convert.ToInt32(Height * WindowsScaling!.Scaling);
+                _PhysicalWidth = Convert.ToInt32(Width * WindowsScaling!.Scaling);
+                _PhysicalHeight = Convert.ToInt32(Height * WindowsScaling!.Scaling);
 
                 var sampleSize = 1; // No MSAA
                 using (var tempDevice = new Device(DriverType.Hardware, DeviceCreationFlags.None))
@@ -201,7 +195,7 @@ public partial class MainForm : Form, IApplication
                 var swapChainDesc = new SwapChainDescription()
                 {
                     BufferCount = 1,
-                    ModeDescription = new ModeDescription(PhysicalWidth, PhysicalHeight, new Rational(60, 1), Format.R8G8B8A8_UNorm),
+                    ModeDescription = new ModeDescription(_PhysicalWidth, _PhysicalHeight, new Rational(60, 1), Format.R8G8B8A8_UNorm),
                     Usage = Usage.RenderTargetOutput,
                     OutputHandle = Handle,
                     SampleDescription = new SampleDescription(sampleSize, 0),
@@ -213,14 +207,14 @@ public partial class MainForm : Form, IApplication
                     DriverType.Hardware,
                     DeviceCreationFlags.BgraSupport,
                     swapChainDesc,
-                    out Device, out SwapChain);
+                    out _Device, out SwapChain);
 
-                Context = Device.ImmediateContext;
+                Context = _Device.ImmediateContext;
 
                 AfterResizeOrRecreate();
                 CompileShaders();
 
-                SamplerState = new SamplerState(Device, new SamplerStateDescription
+                SamplerState = new SamplerState(_Device, new SamplerStateDescription
                 {
                     Filter = Filter.MinMagMipLinear,
                     AddressU = TextureAddressMode.Wrap,
@@ -232,8 +226,8 @@ public partial class MainForm : Form, IApplication
                 });
                 Context.PixelShader.SetSampler(0, SamplerState);
 
-                TextCharacters = new CharacterCollection(Device);
-                Drawer = new Drawer(this);
+                _Characters = new CharacterCollection(_Device);
+                Drawer = new ApplicationDrawer(this);
 
                 ReInitialize = false;
                 Initialized = true;
@@ -251,11 +245,11 @@ public partial class MainForm : Form, IApplication
 
         using (var backBuffer = SwapChain!.GetBackBuffer<Texture2D>(0))
         {
-            RenderTargetView = new RenderTargetView(Device, backBuffer);
+            RenderTargetView = new RenderTargetView(_Device, backBuffer);
         }
 
         Context!.OutputMerger.SetRenderTargets(RenderTargetView);
-        Context!.Rasterizer.SetViewport(0, 0, PhysicalWidth, PhysicalHeight);
+        Context!.Rasterizer.SetViewport(0, 0, _PhysicalWidth, _PhysicalHeight);
     }
     private void CompileShaders()
     {
@@ -287,17 +281,16 @@ public partial class MainForm : Form, IApplication
                 }",
             "PSMain", "ps_4_0");
 
-        NormalVertexShader = new VertexShader(Device, normalVertexShaderByteCode);
-        NormalPixelShader = new PixelShader(Device, normalPixelShaderByteCode);
+        NormalVertexShader = new VertexShader(_Device, normalVertexShaderByteCode);
+        NormalPixelShader = new PixelShader(_Device, normalPixelShaderByteCode);
 
         // Input layout voor normale shader
-        NormalInputLayout = new InputLayout(Device,
+        NormalInputLayout = new InputLayout(_Device,
             SharpDX.D3DCompiler.ShaderSignature.GetInputSignature(normalVertexShaderByteCode),
-            new[]
-            {
+            [
                 new InputElement("POSITION", 0, Format.R32G32_Float, 0, 0),
                 new InputElement("COLOR", 0, Format.R32G32B32A32_Float, 8, 0),
-            });
+            ]);
 
         // Bitmap shader met UV en Texture sampling
         var bitmapVertexShaderByteCode = SharpDX.D3DCompiler.ShaderBytecode.Compile(@"
@@ -330,17 +323,16 @@ public partial class MainForm : Form, IApplication
                 }",
             "PSMain", "ps_4_0");
 
-        BitmapVertexShader = new VertexShader(Device, bitmapVertexShaderByteCode);
-        BitmapPixelShader = new PixelShader(Device, bitmapPixelShaderByteCode);
+        BitmapVertexShader = new VertexShader(_Device, bitmapVertexShaderByteCode);
+        BitmapPixelShader = new PixelShader(_Device, bitmapPixelShaderByteCode);
 
         // Input layout voor bitmap shader
-        BitmapInputLayout = new InputLayout(Device,
+        BitmapInputLayout = new InputLayout(_Device,
             SharpDX.D3DCompiler.ShaderSignature.GetInputSignature(bitmapVertexShaderByteCode),
-            new[]
-            {
+            [
                 new InputElement("POSITION", 0, Format.R32G32_Float, 0, 0),
                 new InputElement("TEXCOORD", 0, Format.R32G32_Float, 8, 0)
-            });
+            ]);
     }
 
     public void Draw()
@@ -390,7 +382,7 @@ public partial class MainForm : Form, IApplication
     {
         lock (UILock)
         {
-            if (IsNotReadyToDraw || Context == null || Device == null || SwapChain == null)
+            if (IsNotReadyToDraw || Context == null || _Device == null || SwapChain == null)
                 return;
 
             Context.ClearRenderTargetView(RenderTargetView, compiledCanvas.BackgroundColor);
@@ -398,10 +390,10 @@ public partial class MainForm : Form, IApplication
             foreach (var layer in compiledCanvas.Layers)
             {
                 // Triangles
-                if (layer.FillVertices.Any())
+                if (layer.FillVertices.Count > 0)
                 {
                     VertexBuffer?.Dispose();
-                    VertexBuffer = Buffer.Create(Device, BindFlags.VertexBuffer, layer.FillVertices.ToArray());
+                    VertexBuffer = Buffer.Create(_Device, BindFlags.VertexBuffer, layer.FillVertices.ToArray());
 
                     Context.InputAssembler.InputLayout = NormalInputLayout;
                     Context.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
@@ -413,10 +405,10 @@ public partial class MainForm : Form, IApplication
                 }
 
                 // Lines
-                if (layer.LineVertices.Any())
+                if (layer.LineVertices.Count > 0)
                 {
                     VertexBuffer?.Dispose();
-                    VertexBuffer = Buffer.Create(Device, BindFlags.VertexBuffer, layer.LineVertices.ToArray());
+                    VertexBuffer = Buffer.Create(_Device, BindFlags.VertexBuffer, layer.LineVertices.ToArray());
 
                     Context.InputAssembler.InputLayout = NormalInputLayout;
                     Context.InputAssembler.PrimitiveTopology = PrimitiveTopology.LineList;
@@ -431,7 +423,7 @@ public partial class MainForm : Form, IApplication
                 foreach (var bitmap in layer.Images)
                 {
                     VertexBuffer?.Dispose();
-                    VertexBuffer = Buffer.Create(Device, BindFlags.VertexBuffer, bitmap.Vertices);
+                    VertexBuffer = Buffer.Create(_Device, BindFlags.VertexBuffer, bitmap.Vertices);
 
                     Context.InputAssembler.InputLayout = BitmapInputLayout;
                     Context.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
@@ -451,7 +443,8 @@ public partial class MainForm : Form, IApplication
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
-        TextCharacters?.Dispose();
+
+        _Characters?.Dispose();
         VertexBuffer?.Dispose();
         NormalInputLayout?.Dispose();
         NormalVertexShader?.Dispose();
@@ -459,7 +452,8 @@ public partial class MainForm : Form, IApplication
         RenderTargetView?.Dispose();
         SwapChain?.Dispose();
         Context?.Dispose();
-        Device?.Dispose();
+        _Device?.Dispose();
+        Controller.Dispose();
         Database.Dispose();
     }
 }

@@ -1,4 +1,4 @@
-﻿using VideoeditorD3D.Direct3D.Types;
+﻿using VideoEditorD3D.Direct3D.Types;
 using VideoEditorD3D.Direct3D.Textures;
 
 namespace VideoEditorD3D.Direct3D.Types;

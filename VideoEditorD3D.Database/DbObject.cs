@@ -1,6 +1,6 @@
 ﻿using System.IO.Compression;
 using VideoEditorD3D.Database.Interfaces;
-using VideoEditorD3D.ZipDatabase.Extentions;
+using VideoEditorD3D.Database.Extentions;
 
 namespace VideoEditorD3D.Database;
 

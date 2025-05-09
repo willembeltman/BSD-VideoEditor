@@ -1,16 +1,16 @@
-﻿using VideoEditorD3D.Interfaces;
+﻿using System.Diagnostics;
 
 namespace VideoEditorD3D.Timers;
 
 public class FpsTimer
 {
-    public FpsTimer(IApplication application)
+    public FpsTimer(Stopwatch stopwatch)
     {
-        Application = application;
+        Stopwatch = stopwatch;
         FpsQueue = new Queue<double>();
     }
 
-    private IApplication Application { get; }
+    private Stopwatch Stopwatch { get; }
     private Queue<double> FpsQueue { get; }
 
     public int Counter { get; private set; }
@@ -26,7 +26,7 @@ public class FpsTimer
     //}
     public void CountFps()
     {
-        var currentTime = Application.Stopwatch.Elapsed.TotalSeconds;
+        var currentTime = Stopwatch.Elapsed.TotalSeconds;
 
         FpsQueue.Enqueue(currentTime);
         while (FpsQueue.Count(a => a < currentTime - 1) > 0)

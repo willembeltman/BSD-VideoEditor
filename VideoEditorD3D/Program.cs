@@ -1,4 +1,4 @@
-namespace VideoeditorD3D;
+namespace VideoEditorD3D;
 
 public static class Program
 {
@@ -11,6 +11,6 @@ public static class Program
         // To customize application configuration such as set high DPI settings or default font,
         // see https://aka.ms/applicationconfiguration.
         ApplicationConfiguration.Initialize();
-        Application.Run(new MainForm());
+        System.Windows.Forms.Application.Run(new ApplicationContext());
     }
 }

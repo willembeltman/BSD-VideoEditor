@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using SharpDX.Mathematics.Interop;
 
-namespace VideoeditorD3D.Direct3D.Types;
+namespace VideoEditorD3D.Direct3D.Types;
 
 [StructLayout(LayoutKind.Sequential)]
 public struct TextureVertex

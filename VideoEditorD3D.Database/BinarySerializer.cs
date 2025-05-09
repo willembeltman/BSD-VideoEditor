@@ -2,7 +2,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using System.Reflection;
-using VideoEditorD3D.ZipDatabase.Attributes;
+using VideoEditorD3D.Database.Attributes;
 
 namespace VideoEditorD3D.Database;
 

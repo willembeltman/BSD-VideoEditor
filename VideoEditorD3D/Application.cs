@@ -1,19 +1,16 @@
-﻿using VideoEditorD3D.Interfaces;
+﻿namespace VideoEditorD3D;
 
-namespace VideoEditorD3D.Engine;
-
-public class Timeline : IDisposable
+public class Application : IDisposable
 {
-    private IApplication Application;
-
-    public Timeline(IApplication application)
+    public Application(ApplicationContext context)
     {
-        Application = application;
+        Context = context;
         Thread = new Thread(new ThreadStart(Kernel));
     }
 
-    public Thread Thread { get; private set; }
-    public bool KillSwitch { get; private set; }
+    private readonly ApplicationContext Context;
+    private readonly Thread Thread;
+    private bool KillSwitch;
 
     public void OnKeyDown(object? sender, KeyEventArgs e)
     {
@@ -54,10 +51,10 @@ public class Timeline : IDisposable
 
     private void Kernel()
     {
-        // Main player loop
         while (!KillSwitch)
         {
-            Thread.Sleep(10);
+            Context.Draw();
+            Thread.Sleep(16);
         }
     }
 
@@ -68,6 +65,6 @@ public class Timeline : IDisposable
         {
             Thread.Join();
         }
+        GC.SuppressFinalize(this);
     }
-
 }
