@@ -4,11 +4,11 @@ using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Types;
 
-namespace VideoEditorD3D.Controls
+namespace VideoEditorD3D.Engine.Controls
 {
-    public class DisplayControl : Direct3D.Forms.Control
+    public class DisplayControl : Control
     {
-        public DisplayControl(Application application, IApplicationForm applicationForm, Direct3D.Forms.Form? parentForm, Direct3D.Forms.Control? parentControl) : base(applicationForm, parentForm, parentControl)
+        public DisplayControl(Application application, IApplicationForm applicationForm, Form? parentForm, Control? parentControl) : base(applicationForm, parentForm, parentControl)
         {
             Background = CreateCanvasLayer();
             Foreground = CreateCanvasLayer();

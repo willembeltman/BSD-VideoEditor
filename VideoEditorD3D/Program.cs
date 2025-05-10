@@ -1,5 +1,3 @@
-using VideoEditorD3D.Direct3D;
-
 namespace VideoEditorD3D;
 
 public static class Program
@@ -8,6 +6,6 @@ public static class Program
     static void Main()
     {
         ApplicationConfiguration.Initialize();
-        System.Windows.Forms.Application.Run(new ApplicationForm(new Application()));
+        Application.Run(new Direct3D.ApplicationForm(new Engine.Application()));
     }
 }

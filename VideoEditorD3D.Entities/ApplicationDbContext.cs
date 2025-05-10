@@ -1,6 +1,4 @@
-﻿using VideoEditorD3D.Database;
-
-namespace VideoEditorD3D.Entities;
+﻿namespace VideoEditorD3D.Database.Entities;
 
 public class ApplicationDbContext : DbContext
 {

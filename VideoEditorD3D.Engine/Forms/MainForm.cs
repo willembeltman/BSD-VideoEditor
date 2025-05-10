@@ -1,15 +1,16 @@
 ﻿using SharpDX.Mathematics.Interop;
-using VideoEditorD3D.Controls;
+using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Direct3D.Interfaces;
+using VideoEditorD3D.Engine.Controls;
 
-namespace VideoEditorD3D.Forms
+namespace VideoEditorD3D.Engine.Forms
 {
-    public class MainForm : Direct3D.Forms.Form
+    public class MainForm : Form
     {
         private readonly DisplayControl DisplayControl;
         private readonly TimelineControl TimelineControl;
         private readonly PropertiesControl PropertiesControl;
-        private readonly Direct3D.Forms.Label FpsLabel;
+        private readonly Label FpsLabel;
 
         public MainForm(Application application, IApplicationForm applicationForm) : base(applicationForm)
         {
@@ -27,7 +28,7 @@ namespace VideoEditorD3D.Forms
             TimelineControl.BackgroundColor = new RawColor4(0, 0, 0, 1);
             AddControl(TimelineControl);
 
-            FpsLabel = new Direct3D.Forms.Label(applicationForm, this, this);
+            FpsLabel = new Label(applicationForm, this, this);
             FpsLabel.Left = 3;
             FpsLabel.Top = 3;
             FpsLabel.Width = 200;

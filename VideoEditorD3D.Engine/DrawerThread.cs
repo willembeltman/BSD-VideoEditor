@@ -1,9 +1,9 @@
 ﻿using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Types;
 
-namespace VideoEditorD3D;
+namespace VideoEditorD3D.Engine;
 
-public class DrawerThread : IDisposable, IDrawerThread
+public class DrawerThread : IDrawerThread
 {
     public DrawerThread(IApplicationForm applicationForm, Application application)
     {
