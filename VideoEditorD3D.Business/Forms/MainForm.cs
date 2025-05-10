@@ -1,9 +1,9 @@
 ﻿using SharpDX.Mathematics.Interop;
 using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Direct3D.Interfaces;
-using VideoEditorD3D.Engine.Controls;
+using VideoEditorD3D.Business.Controls;
 
-namespace VideoEditorD3D.Engine.Forms
+namespace VideoEditorD3D.Business.Forms
 {
     public class MainForm : Form
     {

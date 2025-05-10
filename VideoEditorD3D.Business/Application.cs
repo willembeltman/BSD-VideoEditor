@@ -2,10 +2,10 @@
 using VideoEditorD3D.Database.Entities;
 using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Direct3D.Interfaces;
-using VideoEditorD3D.Engine.Forms;
+using VideoEditorD3D.Business.Forms;
 using VideoEditorD3D.Loggers;
 
-namespace VideoEditorD3D.Engine;
+namespace VideoEditorD3D.Business;
 
 public class Application : IApplication
 {

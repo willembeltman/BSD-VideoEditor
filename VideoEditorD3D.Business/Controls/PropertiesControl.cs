@@ -3,7 +3,7 @@ using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Direct3D;
 
-namespace VideoEditorD3D.Engine.Controls
+namespace VideoEditorD3D.Business.Controls
 {
     public class PropertiesControl : Control
     {

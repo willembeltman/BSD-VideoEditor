@@ -6,6 +6,6 @@ public static class Program
     static void Main()
     {
         ApplicationConfiguration.Initialize();
-        Application.Run(new Direct3D.ApplicationForm(new Engine.Application()));
+        Application.Run(new Direct3D.ApplicationForm(new Business.Application()));
     }
 }
