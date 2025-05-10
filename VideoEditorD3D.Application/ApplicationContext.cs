@@ -3,7 +3,7 @@ using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Application.Forms;
 using VideoEditorD3D.Loggers;
-using VideoEditorD3D.Types;
+using VideoEditorD3D.Application.Configs;
 
 namespace VideoEditorD3D.Application;
 

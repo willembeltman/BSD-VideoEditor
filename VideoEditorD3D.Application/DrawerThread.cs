@@ -1,5 +1,4 @@
 ﻿using VideoEditorD3D.Direct3D.Interfaces;
-using VideoEditorD3D.Types;
 
 namespace VideoEditorD3D.Application;
 
