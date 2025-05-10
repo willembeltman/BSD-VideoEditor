@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using VideoEditorD3D.Types;
 
 namespace VideoEditorD3D.Timers;
 
@@ -15,9 +14,9 @@ public class FpsTimer
         FpsQueue = new Queue<double>();
     }
 
-    public void SleepTillNextFrame(Fps fps)
+    public void SleepTillNextFrame(double fps)
     {
-        var interval = 1d * fps.Base / fps.Divider;
+        var interval = 1d / fps;
         var currentTime = Stopwatch.Elapsed.TotalSeconds;
         var waitInSeconds = interval - currentTime % interval;
         var wait = Convert.ToInt32(waitInSeconds * 1000);

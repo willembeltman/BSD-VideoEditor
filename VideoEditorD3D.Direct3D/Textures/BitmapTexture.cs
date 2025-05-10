@@ -10,8 +10,6 @@ public class BitmapTexture : IDisposableTexture
 {
     public BitmapTexture(Device device, Bitmap bitmap)
     {
-        Bitmap = bitmap;
-
         var bmpData = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
             System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
         try
@@ -40,7 +38,6 @@ public class BitmapTexture : IDisposableTexture
         }
     }
 
-    public Bitmap Bitmap { get; }
     public Texture2D Texture { get; }
     public ShaderResourceView TextureView { get; }
 
@@ -48,7 +45,6 @@ public class BitmapTexture : IDisposableTexture
     {
         TextureView?.Dispose();
         Texture?.Dispose();
-        Bitmap?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

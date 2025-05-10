@@ -16,4 +16,8 @@
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\VideoEditorD3D.Direct3D\VideoEditorD3D.Direct3D.csproj" />
+  </ItemGroup>
+
 </Project>

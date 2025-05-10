@@ -6,8 +6,4 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\VideoEditorD3D.Types\VideoEditorD3D.Types.csproj" />
-  </ItemGroup>
-
 </Project>

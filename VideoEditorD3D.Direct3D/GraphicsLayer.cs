@@ -2,7 +2,6 @@
 using VideoEditorD3D.Direct3D.Vertices;
 using VideoEditorD3D.Direct3D.Extentions;
 using VideoEditorD3D.Direct3D.Textures;
-using VideoEditorD3D.Types;
 using SharpDX.Direct3D11;
 using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Direct3D.TextureImages;
@@ -137,6 +136,10 @@ public class GraphicsLayer(IApplicationForm applicationForm) : IDisposable
             TriangleVertices.Add(new Vertex { Position = p1, Color = color });
         }
     }
+    /// <summary>
+    /// Tekent een bitmap in de opgegeven rechthoek. Let op: De bitmap wordt niet automatisch vrijgegeven,
+    /// dus zorg ervoor dat je deze zelf dispose't.
+    /// </summary>
     public void DrawBitmap(int left, int top, int width, int height, Bitmap bitmap)
     {
         var vertices = CreateTextureVertices(left, top, width, height);
@@ -145,7 +148,7 @@ public class GraphicsLayer(IApplicationForm applicationForm) : IDisposable
         var image = new DisposableTextureImage(vertices, verticesBuffer, texture);
         TextureImages.Add(image);
     }
-    public void DrawFrame(int left, int top, int width, int height, Frame frame)
+    public void DrawFrame(int left, int top, int width, int height, IFrame frame)
     {
         var vertices = CreateTextureVertices(left, top, width, height);
         var verticesBuffer = Buffer.Create(ApplicationForm.Device, BindFlags.VertexBuffer, vertices);

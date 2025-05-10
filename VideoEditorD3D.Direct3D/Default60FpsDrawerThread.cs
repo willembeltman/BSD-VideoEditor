@@ -1,5 +1,4 @@
 ﻿using VideoEditorD3D.Direct3D.Interfaces;
-using VideoEditorD3D.Types;
 
 namespace VideoEditorD3D.Direct3D;
 
@@ -28,7 +27,7 @@ public class Default60FpsDrawerThread : IDrawerThread
     {
         while (!Application.KillSwitch)
         {
-            ApplicationForm.Timers.FpsTimer.SleepTillNextFrame(new Fps(1, 60));
+            ApplicationForm.Timers.FpsTimer.SleepTillNextFrame(60);
             ApplicationForm.TryDraw();
         }
         ApplicationForm.CloseForm();

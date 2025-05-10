@@ -1,5 +1,5 @@
 ﻿using System.Runtime.InteropServices;
-using VideoEditorD3D.Types;
+using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Helpers;
 
@@ -7,7 +7,7 @@ public class FrameDataPointer : IDisposable
 {
     private GCHandle _handle;
 
-    public FrameDataPointer(Frame frame)
+    public FrameDataPointer(IFrame frame)
     {
         _handle = GCHandle.Alloc(frame.Data, GCHandleType.Pinned);
     }
