@@ -2,18 +2,18 @@
 
 namespace VideoEditorD3D.Direct3D.Forms;
 
-public class ControlD3D(IApplicationForm applicationForm, FormD3D? parentForm, ControlD3D? parentControl)
+public class Control(IApplicationForm applicationForm, Form? parentForm, Control? parentControl)
 {
     public IApplicationForm ApplicationForm { get; } = applicationForm;
-    public FormD3D? ParentForm { get; } = parentForm;
-    public ControlD3D? ParentControl { get; } = parentControl;
+    public Form? ParentForm { get; } = parentForm;
+    public Control? ParentControl { get; } = parentControl;
 
     private bool Dirty;
     private int _Left = 0;
     private int _Top = 0;
     private int _Width = 480;
     private int _Height = 640;
-    private ControlD3D[] Controls = [];
+    private Control[] Controls = [];
     private GraphicsLayer[] CanvasLayers = [];
 
     public int Left
@@ -227,16 +227,16 @@ public class ControlD3D(IApplicationForm applicationForm, FormD3D? parentForm, C
         }
     }
 
-    public void AddControl(ControlD3D control)
+    public void AddControl(Control control)
     {
-        var newArray = new ControlD3D[Controls.Length + 1];
+        var newArray = new Control[Controls.Length + 1];
         Array.Copy(Controls, newArray, Controls.Length);
         newArray[^1] = control;
         Controls = newArray;
 
         Invalidate();
     }
-    public void RemoveControl(ControlD3D control)
+    public void RemoveControl(Control control)
     {
         var deleted = 0;
         for (int i = 0; i < Controls.Length; i++)
@@ -246,7 +246,7 @@ public class ControlD3D(IApplicationForm applicationForm, FormD3D? parentForm, C
                 deleted++;
             }
         }
-        var newArray = new ControlD3D[Controls.Length - deleted];
+        var newArray = new Control[Controls.Length - deleted];
         var newIndex = 0;
         for (int i = 0; i < Controls.Length; i++)
         {

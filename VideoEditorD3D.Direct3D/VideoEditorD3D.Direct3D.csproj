@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\VideoEditorD3D.Configs\VideoEditorD3D.Configs.csproj" />
-    <ProjectReference Include="..\VideoEditorD3D.Entities\VideoEditorD3D.Entities.csproj" />
+    <ProjectReference Include="..\VideoEditorD3D.Entities\VideoEditorD3D.Database.Entities.csproj" />
     <ProjectReference Include="..\VideoEditorD3D.Loggers\VideoEditorD3D.Loggers.csproj" />
     <ProjectReference Include="..\VideoEditorD3D.Timers\VideoEditorD3D.Timers.csproj" />
   </ItemGroup>

@@ -12,7 +12,7 @@ using Device = SharpDX.Direct3D11.Device;
 
 namespace VideoEditorD3D.Direct3D;
 
-public partial class ApplicationForm : Form, IApplicationForm
+public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
 {
     #region Initilized at Constructor
     private readonly IApplication Application;
@@ -39,7 +39,7 @@ public partial class ApplicationForm : Form, IApplicationForm
     private Device? _Device;
     private BlendState? _AlphaBlendState;
     private CharacterCollection? _Characters;
-    private FormD3D? _CurrentForm;
+    private Forms.Form? _CurrentForm;
     private int? _PhysicalWidth;
     private int? _PhysicalHeight;
     #endregion
@@ -426,7 +426,7 @@ public partial class ApplicationForm : Form, IApplicationForm
             }
         }
     }
-    private void RenderToGpu(FormD3D currentForm)
+    private void RenderToGpu(Forms.Form currentForm)
     {
         if (IsNotReadyToDraw || _DeviceContext == null || _Device == null || _SwapChain == null)
             return;
@@ -483,7 +483,7 @@ public partial class ApplicationForm : Form, IApplicationForm
     CharacterCollection IApplicationForm.Characters => _Characters!;
     int IApplicationForm.Width => _PhysicalWidth!.Value;
     int IApplicationForm.Height => _PhysicalHeight!.Value;
-    FormD3D IApplicationForm.CurrentForm { get => _CurrentForm!; set => _CurrentForm = value; }
+    Forms.Form IApplicationForm.CurrentForm { get => _CurrentForm!; set => _CurrentForm = value; }
     Stopwatch IApplicationForm.Stopwatch => Stopwatch;
     AllTimers IApplicationForm.Timers => Timers;
     #endregion

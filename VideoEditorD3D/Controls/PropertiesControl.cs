@@ -5,9 +5,9 @@ using VideoEditorD3D.Direct3D;
 
 namespace VideoEditorD3D.Controls
 {
-    public class PropertiesControl : ControlD3D
+    public class PropertiesControl : Direct3D.Forms.Control
     {
-        public PropertiesControl(Application application, IApplicationForm applicationForm, FormD3D? parentForm, ControlD3D? parentControl) : base(applicationForm, parentForm, parentControl)
+        public PropertiesControl(Application application, IApplicationForm applicationForm, Direct3D.Forms.Form? parentForm, Direct3D.Forms.Control? parentControl) : base(applicationForm, parentForm, parentControl)
         {
             Background = CreateCanvasLayer();
             Foreground = CreateCanvasLayer();

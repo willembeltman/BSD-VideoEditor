@@ -1,5 +1,4 @@
 ﻿using VideoEditorD3D.Configs;
-using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Entities;
 using VideoEditorD3D.Forms;
@@ -36,7 +35,7 @@ namespace VideoEditorD3D
             ApplicationForm = applicationForm;
             return new DrawerThread(applicationForm, this);
         }
-        public FormD3D OnCreateStartForm(IApplicationForm applicationForm)
+        public Direct3D.Forms.Form OnCreateStartForm(IApplicationForm applicationForm)
         {
             ApplicationForm = applicationForm;
             return new MainForm(this, applicationForm);

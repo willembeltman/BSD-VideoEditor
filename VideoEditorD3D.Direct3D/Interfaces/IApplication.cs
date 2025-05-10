@@ -9,5 +9,5 @@ public interface IApplication : IDisposable
     bool KillSwitch { get; set; }
 
     IDrawerThread? OnCreateDrawerThread(IApplicationForm applicationForm);
-    FormD3D OnCreateStartForm(IApplicationForm applicationForm);
+    Forms.Form OnCreateStartForm(IApplicationForm applicationForm);
 }

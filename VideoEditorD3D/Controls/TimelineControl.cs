@@ -5,9 +5,9 @@ using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Controls
 {
-    public class TimelineControl : ControlD3D
+    public class TimelineControl : Direct3D.Forms.Control
     {
-        public TimelineControl(Application application, IApplicationForm applicationForm, FormD3D? parentForm, ControlD3D? parentControl) : base(applicationForm, parentForm, parentControl)
+        public TimelineControl(Application application, IApplicationForm applicationForm, Direct3D.Forms.Form? parentForm, Direct3D.Forms.Control? parentControl) : base(applicationForm, parentForm, parentControl)
         {
             Background = CreateCanvasLayer();
             Foreground = CreateCanvasLayer();

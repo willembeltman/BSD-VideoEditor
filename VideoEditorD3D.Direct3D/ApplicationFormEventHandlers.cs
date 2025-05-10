@@ -9,7 +9,7 @@ namespace VideoEditorD3D.Direct3D
     {
         private IApplicationForm applicationForm;
         private IApplication application;
-        private FormD3D CurrentForm => applicationForm.CurrentForm;
+        private Forms.Form CurrentForm => applicationForm.CurrentForm;
 
         public ApplicationFormEventHandlers(IApplicationForm applicationForm, IApplication application)
         {

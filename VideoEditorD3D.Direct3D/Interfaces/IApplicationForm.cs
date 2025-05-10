@@ -12,7 +12,7 @@ public interface IApplicationForm
     int Height { get; }
 
     CharacterCollection Characters { get; }
-    FormD3D CurrentForm { get; set; }
+    Forms.Form CurrentForm { get; set; }
     Stopwatch Stopwatch { get; }
     AllTimers Timers { get; }
 
