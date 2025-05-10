@@ -3,11 +3,9 @@ using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using SharpDX;
 using System.Diagnostics;
+using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Direct3D.Vertices;
 using VideoEditorD3D.Timers;
-using VideoEditorD3D.Direct3D.Forms;
-using VideoEditorD3D.Direct3D.Extentions;
-using VideoEditorD3D.Direct3D.Interfaces;
 using Device = SharpDX.Direct3D11.Device;
 
 namespace VideoEditorD3D.Direct3D;
@@ -145,6 +143,7 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
         {
             try
             {
+                // Dispose previous resources
                 _NormalInputLayout?.Dispose();
                 _NormalVertexShader?.Dispose();
                 _NormalPixelShader?.Dispose();
@@ -156,15 +155,18 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
                 _Characters?.Dispose();
                 _AlphaBlendState?.Dispose(); 
 
+                // Get the width and height
                 int realWidth = ClientRectangle.Width;
                 int realHeight = ClientRectangle.Height;
 
                 if (realWidth == 0 || realHeight == 0)
                     return;
 
+                // Store the physical width and height
                 _PhysicalWidth = realWidth;
                 _PhysicalHeight = realHeight;
 
+                // Detect the sample size for MSAA
                 var sampleSize = 1; // No MSAA
                 using (var tempDevice = new Device(DriverType.Hardware, DeviceCreationFlags.None))
                 {
@@ -176,6 +178,7 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
                         sampleSize = 8; // MSAA8 supported
                 }
 
+                // Create swap chain and device and set them up
                 var swapChainDesc = new SwapChainDescription()
                 {
                     BufferCount = 1,
@@ -186,18 +189,18 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
                     IsWindowed = true,
                     SwapEffect = SwapEffect.Discard
                 };
-
                 Device.CreateWithSwapChain(
                     DriverType.Hardware,
                     DeviceCreationFlags.BgraSupport,
                     swapChainDesc,
                     out _Device, out _SwapChain);
-
                 _DeviceContext = _Device.ImmediateContext;
-
                 AfterResizeOrRecreateSwapChain(realWidth, realHeight);
+
+                // Compile the shaders and create the input layouts
                 CompileShaders();
 
+                // Create the sampler state and set it to the pixel shader
                 _SamplerState = new SamplerState(_Device, new SamplerStateDescription
                 {
                     Filter = Filter.MinMagMipLinear,
@@ -210,13 +213,12 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
                 });
                 _DeviceContext.PixelShader.SetSampler(0, _SamplerState);
 
-
+                // Create the alpha blend state to handle transparency and set it to the output merger
                 var blendDesc = new BlendStateDescription
                 {
                     AlphaToCoverageEnable = false,
                     IndependentBlendEnable = false
                 };
-
                 blendDesc.RenderTarget[0] = new RenderTargetBlendDescription
                 {
                     IsBlendEnabled = true,
@@ -228,21 +230,23 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
                     AlphaBlendOperation = BlendOperation.Add,
                     RenderTargetWriteMask = ColorWriteMaskFlags.All
                 };
-
                 _AlphaBlendState = new BlendState(_Device, blendDesc);
                 _DeviceContext.OutputMerger.SetBlendState(_AlphaBlendState);
 
+                // Create a new character collection attached to the current device
                 _Characters = new CharacterCollection(this);
+
+                // Ask the application to create the start form
                 _CurrentForm = Application.OnCreateStartForm(this);
                 _CurrentForm.Width = realWidth;
                 _CurrentForm.Height = realHeight;
 
+                // Setup state switches be ready to draw
                 ReInitialize = false;
                 Initialized = true;
             }
             catch (Exception ex)
             {
-                // Waarschijnlijk aan het afsluiten.
                 Application.Logger.WriteException(ex);
             }
         }
@@ -254,6 +258,8 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
 
         if (IsMinimized)
         {
+            // Resize is called when the window is minimized, so we need to setup
+            // reinitialize state here and exit the method
             ReInitialize = true;
             Initialized = false;
             return;
@@ -261,6 +267,9 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
 
         if (ReInitialize)
         {
+            // When the window is restored, again resize is called, so we need to
+            // reinitialize the swap chain here, this will setup the swap chain
+            // with the new width and height anyways so we can exit the method
             RecreateSwapChain();
             return;
         }
@@ -270,18 +279,24 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
             _Device.ImmediateContext.ClearState();
             _RenderTargetView?.Dispose();
 
+            // Get the new width and height
             int newWidth = ClientRectangle.Width;
             int newHeight = ClientRectangle.Height;
-
             if (newWidth == 0 || newHeight == 0)
                 return;
 
+            // Store the new physical width and height inside of our own state first
+            // these values are exposed through the IApplicationForm interface,
+            // so all future event handling will use these new values
             _PhysicalWidth = newWidth;
             _PhysicalHeight = newHeight;
 
+            // Then set the width and height of the current form, this will trigger
+            // the OnResize event of the current form and force redraw on next frame
             _CurrentForm.Width = newWidth;
             _CurrentForm.Height = newHeight;
 
+            // Then try to resize the swap chain
             try
             {
                 _SwapChain.ResizeBuffers(1, newWidth, newHeight, Format.R8G8B8A8_UNorm, SwapChainFlags.None);

@@ -17,7 +17,7 @@ public class ApplicationContext : IApplicationContext
 
     public ApplicationContext()
     {
-        Logger = new ConsoleLogger();
+        Logger = new DebugLogger();
         Config = ApplicationConfig.Load();
         if (Config.LastDatabaseFullName == null)
         {
@@ -48,5 +48,4 @@ public class ApplicationContext : IApplicationContext
         Db.Dispose();
         GC.SuppressFinalize(this);
     }
-
 }
