@@ -5,12 +5,12 @@ using VideoEditorD3D.Direct3D.Forms.Generic;
 
 namespace VideoEditorD3D.Application.Controls;
 
-public class PropertiesControl : BackgroundControl
+public class PropertiesControl : BackControl
 {
     public PropertiesControl(ApplicationContext application, IApplicationForm applicationForm, Form? parentForm, Control? parentControl) : base(applicationForm, parentForm, parentControl)
     {
-        Background = CreateCanvasLayer();
-        Foreground = CreateCanvasLayer();
+        Background = CanvasLayers.Create();
+        Foreground = CanvasLayers.Create();
     }
 
     private readonly GraphicsLayer Background;
@@ -19,7 +19,8 @@ public class PropertiesControl : BackgroundControl
     public override void OnDraw()
     {
         Background.StartDrawing();
-        Background.FillRectangle(0, 0, Width, Height, BackgroundColor);
+        Background.FillRectangle(0, 0, Width, Height, BackColor);
         Background.EndDrawing();
+        base.OnDraw();
     }
 }

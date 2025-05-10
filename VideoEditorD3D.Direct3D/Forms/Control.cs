@@ -1,12 +1,15 @@
-﻿using VideoEditorD3D.Direct3D.Interfaces;
+﻿using VideoEditorD3D.Direct3D.Forms.Helpers;
+using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Forms;
 
-public class Control(IApplicationForm applicationForm, Form? parentForm, Control? parentControl) 
+public class Control
 {
-    public IApplicationForm ApplicationForm { get; } = applicationForm;
-    public Form? ParentForm { get; } = parentForm;
-    public Control? ParentControl { get; } = parentControl;
+    public IApplicationForm ApplicationForm { get; }
+    public Form? ParentForm { get; }
+    public Control? ParentControl { get; }
+    public Controls Controls { get; }
+    public CanvasLayers CanvasLayers { get; }
 
     public bool Loaded { get; private set; }
     public bool Dirty { get; private set; }
@@ -14,8 +17,16 @@ public class Control(IApplicationForm applicationForm, Form? parentForm, Control
     private int _Top = 0;
     private int _Width = 480;
     private int _Height = 640;
-    private Control[] Controls = [];
-    private GraphicsLayer[] CanvasLayers = [];
+
+    public Control(IApplicationForm applicationForm, Form? parentForm, Control? parentControl)
+    {
+        ApplicationForm = applicationForm;
+        ParentForm = parentForm;
+        ParentControl = parentControl;
+        Controls = new Controls(this);
+        CanvasLayers = new CanvasLayers(this);
+    }
+
     public bool IsMouseEntered { get; private set; } = false;
 
     public event EventHandler<KeyPressEventArgs>? KeyPress;
@@ -130,12 +141,8 @@ public class Control(IApplicationForm applicationForm, Form? parentForm, Control
         }
         Loaded = true;
     }
-    /// <summary>
-    /// De base.OnDraw hoef je niet aan te roepen, dit wordt via invalidate geregeld
-    /// </summary>
     public virtual void OnDraw()
     {
-        // Hoeft niet door te gaan naar beneden, want dat doen we al met invalidate
     }
     public virtual void OnResize()
     {
@@ -278,7 +285,6 @@ public class Control(IApplicationForm applicationForm, Form? parentForm, Control
         MouseLeave?.Invoke(this, e);
     }
     
-
     public virtual void OnDragEnter(DragEventArgs e)
     {
         foreach (var control in Controls)
@@ -332,77 +338,8 @@ public class Control(IApplicationForm applicationForm, Form? parentForm, Control
         }
     }
 
-    public void AddControl(Control control)
-    {
-        var newArray = new Control[Controls.Length + 1];
-        Array.Copy(Controls, newArray, Controls.Length);
-        newArray[^1] = control;
-        Controls = newArray;
 
-        Invalidate();
-    }
-    public void RemoveControl(Control control)
-    {
-        var deleted = 0;
-        for (int i = 0; i < Controls.Length; i++)
-        {
-            if (Controls[i] == control)
-            {
-                deleted++;
-            }
-        }
-        var newArray = new Control[Controls.Length - deleted];
-        var newIndex = 0;
-        for (int i = 0; i < Controls.Length; i++)
-        {
-            if (Controls[i] != control)
-            {
-                newArray[newIndex] = Controls[i];
-                newIndex++;
-            }
-        }
-        Controls = newArray;
-
-        Invalidate();
-    }
-
-    public void AddCanvasLayer(GraphicsLayer layer)
-    {
-        var newArray = new GraphicsLayer[CanvasLayers.Length + 1];
-        Array.Copy(CanvasLayers, newArray, CanvasLayers.Length);
-        newArray[^1] = layer;
-        CanvasLayers = newArray;
-    }
-    public void RemoveCanvasLayer(GraphicsLayer layer)
-    {
-        var deleted = 0;
-        for (int i = 0; i < CanvasLayers.Length; i++)
-        {
-            if (CanvasLayers[i] == layer)
-            {
-                deleted++;
-            }
-        }
-        var newArray = new GraphicsLayer[CanvasLayers.Length - deleted];
-        var newIndex = 0;
-        for (int i = 0; i < CanvasLayers.Length; i++)
-        {
-            if (CanvasLayers[i] != layer)
-            {
-                newArray[newIndex] = CanvasLayers[i];
-                newIndex++;
-            }
-        }
-        CanvasLayers = newArray;
-    }
-    public GraphicsLayer CreateCanvasLayer()
-    {
-        var layer = new GraphicsLayer(ApplicationForm, this);
-        AddCanvasLayer(layer);
-        return layer;
-    }
-
-    public IEnumerable<GraphicsLayer> GetCanvasLayers()
+    public IEnumerable<GraphicsLayer> GetAllCanvasLayers()
     {
         if (Dirty)
         {
@@ -416,7 +353,7 @@ public class Control(IApplicationForm applicationForm, Form? parentForm, Control
         }
         foreach (var control in Controls)
         {
-            foreach (var layer in control.GetCanvasLayers())
+            foreach (var layer in control.GetAllCanvasLayers())
             {
                 yield return layer;
             }

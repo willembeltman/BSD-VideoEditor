@@ -3,24 +3,24 @@ using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Forms.Generic;
 
-public class ForegroundBorderBackgroundControl : BorderBackgroundControl
+public class ForeBorderBackControl : BorderBackControl
 {
-    public ForegroundBorderBackgroundControl(IApplicationForm application, Form? parentForm, Control? parentControl) : base(application, parentForm, parentControl)
+    public ForeBorderBackControl(IApplicationForm application, Form? parentForm, Control? parentControl) : base(application, parentForm, parentControl)
     {
     }
     private string _Font = "Ebrima";
     private float _FontSize = 10;
     private int _FontLetterSpacing = -2;
     private FontStyle _FontStyle = FontStyle.Regular;
-    private RawColor4 _ForegroundColor = new RawColor4(0, 0, 0, 0);
+    private RawColor4 _ForeColor = new RawColor4(0, 0, 0, 0);
 
-    public RawColor4 ForegroundColor
+    public RawColor4 ForeColor
     {
-        get => _ForegroundColor;
+        get => _ForeColor;
         set
         {
-            if (_ForegroundColor.Equals(value)) return;
-            _ForegroundColor = value;
+            if (_ForeColor.Equals(value)) return;
+            _ForeColor = value;
             Invalidate();
         }
     }

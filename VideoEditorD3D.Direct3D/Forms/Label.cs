@@ -4,13 +4,13 @@ using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Forms;
 
-public class Label : ForegroundBorderBackgroundControl
+public class Label : ForeBorderBackControl
 {
     public Label(IApplicationForm application, Form? parentForm, Control? parentControl) : base(application, parentForm, parentControl)
     {
-        Background = CreateCanvasLayer();
-        Foreground = CreateCanvasLayer();
-        Border = CreateCanvasLayer();
+        Background = CanvasLayers.Create();
+        Foreground = CanvasLayers.Create();
+        Border = CanvasLayers.Create();
     }
 
     private readonly GraphicsLayer Background;
@@ -18,7 +18,6 @@ public class Label : ForegroundBorderBackgroundControl
     private readonly GraphicsLayer Border;
 
     private string _Text = string.Empty;
-
     public string Text
     {
         get => _Text;
@@ -33,15 +32,17 @@ public class Label : ForegroundBorderBackgroundControl
     public override void OnDraw()
     {
         Background.StartDrawing();
-        Background.FillRectangle(0, 0, Width, Height, BackgroundColor);
+        Background.FillRectangle(0, 0, Width, Height, BackColor);
         Background.EndDrawing();
 
         Foreground.StartDrawing();
-        Foreground.DrawText(Text, 0, 0, Width, Height, Font, FontSize, FontStyle, FontLetterSpacing, ForegroundColor);
+        Foreground.DrawText(Text, 0, 0, Width, Height, Font, FontSize, FontStyle, FontLetterSpacing, ForeColor);
         Foreground.EndDrawing();
 
         Border.StartDrawing();
         Border.DrawRectangle(0, 0, Width, Height, BorderColor, BorderSize);
         Border.EndDrawing();
+
+        base.OnDraw();
     }
 }

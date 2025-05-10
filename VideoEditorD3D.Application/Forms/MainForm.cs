@@ -14,44 +14,44 @@ public class MainForm : Form
 
     public MainForm(ApplicationContext application, IApplicationForm applicationForm) : base(applicationForm)
     {
-        BackgroundColor = new RawColor4(0.125f, 0.25f, 0.5f, 1);
+        BackColor = new RawColor4(0.125f, 0.25f, 0.5f, 1);
 
         DisplayControl = new DisplayControl(application, applicationForm, this, this);
-        DisplayControl.BackgroundColor = new RawColor4(0, 0, 0, 1);
-        AddControl(DisplayControl);
+        DisplayControl.BackColor = new RawColor4(0, 0, 0, 1);
+        Controls.Add(DisplayControl);
 
         PropertiesControl = new PropertiesControl(application, applicationForm, this, this);
-        PropertiesControl.BackgroundColor = new RawColor4(0, 0, 0, 1);
-        AddControl(PropertiesControl);
+        PropertiesControl.BackColor = new RawColor4(0, 0, 0, 1);
+        Controls.Add(PropertiesControl);
 
         TimelineControl = new TimelineControl(application, applicationForm, this, this);
-        TimelineControl.BackgroundColor = new RawColor4(0, 0, 0, 1);
-        AddControl(TimelineControl);
+        TimelineControl.BackColor = new RawColor4(0, 0, 0, 1);
+        Controls.Add(TimelineControl);
 
         FpsLabel = new Label(applicationForm, this, this);
         FpsLabel.Left = 3;
         FpsLabel.Top = 3;
         FpsLabel.Width = 200;
         FpsLabel.Height = 20;
-        FpsLabel.BackgroundColor = new RawColor4(0, 0, 0, 0.5f);
+        FpsLabel.BackColor = new RawColor4(0, 0, 0, 0.5f);
         FpsLabel.BorderColor = new RawColor4(1, 1, 1, 1);
-        FpsLabel.ForegroundColor = new RawColor4(1, 1, 1, 1);
+        FpsLabel.ForeColor = new RawColor4(1, 1, 1, 1);
         FpsLabel.BorderSize = 1;
         FpsLabel.FontSize = 6f;
         FpsLabel.Font = "Ebrima";
         FpsLabel.MouseDown += (sender, args) =>
         {
-            FpsLabel.BackgroundColor = new RawColor4(1, 1, 1, 1);
+            FpsLabel.BackColor = new RawColor4(1, 1, 1, 1);
             FpsLabel.BorderColor = new RawColor4(0, 0, 0, 1);
-            FpsLabel.ForegroundColor = new RawColor4(0, 0, 0, 1);
+            FpsLabel.ForeColor = new RawColor4(0, 0, 0, 1);
         };
         FpsLabel.MouseUp += (sender, args) =>
         {
-            FpsLabel.BackgroundColor = new RawColor4(0, 0, 0, 0.5f);
+            FpsLabel.BackColor = new RawColor4(0, 0, 0, 0.5f);
             FpsLabel.BorderColor = new RawColor4(1, 1, 1, 1);
-            FpsLabel.ForegroundColor = new RawColor4(1, 1, 1, 1);
+            FpsLabel.ForeColor = new RawColor4(1, 1, 1, 1);
         };
-        AddControl(FpsLabel);
+        Controls.Add(FpsLabel);
     }
 
 

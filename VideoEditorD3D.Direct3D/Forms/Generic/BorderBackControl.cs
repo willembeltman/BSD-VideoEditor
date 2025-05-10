@@ -3,9 +3,9 @@ using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Forms.Generic;
 
-public class BorderBackgroundControl : BackgroundControl
+public class BorderBackControl : BackControl
 {
-    public BorderBackgroundControl(IApplicationForm application, Form? parentForm, Control? parentControl) : base(application, parentForm, parentControl)
+    public BorderBackControl(IApplicationForm application, Form? parentForm, Control? parentControl) : base(application, parentForm, parentControl)
     {
     }
 

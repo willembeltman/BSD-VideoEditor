@@ -6,12 +6,12 @@ using VideoEditorD3D.FFMpeg.Types;
 
 namespace VideoEditorD3D.Application.Controls;
 
-public class DisplayControl : BackgroundControl
+public class DisplayControl : BackControl
 {
     public DisplayControl(ApplicationContext application, IApplicationForm applicationForm, Form? parentForm, Control? parentControl) : base(applicationForm, parentForm, parentControl)
     {
-        Background = CreateCanvasLayer();
-        Foreground = CreateCanvasLayer();
+        Background = CanvasLayers.Create();
+        Foreground = CanvasLayers.Create();
     }
 
     private readonly GraphicsLayer Background;
@@ -35,11 +35,13 @@ public class DisplayControl : BackgroundControl
     public override void OnDraw()
     {
         Background.StartDrawing();
-        Background.FillRectangle(0, 0, Width, Height, BackgroundColor);
+        Background.FillRectangle(0, 0, Width, Height, BackColor);
         Background.EndDrawing();
 
         Foreground.StartDrawing();
         if (_Frame != null) Foreground.DrawFrame(0, 0, Width, Height, _Frame);
         Foreground.EndDrawing();
+
+        base.OnDraw();
     }
 }

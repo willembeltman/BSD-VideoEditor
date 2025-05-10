@@ -4,17 +4,17 @@ using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Forms;
 
-public class HScrollBar : ForegroundBorderBackgroundControl
+public class HScrollBar : ForeBorderBackControl
 {
     public HScrollBar(IApplicationForm application, Form? parentForm, Control? parentControl)
         : base(application, parentForm, parentControl)
     {
-        Background = CreateCanvasLayer();
-        Thumb = CreateCanvasLayer();
-        Border = CreateCanvasLayer();
+        Background = CanvasLayers.Create();
+        Thumb = CanvasLayers.Create();
+        Border = CanvasLayers.Create();
 
-        BackgroundColor = new RawColor4(0.2f, 0.2f, 0.2f, 1);
-        ForegroundColor = new RawColor4(0.6f, 0.6f, 0.6f, 1);
+        BackColor = new RawColor4(0.2f, 0.2f, 0.2f, 1);
+        ForeColor = new RawColor4(0.6f, 0.6f, 0.6f, 1);
         BorderColor = new RawColor4(1, 1, 1, 1);
         BorderSize = 1;
     }
@@ -26,7 +26,7 @@ public class HScrollBar : ForegroundBorderBackgroundControl
     private bool isDragging = false;
     private float dragOffsetX;
 
-    public event EventHandler<float>? OnScroll;
+    public event EventHandler<ScrollEventArgs>? Scroll;
 
     private float _Minimum = 0;
     private float _Maximum = 1;
@@ -72,14 +72,15 @@ public class HScrollBar : ForegroundBorderBackgroundControl
             if (_Value == clamped) return;
             _Value = clamped;
             Invalidate();
-            OnScroll?.Invoke(this, _Value);
+            var scrollEventArgs = new ScrollEventArgs(ScrollEventType.ThumbPosition, (int)_Value);
+            Scroll?.Invoke(this, scrollEventArgs);
         }
     }
 
     public override void OnDraw()
     {
         Background.StartDrawing();
-        Background.FillRectangle(0, 0, Width, Height, BackgroundColor);
+        Background.FillRectangle(0, 0, Width, Height, BackColor);
         Background.EndDrawing();
 
         float thumbWidth = Math.Max(Width * LargeChange / (Maximum - Minimum), 10);
@@ -87,12 +88,14 @@ public class HScrollBar : ForegroundBorderBackgroundControl
         float thumbX = (Value - Minimum) / (Maximum - LargeChange - Minimum) * trackWidth;
 
         Thumb.StartDrawing();
-        Thumb.FillRectangle((int)thumbX, 0, (int)thumbWidth, Height, ForegroundColor);
+        Thumb.FillRectangle((int)thumbX, 0, (int)thumbWidth, Height, ForeColor);
         Thumb.EndDrawing();
 
         Border.StartDrawing();
         Border.DrawRectangle(0, 0, Width, Height, BorderColor, BorderSize);
         Border.EndDrawing();
+
+        base.OnDraw();
     }
     public override void OnMouseDown(MouseEventArgs e)
     {

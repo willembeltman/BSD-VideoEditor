@@ -472,9 +472,9 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
         if (IsNotReadyToDraw || _DeviceContext == null || _Device == null || _SwapChain == null)
             return;
 
-        _DeviceContext.ClearRenderTargetView(_RenderTargetView, currentForm.BackgroundColor);
+        _DeviceContext.ClearRenderTargetView(_RenderTargetView, currentForm.BackColor);
 
-        foreach (var layer in currentForm.GetCanvasLayers())
+        foreach (var layer in currentForm.GetAllCanvasLayers())
         {
             if (layer.TriangleVerticesBuffer != null)
             {
