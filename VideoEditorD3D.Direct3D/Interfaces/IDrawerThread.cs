@@ -1,7 +1,6 @@
-﻿namespace VideoEditorD3D.Direct3D.Interfaces
+﻿namespace VideoEditorD3D.Direct3D.Interfaces;
+
+public interface IDrawerThread : IDisposable
 {
-    public interface IDrawerThread : IDisposable
-    {
-        void StartThread();
-    }
+    void StartThread();
 }

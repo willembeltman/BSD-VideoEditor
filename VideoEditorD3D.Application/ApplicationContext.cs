@@ -10,10 +10,12 @@ namespace VideoEditorD3D.Application;
 public class ApplicationContext : IApplicationContext
 {
     public ILogger Logger { get; }
+    public bool KillSwitch { get; set; }
     public ApplicationConfig Config { get; }
     public ApplicationDbContext Db { get; }
-    public bool KillSwitch { get; set; }
     public IApplicationForm? ApplicationForm { get; private set; }
+    public MainForm? MainForm { get; private set; }
+    public DrawerThread? DrawerThread { get; private set; }
 
     public ApplicationContext()
     {
@@ -34,18 +36,25 @@ public class ApplicationContext : IApplicationContext
     public IDrawerThread? OnCreateDrawerThread(IApplicationForm applicationForm)
     {
         ApplicationForm = applicationForm;
-        return new DrawerThread(applicationForm, this);
+        DrawerThread = new DrawerThread(this, applicationForm);
+        return DrawerThread;
     }
     public Form OnCreateStartForm(IApplicationForm applicationForm)
     {
         ApplicationForm = applicationForm;
-        return new MainForm(this, applicationForm);
+        MainForm = new MainForm(this, applicationForm);
+        return MainForm;
+    }
+    public void Start()
+    {
+        Logger.StartThread();
     }
 
     public void Dispose()
     {
         KillSwitch = true;
         Db.Dispose();
+        Logger.Dispose();
         GC.SuppressFinalize(this);
     }
 }

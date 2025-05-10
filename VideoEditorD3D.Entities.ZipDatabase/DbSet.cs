@@ -27,7 +27,6 @@ public class DbSet<T> : ICollection<T>, IDbSet
 
     private long LastId;
 
-
     private void LoadCache(ZipArchive zipArchive)
     {
         var idFile = zipArchive.GetOrCreateEntry($"{Name}.id");

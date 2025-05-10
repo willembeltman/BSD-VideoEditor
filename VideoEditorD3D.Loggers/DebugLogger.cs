@@ -5,9 +5,9 @@ namespace VideoEditorD3D.Loggers;
 
 public class DebugLogger : ILogger
 {
-    private AutoResetEvent NewMessageReceived;
-    private Thread LoggerThread;
-    private ConcurrentQueue<DebugLoggerMessage> Lines;
+    private readonly AutoResetEvent NewMessageReceived;
+    private readonly Thread LoggerThread;
+    private readonly ConcurrentQueue<DebugLoggerMessage> Lines;
     private int CurrentIndex;
     private bool KillSwitch = false;
     public Stopwatch Stopwatch;
@@ -16,8 +16,10 @@ public class DebugLogger : ILogger
     {
         Lines = new ConcurrentQueue<DebugLoggerMessage>();
         NewMessageReceived = new AutoResetEvent(false);
-        LoggerThread = new Thread(Kernel);
-        LoggerThread.Name = "TradingBot: DebugLogger Kernel";
+        LoggerThread = new Thread(Kernel)
+        {
+            Name = "DebugLogger Kernel"
+        };
         Stopwatch = Stopwatch.StartNew();
     }
 
@@ -68,5 +70,7 @@ public class DebugLogger : ILogger
         KillSwitch = true;
         if (LoggerThread.ThreadState == System.Threading.ThreadState.Running && Thread.CurrentThread != LoggerThread)
             LoggerThread.Join();
+
+        GC.SuppressFinalize(this);
     }
 }

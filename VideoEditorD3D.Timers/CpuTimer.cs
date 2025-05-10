@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
+using static VideoEditorD3D.Timers.CpuTimer;
 
 namespace VideoEditorD3D.Timers;
 
@@ -26,12 +27,43 @@ public class CpuTimer
     public void Stop()
     {
         var currentTime = Stopwatch.Elapsed.TotalSeconds;
-        var loadDataTime = currentTime - StartTime;
+        var timeSpend = currentTime - StartTime;
+        AddNewTime(timeSpend);
+    }
 
-        ElapsedQueue.Enqueue(loadDataTime);
+    private void AddNewTime(double timeSpend)
+    {
+        ElapsedQueue.Enqueue(timeSpend);
         while (ElapsedQueue.Count > MaxCount)
             ElapsedQueue.Dequeue();
 
         Time = ElapsedQueue.Average();
+    }
+
+    public CpuTimerDisposableObject DisposableObject
+    {
+        get
+        {
+            var cpuTimerObject = new CpuTimerDisposableObject(this);
+            return cpuTimerObject;
+        }
+    }
+    public class CpuTimerDisposableObject : IDisposable
+    {
+        public CpuTimerDisposableObject(CpuTimer cpuTimer)
+        {
+            CpuTimer = cpuTimer;
+            StartTime = CpuTimer.Stopwatch.Elapsed.TotalSeconds;
+        }
+
+        public CpuTimer CpuTimer { get; }
+        public double StartTime { get; }
+
+        public void Dispose()
+        {
+            var currentTime = CpuTimer.Stopwatch.Elapsed.TotalSeconds;
+            var timeSpend = currentTime - StartTime;
+            CpuTimer.AddNewTime(timeSpend);
+        }
     }
 }

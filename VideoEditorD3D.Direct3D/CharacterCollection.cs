@@ -15,15 +15,29 @@ public class CharacterCollection(IApplicationForm Application) : IDisposable
                 a.Char == character &&
                 a.FontName == font &&
                 a.FontSize == fontSize && 
-                a.FontStyle == fontStyle);
+                a.FontStyle == fontStyle && 
+                a.BackColor.Equals(backColor) &&
+                a.ForeColor.Equals(foreColor));
         if (item == null)
         {
-            item = new CharacterTexture(character, font, fontSize, fontStyle, backColor, foreColor, Application.Device);
-            Array.Resize(ref TextItems, TextItems.Length + 1);
-            TextItems[^1] = item;
-            return item;
+            item = new CharacterTexture(
+                character,
+                font,
+                fontSize, 
+                fontStyle,
+                backColor,
+                foreColor,
+                Application.Device);
+            Add(item);
         }
         return item;
+    }
+
+    // Resizes the array to accommodate the new item then adds it to the end of the array.
+    private void Add(CharacterTexture item)
+    {
+        Array.Resize(ref TextItems, TextItems.Length + 1);
+        TextItems[^1] = item;
     }
 
     public void Dispose()

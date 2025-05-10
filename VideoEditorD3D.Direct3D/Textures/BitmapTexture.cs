@@ -1,9 +1,8 @@
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using SharpDX;
-using Device = SharpDX.Direct3D11.Device;
-using System.Drawing;
 using VideoEditorD3D.Direct3D.Interfaces;
+using Device = SharpDX.Direct3D11.Device;
 
 namespace VideoEditorD3D.Direct3D.Textures;
 

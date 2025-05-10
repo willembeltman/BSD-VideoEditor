@@ -5,9 +5,9 @@ namespace VideoEditorD3D.Loggers;
 
 public class ConsoleLogger : ILogger
 {
-    private AutoResetEvent NewMessageReceived;
-    private Thread LoggerThread;
-    private ConcurrentQueue<ConsoleLoggerMessage> Lines;
+    private readonly AutoResetEvent NewMessageReceived;
+    private readonly Thread LoggerThread;
+    private readonly ConcurrentQueue<ConsoleLoggerMessage> Lines;
     private int CurrentIndex = 0;
     private string LastMessage = "";
     private bool NeedNewLine = false;
@@ -18,8 +18,10 @@ public class ConsoleLogger : ILogger
     {
         Lines = new ConcurrentQueue<ConsoleLoggerMessage>();
         NewMessageReceived = new AutoResetEvent(false);
-        LoggerThread = new Thread(Kernel);
-        LoggerThread.Name = "TradingBot: ConsoleLogger Kernel";
+        LoggerThread = new Thread(Kernel)
+        {
+            Name = "ConsoleLogger Kernel"
+        };
         Stopwatch = Stopwatch.StartNew();
     }
 
@@ -92,5 +94,7 @@ public class ConsoleLogger : ILogger
         KillSwitch = true;
         if (LoggerThread.ThreadState == System.Threading.ThreadState.Running && Thread.CurrentThread != LoggerThread)
             LoggerThread.Join();
+
+        GC.SuppressFinalize(this);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace VideoEditorD3D.Loggers
 {
-    public interface ILogger
+    public interface ILogger : IDisposable
     {
         void WriteLine(string line);
         void WriteLine(string message, ConsoleColor color);
@@ -10,5 +10,6 @@ namespace VideoEditorD3D.Loggers
         void RewriteLine(string message, ConsoleColor color);
         void WriteException(Exception ex);
         void WriteException(string message);
+        void StartThread();
     }
 }

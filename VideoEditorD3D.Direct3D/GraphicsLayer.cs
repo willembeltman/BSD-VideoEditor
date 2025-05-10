@@ -6,51 +6,43 @@ using VideoEditorD3D.Types;
 using SharpDX.Direct3D11;
 using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Direct3D.TextureImages;
-using Device = SharpDX.Direct3D11.Device;
 using Buffer = SharpDX.Direct3D11.Buffer;
 
 namespace VideoEditorD3D.Direct3D;
 
-public class GraphicsLayer(IApplicationForm application) : IDisposable
+public class GraphicsLayer(IApplicationForm applicationForm) : IDisposable
 {
-    private IApplicationForm Application { get; } = application;
+    private IApplicationForm ApplicationForm { get; } = applicationForm;
 
     public List<Vertex> LineVertices { get; } = [];
-    public List<Vertex> FillVertices { get; } = [];
-    public List<DisposableTextureImage> ImageTextures { get; } = [];
-    public List<CachedTextureImage> CharacterTextures { get; } = [];
-
-    private int CanvasWidth => Application.Width;
-    private int CanvasHeight => Application.Height;
-    private Device Device => Application.Device;
-    private CharacterCollection Characters => Application.Characters;
-
     public Buffer? LineVerticesBuffer { get; set; }
-    public Buffer? FillVerticesBuffer { get; set; }
+    public List<Vertex> TriangleVertices { get; } = [];
+    public Buffer? TriangleVerticesBuffer { get; set; }
+    public List<ITextureImage> TextureImages { get; } = [];
 
     public void StartDrawing()
     {
         LineVerticesBuffer?.Dispose();
         LineVerticesBuffer = null;
-        FillVerticesBuffer?.Dispose();
-        FillVerticesBuffer = null;
+        TriangleVerticesBuffer?.Dispose();
+        TriangleVerticesBuffer = null;
         
-        foreach (var image in ImageTextures)
+        foreach (var image in TextureImages)
             image.Dispose();
-        foreach (var image in CharacterTextures)
+        foreach (var image in TextureImages)
             image.Dispose();
 
         LineVertices.Clear();
-        FillVertices.Clear();
-        ImageTextures.Clear();
-        CharacterTextures.Clear();
+        TriangleVertices.Clear();
+        TextureImages.Clear();
+        TextureImages.Clear();
     }
     public void EndDrawing()
     {
         if (LineVertices.Count > 0)
-            LineVerticesBuffer = Buffer.Create(Device, BindFlags.VertexBuffer, LineVertices.ToArray());
-        if (FillVertices.Count > 0)
-            FillVerticesBuffer = Buffer.Create(Device, BindFlags.VertexBuffer, FillVertices.ToArray());
+            LineVerticesBuffer = Buffer.Create(ApplicationForm.Device, BindFlags.VertexBuffer, LineVertices.ToArray());
+        if (TriangleVertices.Count > 0)
+            TriangleVerticesBuffer = Buffer.Create(ApplicationForm.Device, BindFlags.VertexBuffer, TriangleVertices.ToArray());
     }
     public void DrawLine(int startX, int startY, int endX, int endY, RawColor4 color, int strokeWidth)
     {
@@ -88,26 +80,26 @@ public class GraphicsLayer(IApplicationForm application) : IDisposable
         var offsetY = ny * halfThicknessy;
 
         // Bereken de 4 hoekpunten van de lijn als rechthoek
-        var v1 = new RawVector2(start.X + offsetX, start.Y + offsetY).ToClipSpace(CanvasWidth, CanvasHeight);
-        var v2 = new RawVector2(start.X - offsetX, start.Y - offsetY).ToClipSpace(CanvasWidth, CanvasHeight);
-        var v3 = new RawVector2(end.X - offsetX, end.Y - offsetY).ToClipSpace(CanvasWidth, CanvasHeight);
-        var v4 = new RawVector2(end.X + offsetX, end.Y + offsetY).ToClipSpace(CanvasWidth, CanvasHeight);
+        var v1 = new RawVector2(start.X + offsetX, start.Y + offsetY).ToClipSpace(ApplicationForm.Width, ApplicationForm.Height);
+        var v2 = new RawVector2(start.X - offsetX, start.Y - offsetY).ToClipSpace(ApplicationForm.Width, ApplicationForm.Height);
+        var v3 = new RawVector2(end.X - offsetX, end.Y - offsetY).ToClipSpace(ApplicationForm.Width, ApplicationForm.Height);
+        var v4 = new RawVector2(end.X + offsetX, end.Y + offsetY).ToClipSpace(ApplicationForm.Width, ApplicationForm.Height);
 
         // Voeg als 2 driehoeken toe aan FillVerticesList
-        FillVertices.Add(new Vertex { Position = v1, Color = color });
-        FillVertices.Add(new Vertex { Position = v2, Color = color });
-        FillVertices.Add(new Vertex { Position = v3, Color = color });
+        TriangleVertices.Add(new Vertex { Position = v1, Color = color });
+        TriangleVertices.Add(new Vertex { Position = v2, Color = color });
+        TriangleVertices.Add(new Vertex { Position = v3, Color = color });
 
-        FillVertices.Add(new Vertex { Position = v3, Color = color });
-        FillVertices.Add(new Vertex { Position = v4, Color = color });
-        FillVertices.Add(new Vertex { Position = v1, Color = color });
+        TriangleVertices.Add(new Vertex { Position = v3, Color = color });
+        TriangleVertices.Add(new Vertex { Position = v4, Color = color });
+        TriangleVertices.Add(new Vertex { Position = v1, Color = color });
     }
     public void DrawLineOnePixelWide(int startX, int startY, int endX, int endY, RawColor4 color)
     {
         RawVector2 start = new RawVector2(startX, startY);
         RawVector2 end = new RawVector2(endX, endY);
-        LineVertices.Add(new Vertex { Position = start.ToClipSpace(CanvasWidth, CanvasHeight), Color = color });
-        LineVertices.Add(new Vertex { Position = end.ToClipSpace(CanvasWidth, CanvasHeight), Color = color });
+        LineVertices.Add(new Vertex { Position = start.ToClipSpace(ApplicationForm.Width, ApplicationForm.Height), Color = color });
+        LineVertices.Add(new Vertex { Position = end.ToClipSpace(ApplicationForm.Width, ApplicationForm.Height), Color = color });
     }
     public void DrawRectangle(int left, int top, int width, int height, RawColor4 color, int strokeWidth)
     {
@@ -128,38 +120,38 @@ public class GraphicsLayer(IApplicationForm application) : IDisposable
         var bottom = top + height;
 
         // Clip space coordinaten
-        var p1 = new RawVector2(left, top).ToClipSpace(CanvasWidth, CanvasHeight);
-        var p2 = new RawVector2(right, top).ToClipSpace(CanvasWidth, CanvasHeight);
-        var p3 = new RawVector2(right, bottom).ToClipSpace(CanvasWidth, CanvasHeight);
-        var p4 = new RawVector2(left, bottom).ToClipSpace(CanvasWidth, CanvasHeight);
+        var p1 = new RawVector2(left, top).ToClipSpace(ApplicationForm.Width, ApplicationForm.Height);
+        var p2 = new RawVector2(right, top).ToClipSpace(ApplicationForm.Width, ApplicationForm.Height);
+        var p3 = new RawVector2(right, bottom).ToClipSpace(ApplicationForm.Width, ApplicationForm.Height);
+        var p4 = new RawVector2(left, bottom).ToClipSpace(ApplicationForm.Width, ApplicationForm.Height);
 
         // Vulling met 2 driehoeken
         if (color.A > 0)
         {
-            FillVertices.Add(new Vertex { Position = p1, Color = color });
-            FillVertices.Add(new Vertex { Position = p2, Color = color });
-            FillVertices.Add(new Vertex { Position = p3, Color = color });
+            TriangleVertices.Add(new Vertex { Position = p1, Color = color });
+            TriangleVertices.Add(new Vertex { Position = p2, Color = color });
+            TriangleVertices.Add(new Vertex { Position = p3, Color = color });
 
-            FillVertices.Add(new Vertex { Position = p3, Color = color });
-            FillVertices.Add(new Vertex { Position = p4, Color = color });
-            FillVertices.Add(new Vertex { Position = p1, Color = color });
+            TriangleVertices.Add(new Vertex { Position = p3, Color = color });
+            TriangleVertices.Add(new Vertex { Position = p4, Color = color });
+            TriangleVertices.Add(new Vertex { Position = p1, Color = color });
         }
     }
     public void DrawBitmap(int left, int top, int width, int height, Bitmap bitmap)
     {
         var vertices = CreateTextureVertices(left, top, width, height);
-        var verticesBuffer = Buffer.Create(Device, BindFlags.VertexBuffer, vertices);
-        var texture = new BitmapTexture(Device, bitmap);
+        var verticesBuffer = Buffer.Create(ApplicationForm.Device, BindFlags.VertexBuffer, vertices);
+        var texture = new BitmapTexture(ApplicationForm.Device, bitmap);
         var image = new DisposableTextureImage(vertices, verticesBuffer, texture);
-        ImageTextures.Add(image);
+        TextureImages.Add(image);
     }
     public void DrawFrame(int left, int top, int width, int height, Frame frame)
     {
         var vertices = CreateTextureVertices(left, top, width, height);
-        var verticesBuffer = Buffer.Create(Device, BindFlags.VertexBuffer, vertices);
-        var texture = new FrameTexture(Device!, frame);
+        var verticesBuffer = Buffer.Create(ApplicationForm.Device, BindFlags.VertexBuffer, vertices);
+        var texture = new FrameTexture(ApplicationForm.Device, frame);
         var image = new DisposableTextureImage(vertices, verticesBuffer, texture);
-        ImageTextures.Add(image);
+        TextureImages.Add(image);
     }
     public void DrawText(string text, int left, int top, int width = -1, int height = -1, string font = "Ebrima", float fontSize = 10f, FontStyle fontStyle = FontStyle.Regular, int letterSpacing = -2, RawColor4? foreColor = null, RawColor4? backColor = null)
     {
@@ -178,29 +170,29 @@ public class GraphicsLayer(IApplicationForm application) : IDisposable
             foreach (var character in row)
             {
                 // Text item aanmaken of ophalen voor het huidige character
-                var texture = Characters.GetOrCreate(character, font, fontSize, fontStyle, backColor.Value, foreColor.Value);
+                var texture = ApplicationForm.Characters.GetOrCreate(character, font, fontSize, fontStyle, backColor.Value, foreColor.Value);
 
                 // Berekenen
-                var right = currentLeft + texture.BitmapWidth + letterSpacing;
+                var right = currentLeft + texture.Width + letterSpacing;
                 if (width != -1 && height != -1 && right > left + width)
                 {
                     // Nieuwe regel
                     currentLeft = left;
                     currentTop = currentBottom;
-                    right = currentLeft + texture.BitmapWidth + letterSpacing;
+                    right = currentLeft + texture.Width + letterSpacing;
                 }
 
-                var bottom = currentTop + texture.BitmapHeight;
+                var bottom = currentTop + texture.Height;
                 if (currentBottom < bottom)
                     currentBottom = bottom;
 
                 // Vertices laten maken
-                var fillVertices = CreateTextureVertices(currentLeft, currentTop, texture.BitmapWidth, texture.BitmapHeight);
-                var fillVerticesBuffer = Buffer.Create(Device, BindFlags.VertexBuffer, fillVertices);
+                var fillVertices = CreateTextureVertices(currentLeft, currentTop, texture.Width, texture.Height);
+                var fillVerticesBuffer = Buffer.Create(ApplicationForm.Device, BindFlags.VertexBuffer, fillVertices);
 
                 // En dit in een model stoppen
                 var image = new CachedTextureImage(fillVertices, fillVerticesBuffer, texture);
-                CharacterTextures.Add(image);
+                TextureImages.Add(image);
 
                 currentLeft = right;
             }
@@ -221,10 +213,10 @@ public class GraphicsLayer(IApplicationForm application) : IDisposable
         var roundBottom = top + roundHeight;
 
         // Maak vertices
-        float x0 = roundLeft / CanvasWidth * 2f - 1f;
-        float y0 = 1f - roundTop / CanvasHeight * 2f;
-        float x1 = roundRight / CanvasWidth * 2f - 1f;
-        float y1 = 1f - roundBottom / CanvasHeight * 2f;
+        float x0 = roundLeft / ApplicationForm.Width * 2f - 1f;
+        float y0 = 1f - roundTop / ApplicationForm.Height * 2f;
+        float x1 = roundRight / ApplicationForm.Width * 2f - 1f;
+        float y1 = 1f - roundBottom / ApplicationForm.Height * 2f;
 
         var FillVertices = new[]
         {
@@ -240,10 +232,9 @@ public class GraphicsLayer(IApplicationForm application) : IDisposable
 
     public void Dispose()
     {
-        foreach (var image in ImageTextures)
+        foreach (var image in TextureImages)
             image.Dispose();
 
         GC.SuppressFinalize(this);
     }
-
 }

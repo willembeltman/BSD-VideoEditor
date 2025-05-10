@@ -9,33 +9,37 @@ public class Default60FpsDrawerThread : IDrawerThread
     {
         ApplicationForm = applicationForm;
         Application = application;
-        DrawThread = new Thread(new ThreadStart(DrawKernel));
+        Thread = new Thread(new ThreadStart(Kernel))
+        {
+            Name = "DrawThread kernel"
+        };
     }
 
     private readonly IApplicationForm ApplicationForm;
     private readonly IApplicationContext Application;
-    private readonly Thread DrawThread;
+    private readonly Thread Thread;
 
     public void StartThread()
     {
-        DrawThread.Start();
+        Thread.Start();
     }
 
-    private void DrawKernel()
+    private void Kernel()
     {
         while (!Application.KillSwitch)
         {
             ApplicationForm.Timers.FpsTimer.SleepTillNextFrame(new Fps(1, 60));
-            ApplicationForm.Draw();
+            ApplicationForm.TryDraw();
         }
+        ApplicationForm.CloseForm();
     }
 
     public void Dispose()
     {
         Application.KillSwitch = true;
-        if (DrawThread != null && DrawThread != Thread.CurrentThread && DrawThread.ThreadState == ThreadState.Running)
+        if (Thread != null && Thread != Thread.CurrentThread && Thread.ThreadState == ThreadState.Running)
         {
-            DrawThread.Join();
+            Thread.Join();
         }
         GC.SuppressFinalize(this);
     }

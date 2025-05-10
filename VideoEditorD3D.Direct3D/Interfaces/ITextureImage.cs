@@ -1,12 +1,11 @@
 ﻿using VideoEditorD3D.Direct3D.Vertices;
 using Buffer = SharpDX.Direct3D11.Buffer;
 
-namespace VideoEditorD3D.Direct3D.Interfaces
+namespace VideoEditorD3D.Direct3D.Interfaces;
+
+public interface ITextureImage : IDisposable
 {
-    public interface ITextureImage
-    {
-        TextureVertex[] Vertices { get; }
-        Buffer VerticesBuffer { get; }
-        ITexture Texture { get; }
-    }
+    TextureVertex[] Vertices { get; }
+    Buffer VerticesBuffer { get; }
+    ITexture Texture { get; }
 }

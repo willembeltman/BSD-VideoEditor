@@ -8,7 +8,8 @@ public class Control(IApplicationForm applicationForm, Form? parentForm, Control
     public Form? ParentForm { get; } = parentForm;
     public Control? ParentControl { get; } = parentControl;
 
-    private bool Dirty;
+    public bool Loaded { get; private set; }
+    public bool Dirty { get; private set; }
     private int _Left = 0;
     private int _Top = 0;
     private int _Width = 480;
@@ -79,6 +80,7 @@ public class Control(IApplicationForm applicationForm, Form? parentForm, Control
         {
             control.OnLoad();
         }
+        Loaded = true;
     }
     /// <summary>
     /// De base.OnDraw hoef je niet aan te roepen, dit wordt via invalidate geregeld

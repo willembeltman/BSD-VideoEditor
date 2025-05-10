@@ -21,6 +21,7 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
     private readonly IDrawerThread DrawerThread;
     private bool ReInitialize;
     private bool Initialized;
+    private bool IsClosed;
     #endregion
 
     #region Initialized at OnHandleCreated
@@ -65,12 +66,12 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
             }
             catch (Exception ex)
             {
-                Application.Logger.WriteException(ex);
+                Application.Logger?.WriteException(ex);
             }
             return res;
         }
     }
-    private bool IsNotReadyToDraw => !Initialized || Width == 0 || Height == 0 || Application.KillSwitch;
+    private bool IsNotReadyToDraw => !Initialized || IsClosed || Application.KillSwitch || Width == 0 || Height == 0;
 
     protected override void OnHandleCreated(EventArgs e)
     {
@@ -82,7 +83,7 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
         CenterToScreen();
         Stopwatch.Start();
         DrawerThread.StartThread();
-        _CurrentForm!.OnLoad();
+        Application.Start();
     }
     protected override void OnResize(EventArgs e)
     {
@@ -93,6 +94,7 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
     {
         lock (UILock)
         {
+            IsClosed = true;
             Application.KillSwitch = true;
             DrawerThread.Dispose();
             base.OnFormClosing(e);
@@ -247,7 +249,7 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
             }
             catch (Exception ex)
             {
-                Application.Logger.WriteException(ex);
+                Application.Logger?.WriteException(ex);
             }
         }
     }
@@ -303,7 +305,7 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
             }
             catch (SharpDXException ex)
             {
-                Application.Logger.WriteException(ex);
+                Application.Logger?.WriteException(ex);
                 return;
             }
 
@@ -405,40 +407,62 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
                 new InputElement("TEXCOORD", 0, Format.R32G32_Float, 8, 0)
             ]);
     }
-    public void Draw()
+
+    public void TryDraw()
     {
-        if (IsNotReadyToDraw)
+        if (IsNotReadyToDraw) 
             return;
 
         try
         {
             var currentForm = _CurrentForm;
-            if (IsNotReadyToDraw || currentForm == null) return;
+            if (currentForm == null) 
+                return;
 
-            Timers.OnUpdateTimer.Start();
-            currentForm.OnUpdate();
-            Timers.OnUpdateTimer.Stop();
-
-            Timers.DrawTimer.Start();
-            // Op het aller laatste moment nog een keer checken op
-            // Application.KillSwitch om deadlocks te voorkomen
-            if (IsNotReadyToDraw) return; 
-            // Gelockt starten van de render
-            lock (UILock) RenderToGpu(currentForm);
-            Timers.DrawTimer.Stop();
-
-            Timers.FpsTimer.CountFps();
+            Draw(currentForm);
         }
         catch (Exception ex)
         {
             // Dit zou niet meer voor kunnen komen nu
-            Application.Logger.WriteException(ex);
+            Application.Logger?.WriteException(ex);
 
             // Checken omdat de KillSwitch inmiddels ook aangezet kan zijn
             if (!IsNotReadyToDraw)
             {
                 RecreateSwapChain();
             }
+        }
+    }
+    private void Draw(Forms.Form currentForm)
+    {
+        if (IsNotReadyToDraw)
+            return;
+
+        if (!currentForm.Loaded)
+        {
+            currentForm.OnLoad();
+        }
+
+        using (Timers.OnUpdateTimer.DisposableObject)
+        {
+            currentForm.OnUpdate();
+        }
+
+        using (Timers.RenderToGpuTimer.DisposableObject)
+        {
+            LockAndRenderToGpu(currentForm);
+        }
+
+        Timers.FpsTimer.CountFps();
+    }
+    private void LockAndRenderToGpu(Forms.Form currentForm)
+    {
+        if (IsNotReadyToDraw)
+            return;
+
+        lock (UILock)
+        {
+            RenderToGpu(currentForm);
         }
     }
     private void RenderToGpu(Forms.Form currentForm)
@@ -450,47 +474,65 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
 
         foreach (var layer in currentForm.GetCanvasLayers())
         {
-            // Triangles
-            if (layer.FillVerticesBuffer != null)
+            if (layer.TriangleVerticesBuffer != null)
             {
-                _DeviceContext.InputAssembler.InputLayout = _NormalInputLayout;
-                _DeviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
-                _DeviceContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(layer.FillVerticesBuffer, Utilities.SizeOf<Vertex>(), 0));
-                _DeviceContext.VertexShader.Set(_NormalVertexShader);
-                _DeviceContext.PixelShader.Set(_NormalPixelShader);
-
-                _DeviceContext.Draw(layer.FillVertices.Count, 0);
+                DrawTriangle(_DeviceContext, layer);
             }
 
-            // Lines
             if (layer.LineVerticesBuffer != null)
             {
-                _DeviceContext.InputAssembler.InputLayout = _NormalInputLayout;
-                _DeviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.LineList;
-                _DeviceContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(layer.LineVerticesBuffer, Utilities.SizeOf<Vertex>(), 0));
-                _DeviceContext.VertexShader.Set(_NormalVertexShader);
-                _DeviceContext.PixelShader.Set(_NormalPixelShader);
-
-                _DeviceContext.Draw(layer.LineVertices.Count, 0);
+                DrawLine(_DeviceContext, layer);
             }
 
-            // Images
-            var images = layer.ImageTextures.Cast<ITextureImage>()
-                .Concat(layer.CharacterTextures.Cast<ITextureImage>());
-            foreach (var image in images)
+            foreach (var image in layer.TextureImages)
             {
-                _DeviceContext.InputAssembler.InputLayout = _BitmapInputLayout;
-                _DeviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
-                _DeviceContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(image.VerticesBuffer, Utilities.SizeOf<TextureVertex>(), 0));
-                _DeviceContext.VertexShader.Set(_BitmapVertexShader);
-                _DeviceContext.PixelShader.Set(_BitmapPixelShader);
-                _DeviceContext.PixelShader.SetShaderResource(0, image.Texture.TextureView);
-
-                _DeviceContext.Draw(image.Vertices.Length, 0);
+                DrawImage(_DeviceContext, image);
             }
         }
 
         _SwapChain.Present(0, PresentFlags.None);
+    }
+    private void DrawImage(DeviceContext deviceContext, ITextureImage image)
+    {
+        deviceContext.InputAssembler.InputLayout = _BitmapInputLayout;
+        deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
+        deviceContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(image.VerticesBuffer, Utilities.SizeOf<TextureVertex>(), 0));
+        deviceContext.VertexShader.Set(_BitmapVertexShader);
+        deviceContext.PixelShader.Set(_BitmapPixelShader);
+        deviceContext.PixelShader.SetShaderResource(0, image.Texture.TextureView);
+        deviceContext.Draw(image.Vertices.Length, 0);
+    }
+    private void DrawLine(DeviceContext deviceContext, GraphicsLayer layer)
+    {
+        deviceContext.InputAssembler.InputLayout = _NormalInputLayout;
+        deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.LineList;
+        deviceContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(layer.LineVerticesBuffer, Utilities.SizeOf<Vertex>(), 0));
+        deviceContext.VertexShader.Set(_NormalVertexShader);
+        deviceContext.PixelShader.Set(_NormalPixelShader);
+        deviceContext.Draw(layer.LineVertices.Count, 0);
+    }
+    private void DrawTriangle(DeviceContext deviceContext, GraphicsLayer layer)
+    {
+        deviceContext.InputAssembler.InputLayout = _NormalInputLayout;
+        deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
+        deviceContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(layer.TriangleVerticesBuffer, Utilities.SizeOf<Vertex>(), 0));
+        deviceContext.VertexShader.Set(_NormalVertexShader);
+        deviceContext.PixelShader.Set(_NormalPixelShader);
+        deviceContext.Draw(layer.TriangleVertices.Count, 0);
+    }
+
+    public void CloseForm()
+    {
+        if (IsClosed)
+            return;
+
+        if (InvokeRequired)
+        {
+            Invoke(new Action(CloseForm));
+            return;
+        }
+
+        Close();
     }
 
     #region IApplicationForm interface

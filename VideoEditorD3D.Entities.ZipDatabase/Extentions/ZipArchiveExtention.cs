@@ -2,9 +2,9 @@
 
 namespace VideoEditorD3D.Entities.ZipDatabase.Extentions;
 
-public static class ZipArchiveExtention
+internal static class ZipArchiveExtention
 {
-    public static ZipArchiveEntry GetOrCreateEntry(this ZipArchive zipArchive, string name)
+    internal static ZipArchiveEntry GetOrCreateEntry(this ZipArchive zipArchive, string name)
     {
         var dataEntry = zipArchive.GetEntry(name);
         if (dataEntry == null)

@@ -5,6 +5,24 @@ using VideoEditorD3D.Entities.ZipDatabase.Attributes;
 
 namespace VideoEditorD3D.Entities.ZipDatabase;
 
+/// <summary>
+/// Deze class is gemaakt door ChatGPT op basis van mijn eigen implementatie die eronder staat, 
+/// hij gebruikt nu het Lazy object om de code te compileren en de delegates te maken. Niet zoals 
+/// ik het op zou lossen maar kennelijk is dit sneller. In grote lijnen doet deze class het volgende:
+/// 
+/// 1. Met behulp van reflection wordt er op basis van het type T source code genereneerd voor een 
+///    serializer class die samenwerkt met een BinaryReader en BinaryWriter om alle properties van 
+///    het type T te serialiseren en te deserialiseren. Dit is daadwerkelijk gewoon C# source code 
+///    die on-the-fly gegenereerd wordt.
+/// 2. De source code wordt gecompileerd in een assembly met behulp van Roslyn, de C# compiler.
+/// 3. De assembly wordt geladen in het geheugen en de gegenereerde serializer class wordt opgehaald.
+/// 4. De Write en Read methoden van de serializer class worden omgezet naar delegates die via de 
+///    CachedSerializer property worden opgeslagen voor later gebruikt.
+///    
+/// Dit alles zorgt ervoor dat je zo snel mogelijk kan serialiseren en deserialiseren zonder dat je 
+/// alle interfaces steeds moet schrijven.
+/// </summary>
+/// <typeparam name="T">Het type van de te serialiseren object</typeparam>
 public class BinarySerializer<T>
 {
     private static readonly Lazy<(Action<BinaryWriter, T> Writer, Func<BinaryReader, T> Reader)> CachedSerializer =

@@ -32,7 +32,8 @@ public class DbContext : IDisposable
     }
     public void SaveChanges()
     {
-        Dispose();
+        ZipArchive.Dispose();
+        ZipStream.Dispose();
 
         if (File.Exists(FullName))
             File.Delete(FullName);
@@ -50,5 +51,6 @@ public class DbContext : IDisposable
     {
         ZipArchive.Dispose();
         ZipStream.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
