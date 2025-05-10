@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\VideoEditorD3D.Business\VideoEditorD3D.Business.csproj" />
+    <ProjectReference Include="..\VideoEditorD3D.Application\VideoEditorD3D.Application.csproj" />
     <ProjectReference Include="..\VideoEditorD3D.Direct3D\VideoEditorD3D.Direct3D.csproj" />
   </ItemGroup>
 

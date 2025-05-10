@@ -15,7 +15,7 @@ namespace VideoEditorD3D.Direct3D;
 public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
 {
     #region Initilized at Constructor
-    private readonly IApplication Application;
+    private readonly IApplicationContext Application;
     private readonly Lock UILock;
     private readonly Stopwatch Stopwatch;
     private readonly AllTimers Timers;
@@ -44,7 +44,7 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
     private int? _PhysicalHeight;
     #endregion
 
-    public ApplicationForm(IApplication application)
+    public ApplicationForm(IApplicationContext application)
     {
         Application = application;
         UILock = new Lock();

@@ -1,11 +1,11 @@
 ﻿using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Types;
 
-namespace VideoEditorD3D.Direct3D;
+namespace VideoEditorD3D.Application;
 
-public class Default60FpsDrawerThread : IDrawerThread
+public class DrawerThread : IDrawerThread
 {
-    public Default60FpsDrawerThread(IApplicationForm applicationForm, IApplicationContext application)
+    public DrawerThread(IApplicationForm applicationForm, ApplicationContext application)
     {
         ApplicationForm = applicationForm;
         Application = application;
@@ -13,7 +13,7 @@ public class Default60FpsDrawerThread : IDrawerThread
     }
 
     private readonly IApplicationForm ApplicationForm;
-    private readonly IApplicationContext Application;
+    private readonly ApplicationContext Application;
     private readonly Thread DrawThread;
 
     public void StartThread()
