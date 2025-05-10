@@ -1,7 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
-using VideoEditor.FF.Json;
-namespace VideoEditor.FF;
+using VideoEditorD3D.FF.Json;
+
+namespace VideoEditorD3D.FF;
 
 public static class FFProbe
 {

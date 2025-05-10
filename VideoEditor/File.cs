@@ -1,6 +1,7 @@
-﻿using VideoEditor.Enums;
-using VideoEditor.FF;
-using VideoEditor.FF.Json;
+﻿using VideoEditorD3D.FF;
+using VideoEditorD3D.FF.Json;
+using VideoEditorD3D.FF.Enums;
+using VideoEditorD3D.FF.Helpers;
 
 namespace VideoEditor;
 

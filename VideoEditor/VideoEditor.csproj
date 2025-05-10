@@ -54,4 +54,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\VideoEditorD3D.FFMpeg\VideoEditorD3D.FFMpeg.csproj" />
+  </ItemGroup>
+
 </Project>

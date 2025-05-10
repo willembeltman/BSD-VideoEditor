@@ -6,6 +6,7 @@ using SharpDX.Direct3D11;
 using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Direct3D.TextureImages;
 using Buffer = SharpDX.Direct3D11.Buffer;
+using VideoEditorD3D.FF.Types;
 
 namespace VideoEditorD3D.Direct3D;
 
@@ -148,7 +149,7 @@ public class GraphicsLayer(IApplicationForm applicationForm) : IDisposable
         var image = new DisposableTextureImage(vertices, verticesBuffer, texture);
         TextureImages.Add(image);
     }
-    public void DrawFrame(int left, int top, int width, int height, IFrame frame)
+    public void DrawFrame(int left, int top, int width, int height, Frame frame)
     {
         var vertices = CreateTextureVertices(left, top, width, height);
         var verticesBuffer = Buffer.Create(ApplicationForm.Device, BindFlags.VertexBuffer, vertices);

@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
-using VideoEditor.Types;
-namespace VideoEditor.FF;
+using VideoEditorD3D.FF.Types;
+
+namespace VideoEditorD3D.FF;
 
 public class FFMpeg_FrameReader : IDisposable
 {

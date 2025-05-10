@@ -3,18 +3,19 @@ using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using VideoEditorD3D.Direct3D.Helpers;
 using VideoEditorD3D.Direct3D.Interfaces;
+using VideoEditorD3D.FF.Types;
 using Device = SharpDX.Direct3D11.Device;
 
 namespace VideoEditorD3D.Direct3D.Textures;
 
 public class FrameTexture : IDisposableTexture
 {
-    public FrameTexture(Device device, IFrame frame)
+    public FrameTexture(Device device, Frame frame)
     {
         var texDesc = new Texture2DDescription
         {
-            Width = frame.Width,
-            Height = frame.Height,
+            Width = frame.Resolution.Width,
+            Height = frame.Resolution.Height,
             MipLevels = 1,
             ArraySize = 1,
             Format = Format.B8G8R8A8_UNorm,
@@ -27,7 +28,7 @@ public class FrameTexture : IDisposableTexture
 
         using (var reader = new FrameDataPointer(frame))
         {
-            var stride = frame.Width * 4;
+            var stride = frame.Resolution.Width * 4;
             var dataBox = new DataBox(reader.DataPointer, stride, 0);
             Texture = new Texture2D(device, texDesc, [dataBox]);
             TextureView = new ShaderResourceView(device, Texture);

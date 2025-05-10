@@ -1,8 +1,7 @@
-﻿namespace VideoEditor.FF
+﻿namespace VideoEditorD3D.FF
 {
     public static class FFExecutebles
     {
-
         public static FileInfo FFMpeg
         {
             get

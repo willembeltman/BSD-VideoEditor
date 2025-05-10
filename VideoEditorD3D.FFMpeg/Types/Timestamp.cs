@@ -1,4 +1,4 @@
-﻿namespace VideoEditor.Types;
+﻿namespace VideoEditorD3D.FF.Types;
 
 public readonly struct TimeStamp
 {

@@ -9,6 +9,7 @@ using SharpDX.Mathematics.Interop;
 using VideoEditor.Types;
 using VideoEditor.Static;
 using System.ComponentModel;
+using VideoEditorD3D.FF.Types;
 
 namespace VideoEditor.UI;
 

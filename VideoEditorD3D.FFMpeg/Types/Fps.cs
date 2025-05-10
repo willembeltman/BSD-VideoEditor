@@ -1,4 +1,4 @@
-﻿namespace VideoEditorD3D.Types;
+﻿namespace VideoEditorD3D.FF.Types;
 
 public readonly struct Fps
 {

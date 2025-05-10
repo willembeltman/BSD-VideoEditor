@@ -2,7 +2,7 @@
 using VideoEditorD3D.Direct3D;
 using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Direct3D.Interfaces;
-using VideoEditorD3D.Types;
+using VideoEditorD3D.FF.Types;
 
 namespace VideoEditorD3D.Application.Controls;
 

@@ -1,5 +1,5 @@
-﻿using VideoEditor.FF;
-using VideoEditor.Types;
+﻿using VideoEditorD3D.FF;
+using VideoEditorD3D.FF.Types;
 
 namespace VideoEditor;
 

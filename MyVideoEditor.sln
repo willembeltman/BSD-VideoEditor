@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorD3D.Entities.Zip
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorD3D.Direct3D", "VideoEditorD3D.Direct3D\VideoEditorD3D.Direct3D.csproj", "{13596C4A-31C5-43BF-A7D5-76FAB7A798DB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorD3D.Types", "VideoEditorD3D.Types\VideoEditorD3D.Types.csproj", "{16BD07D3-40B7-4EF5-8252-B03AC63B83C3}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorD3D.Entities", "VideoEditorD3D.Entities\VideoEditorD3D.Entities.csproj", "{44A22398-70EF-4FE6-AFAB-895D92D97064}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorD3D.Timers", "VideoEditorD3D.Timers\VideoEditorD3D.Timers.csproj", "{6494A687-701E-4284-9953-CA6923DE0AF6}"
@@ -20,6 +18,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorD3D.Loggers", "VideoEditorD3D.Loggers\VideoEditorD3D.Loggers.csproj", "{040161D8-12AF-4635-88A4-585BE4AA7012}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorD3D.Application", "VideoEditorD3D.Application\VideoEditorD3D.Application.csproj", "{F22CDE05-C33C-40DE-B8B7-D0E158FE31CC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorD3D.FFMpeg", "VideoEditorD3D.FFMpeg\VideoEditorD3D.FFMpeg.csproj", "{9C4610EE-09D8-4F8E-84B8-50A98686CF90}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,10 +43,6 @@ Global
 		{13596C4A-31C5-43BF-A7D5-76FAB7A798DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13596C4A-31C5-43BF-A7D5-76FAB7A798DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{13596C4A-31C5-43BF-A7D5-76FAB7A798DB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{16BD07D3-40B7-4EF5-8252-B03AC63B83C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{16BD07D3-40B7-4EF5-8252-B03AC63B83C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{16BD07D3-40B7-4EF5-8252-B03AC63B83C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{16BD07D3-40B7-4EF5-8252-B03AC63B83C3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{44A22398-70EF-4FE6-AFAB-895D92D97064}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{44A22398-70EF-4FE6-AFAB-895D92D97064}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{44A22398-70EF-4FE6-AFAB-895D92D97064}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -63,6 +59,10 @@ Global
 		{F22CDE05-C33C-40DE-B8B7-D0E158FE31CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F22CDE05-C33C-40DE-B8B7-D0E158FE31CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F22CDE05-C33C-40DE-B8B7-D0E158FE31CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C4610EE-09D8-4F8E-84B8-50A98686CF90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C4610EE-09D8-4F8E-84B8-50A98686CF90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C4610EE-09D8-4F8E-84B8-50A98686CF90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C4610EE-09D8-4F8E-84B8-50A98686CF90}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

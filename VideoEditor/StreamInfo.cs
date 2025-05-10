@@ -1,7 +1,7 @@
-﻿using VideoEditor.Enums;
-using VideoEditor.Types;
-using VideoEditor.FF.Json;
-using VideoEditor.FF;
+﻿using VideoEditorD3D.FF.Json;
+using VideoEditorD3D.FF.Types;
+using VideoEditorD3D.FF.Enums;
+using VideoEditorD3D.FF.Helpers;
 
 namespace VideoEditor;
 
@@ -17,8 +17,8 @@ public class StreamInfo
         Title = stream.tags?.title;
 
         // Video
-        Resolution = Types.Resolution.TryParse(stream.width, stream.height, out Resolution resolution) ? resolution : null;
-        Fps = Types.Fps.TryParse(stream.avg_frame_rate, out Fps fps) ? fps : null;
+        Resolution = VideoEditorD3D.FF.Types.Resolution.TryParse(stream.width, stream.height, out Resolution resolution) ? resolution : null;
+        Fps = VideoEditorD3D.FF.Types.Fps.TryParse(stream.avg_frame_rate, out Fps fps) ? fps : null;
 
         // Audio
         Channels = stream.channels;

@@ -1,4 +1,4 @@
-﻿namespace VideoEditor.Enums;
+﻿namespace VideoEditorD3D.FF.Enums;
 
 public enum CodecType
 {

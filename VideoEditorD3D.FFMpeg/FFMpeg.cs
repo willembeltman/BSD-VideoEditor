@@ -1,11 +1,10 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using VideoEditor.Enums;
-using VideoEditor.Types;
-namespace VideoEditor.FF;
+﻿using System.Diagnostics;
+using VideoEditorD3D.FF.Enums;
+using VideoEditorD3D.FF.Types;
 
-public static class FFMpeg
+namespace VideoEditorD3D.FF;
+
+public static class FFMpegProxy
 {
     public static IEnumerable<byte[]> ReadFrames(
         string fullName,
