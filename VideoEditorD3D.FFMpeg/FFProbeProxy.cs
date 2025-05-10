@@ -1,10 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
-using VideoEditorD3D.FF.Json;
+using VideoEditorD3D.FFMpeg.Json;
+using VideoEditorD3D.FFMpeg.Helpers;
 
-namespace VideoEditorD3D.FF;
+namespace VideoEditorD3D.FFMpeg;
 
-public static class FFProbe
+public static class FFProbeProxy
 {
     public static FFProbeRapport? GetRapport(string fullName)
     {

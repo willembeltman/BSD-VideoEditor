@@ -1,7 +1,7 @@
-﻿using VideoEditorD3D.FF;
-using VideoEditorD3D.FF.Json;
-using VideoEditorD3D.FF.Enums;
-using VideoEditorD3D.FF.Helpers;
+﻿using VideoEditorD3D.FFMpeg;
+using VideoEditorD3D.FFMpeg.Json;
+using VideoEditorD3D.FFMpeg.Enums;
+using VideoEditorD3D.FFMpeg.Helpers;
 
 namespace VideoEditor;
 
@@ -44,7 +44,7 @@ public class File
     }
     public static File? Open(string fullName)
     {
-        var rapport = FFProbe.GetRapport(fullName);
+        var rapport = FFProbeProxy.GetRapport(fullName);
         if (rapport == null) return null;
         return new File(fullName, rapport);
     }

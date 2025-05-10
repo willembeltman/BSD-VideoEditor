@@ -34,11 +34,26 @@ public class MainForm : Form
         FpsLabel.Width = 200;
         FpsLabel.Height = 20;
         FpsLabel.BackgroundColor = new RawColor4(0, 0, 0, 0.5f);
+        FpsLabel.BorderColor = new RawColor4(1, 1, 1, 1);
+        FpsLabel.ForegroundColor = new RawColor4(1, 1, 1, 1);
         FpsLabel.BorderSize = 1;
         FpsLabel.FontSize = 6f;
         FpsLabel.Font = "Ebrima";
+        FpsLabel.MouseDown += (sender, args) =>
+        {
+            FpsLabel.BackgroundColor = new RawColor4(1, 1, 1, 1);
+            FpsLabel.BorderColor = new RawColor4(0, 0, 0, 1);
+            FpsLabel.ForegroundColor = new RawColor4(0, 0, 0, 1);
+        };
+        FpsLabel.MouseUp += (sender, args) =>
+        {
+            FpsLabel.BackgroundColor = new RawColor4(0, 0, 0, 0.5f);
+            FpsLabel.BorderColor = new RawColor4(1, 1, 1, 1);
+            FpsLabel.ForegroundColor = new RawColor4(1, 1, 1, 1);
+        };
         AddControl(FpsLabel);
     }
+
 
     public override void OnResize()
     {
@@ -60,6 +75,7 @@ public class MainForm : Form
         TimelineControl.Left = marge;
         TimelineControl.Width = Width - marge * 2;
         TimelineControl.Height = timelineHeight;
+
 
         base.OnResize();
     }

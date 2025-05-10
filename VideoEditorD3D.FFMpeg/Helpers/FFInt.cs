@@ -1,4 +1,4 @@
-﻿namespace VideoEditorD3D.FF.Helpers;
+﻿namespace VideoEditorD3D.FFMpeg.Helpers;
 
 public static class FFInt
 {

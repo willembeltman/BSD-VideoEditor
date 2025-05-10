@@ -1,18 +1,19 @@
 ﻿using System.Diagnostics;
-using VideoEditorD3D.FF.Types;
+using VideoEditorD3D.FFMpeg.Types;
+using VideoEditorD3D.FFMpeg.Helpers;
 
-namespace VideoEditorD3D.FF;
+namespace VideoEditor;
 
-public class FFMpeg_FrameReader : IDisposable
+public class FrameReader : IDisposable
 {
-    public FFMpeg_FrameReader(string fullName, Resolution resolution, Fps fps, double startTime)
+    public FrameReader(string fullName, Resolution resolution, Fps fps, double startTime)
     {
         FullName = fullName;
         Resolution = resolution;
         Fps = fps;
         StartTime = startTime;
         StartTimeStamp = new TimeStamp(startTime);
-        ReaderWorker = new Thread(new ThreadStart(FrameReader));
+        ReaderWorker = new Thread(new ThreadStart(Kernel));
 
         Frame1 = new Frame(Resolution, CurrentFrameIndex);
         Frame2 = new Frame(Resolution, NextFrameIndex);
@@ -59,7 +60,7 @@ public class FFMpeg_FrameReader : IDisposable
         }
     }
 
-    private void FrameReader()
+    private void Kernel()
     {
         try
         {
@@ -110,9 +111,9 @@ public class FFMpeg_FrameReader : IDisposable
         if (KillSwitch || NextEndOfVideo) return false;
 
         var read = 0;
-        while (!KillSwitch && !NextEndOfVideo && read < NextFrame.Buffer.Length)
+        while (!KillSwitch && !NextEndOfVideo && read < Resolution.ByteLength)
         {
-            var partialread = stream.Read(NextFrame.Buffer, read, NextFrame.Buffer.Length - read);
+            var partialread = stream.Read(NextFrame.Buffer, read, Resolution.ByteLength - read);
             read += partialread;
             NextEndOfVideo = partialread <= 0;
         }

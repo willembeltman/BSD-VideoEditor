@@ -79,4 +79,16 @@ public class ApplicationFormEventHandlers
         if (CurrentForm == null) return;
         CurrentForm.OnDragLeave(e);
     }
+
+    internal void OnMouseEnter(object? sender, EventArgs e)
+    {
+        if (CurrentForm == null) return;
+        CurrentForm.OnMouseEnter(e);
+    }
+
+    internal void OnMouseLeave(object? sender, EventArgs e)
+    {
+        if (CurrentForm == null) return;
+        CurrentForm.OnMouseLeave(e);
+    }
 }

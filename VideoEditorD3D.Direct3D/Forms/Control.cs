@@ -2,7 +2,7 @@
 
 namespace VideoEditorD3D.Direct3D.Forms;
 
-public class Control(IApplicationForm applicationForm, Form? parentForm, Control? parentControl)
+public class Control(IApplicationForm applicationForm, Form? parentForm, Control? parentControl) 
 {
     public IApplicationForm ApplicationForm { get; } = applicationForm;
     public Form? ParentForm { get; } = parentForm;
@@ -16,6 +16,23 @@ public class Control(IApplicationForm applicationForm, Form? parentForm, Control
     private int _Height = 640;
     private Control[] Controls = [];
     private GraphicsLayer[] CanvasLayers = [];
+    public bool IsMouseEntered { get; private set; } = false;
+
+    public event EventHandler<KeyPressEventArgs>? KeyPress;
+    public event EventHandler<KeyEventArgs>? KeyUp;
+    public event EventHandler<KeyEventArgs>? KeyDown;
+    public event EventHandler<MouseEventArgs>? MouseClick;
+    public event EventHandler<MouseEventArgs>? MouseDoubleClick;
+    public event EventHandler<MouseEventArgs>? MouseUp;
+    public event EventHandler<MouseEventArgs>? MouseDown;
+    public event EventHandler<MouseEventArgs>? MouseMove;
+    public event EventHandler<MouseEventArgs>? MouseWheel;
+    public event EventHandler<EventArgs>? MouseEnter;
+    public event EventHandler<EventArgs>? MouseLeave;
+    public event EventHandler<DragEventArgs>? DragEnter;
+    public event EventHandler<DragEventArgs>? DragOver;
+    public event EventHandler<EventArgs>? DragLeave;
+    public event EventHandler<DragEventArgs>? DragDrop;
 
     public int Left
     {
@@ -66,6 +83,37 @@ public class Control(IApplicationForm applicationForm, Form? parentForm, Control
     public int Right => Left + Width;
     public int Bottom => Top + Height;
 
+    public int AbsoluteLeft
+    {
+        get
+        {
+            var control = ParentControl;
+            var left = Left;
+            while (control != null)
+            {
+                left += control.Left;
+                control = control.ParentControl;
+            }
+            return left;
+        } 
+    }
+    public int AbsoluteTop
+    {
+        get
+        {
+            var control = ParentControl;
+            var top = Top;
+            while (control != null)
+            {
+                top += control.Top;
+                control = control.ParentControl;
+            }
+            return top;
+        }
+    }
+    public int AbsoluteRight => AbsoluteLeft + Width;
+    public int AbsoluteBottom => AbsoluteTop + Height;
+
     public void Invalidate()
     {
         foreach (var control in Controls)
@@ -100,6 +148,7 @@ public class Control(IApplicationForm applicationForm, Form? parentForm, Control
         {
             control.OnKeyPress(e);
         }
+        KeyPress?.Invoke(this, e);
     }
     public virtual void OnKeyUp(KeyEventArgs e)
     {
@@ -107,6 +156,7 @@ public class Control(IApplicationForm applicationForm, Form? parentForm, Control
         {
             control.OnKeyUp(e);
         }
+        KeyUp?.Invoke(this, e);
     }
     public virtual void OnKeyDown(KeyEventArgs e)
     {
@@ -114,7 +164,9 @@ public class Control(IApplicationForm applicationForm, Form? parentForm, Control
         {
             control.OnKeyDown(e);
         }
+        KeyDown?.Invoke(this, e);
     }
+
     public virtual void OnMouseClick(MouseEventArgs e)
     {
         foreach (var control in Controls)
@@ -122,9 +174,12 @@ public class Control(IApplicationForm applicationForm, Form? parentForm, Control
             if (control.Left < e.X && e.X < control.Right &&
                 control.Top < e.Y && e.Y < control.Bottom)
             {
-                control.OnMouseClick(e);
+                var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
+                control.OnMouseClick(newE);
             }
         }
+
+        MouseClick?.Invoke(this, e);
     }
     public virtual void OnMouseDoubleClick(MouseEventArgs e)
     {
@@ -133,9 +188,11 @@ public class Control(IApplicationForm applicationForm, Form? parentForm, Control
             if (control.Left < e.X && e.X < control.Right &&
                 control.Top < e.Y && e.Y < control.Bottom)
             {
-                control.OnMouseDoubleClick(e);
+                var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
+                control.OnMouseDoubleClick(newE);
             }
         }
+        MouseDoubleClick?.Invoke(this, e);
     }
     public virtual void OnMouseUp(MouseEventArgs e)
     {
@@ -144,9 +201,11 @@ public class Control(IApplicationForm applicationForm, Form? parentForm, Control
             if (control.Left < e.X && e.X < control.Right &&
                 control.Top < e.Y && e.Y < control.Bottom)
             {
-                control.OnMouseUp(e);
+                var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
+                control.OnMouseUp(newE);
             }
         }
+        MouseUp?.Invoke(this, e);
     }
     public virtual void OnMouseDown(MouseEventArgs e)
     {
@@ -155,20 +214,38 @@ public class Control(IApplicationForm applicationForm, Form? parentForm, Control
             if (control.Left < e.X && e.X < control.Right &&
                 control.Top < e.Y && e.Y < control.Bottom)
             {
-                control.OnMouseDown(e);
+                var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
+                control.OnMouseDown(newE);
             }
         }
+        MouseDown?.Invoke(this, e);
     }
     public virtual void OnMouseMove(MouseEventArgs e)
     {
+        IsMouseEntered = true;
         foreach (var control in Controls)
         {
+            var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
+
             if (control.Left < e.X && e.X < control.Right &&
                 control.Top < e.Y && e.Y < control.Bottom)
             {
-                control.OnMouseMove(e);
+                if (!control.IsMouseEntered)
+                {
+                    control.OnMouseEnter(newE);
+                }
+                control.OnMouseMove(newE);
+
+            }
+            else
+            {
+                if (control.IsMouseEntered)
+                {
+                    control.OnMouseLeave(newE);
+                }
             }
         }
+        MouseMove?.Invoke(this, e);
     }
     public virtual void OnMouseWheel(MouseEventArgs e)
     {
@@ -177,21 +254,31 @@ public class Control(IApplicationForm applicationForm, Form? parentForm, Control
             if (control.Left < e.X && e.X < control.Right &&
                 control.Top < e.Y && e.Y < control.Bottom)
             {
-                control.OnMouseWheel(e);
+                var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
+                control.OnMouseWheel(newE);
             }
         }
+        MouseWheel?.Invoke(this, e);
     }
-    public virtual void OnDragDrop(DragEventArgs e)
+    public virtual void OnMouseEnter(EventArgs e)
     {
+        IsMouseEntered = true;
+        MouseEnter?.Invoke(this, e);
+    }
+    public virtual void OnMouseLeave(EventArgs e)
+    {
+        IsMouseEntered = false;
         foreach (var control in Controls)
         {
-            if (control.Left < e.X && e.X < control.Right &&
-                control.Top < e.Y && e.Y < control.Bottom)
+            if (control.IsMouseEntered)
             {
-                control.OnDragDrop(e);
+                control.OnMouseLeave(e);
             }
         }
+        MouseLeave?.Invoke(this, e);
     }
+    
+
     public virtual void OnDragEnter(DragEventArgs e)
     {
         foreach (var control in Controls)
@@ -202,6 +289,7 @@ public class Control(IApplicationForm applicationForm, Form? parentForm, Control
                 control.OnDragEnter(e);
             }
         }
+        DragEnter?.Invoke(this, e);
     }
     public virtual void OnDragOver(DragEventArgs e)
     {
@@ -213,6 +301,7 @@ public class Control(IApplicationForm applicationForm, Form? parentForm, Control
                 control.OnDragOver(e);
             }
         }
+        DragOver?.Invoke(this, e);
     }
     public virtual void OnDragLeave(EventArgs e)
     {
@@ -220,7 +309,21 @@ public class Control(IApplicationForm applicationForm, Form? parentForm, Control
         {
             control.OnDragLeave(e);
         }
+        DragLeave?.Invoke(this, e);
     }
+    public virtual void OnDragDrop(DragEventArgs e)
+    {
+        foreach (var control in Controls)
+        {
+            if (control.Left < e.X && e.X < control.Right &&
+                control.Top < e.Y && e.Y < control.Bottom)
+            {
+                control.OnDragDrop(e);
+            }
+        }
+        DragDrop?.Invoke(this, e);
+    }
+
     public virtual void OnUpdate()
     {
         foreach (var control in Controls)
@@ -294,7 +397,7 @@ public class Control(IApplicationForm applicationForm, Form? parentForm, Control
     }
     public GraphicsLayer CreateCanvasLayer()
     {
-        var layer = new GraphicsLayer(ApplicationForm);
+        var layer = new GraphicsLayer(ApplicationForm, this);
         AddCanvasLayer(layer);
         return layer;
     }

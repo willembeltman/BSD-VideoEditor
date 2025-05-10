@@ -1,15 +1,22 @@
-﻿namespace VideoEditorD3D.FF.Types;
+﻿using System.Buffers;
 
-public class Frame
+namespace VideoEditorD3D.FFMpeg.Types;
+
+public class Frame : IDisposable
 {
     public Frame(Resolution resolution, long index)
     {
         Resolution = resolution;
         Index = index;
-        Buffer = new byte[resolution.Width * resolution.Height * 4];
+        Buffer = ArrayPool<byte>.Shared.Rent(resolution.ByteLength);
     }
 
     public Resolution Resolution { get; }
     public long Index { get; set; }
     public byte[] Buffer { get; }
+
+    public void Dispose()
+    {
+        ArrayPool<byte>.Shared.Return(Buffer);
+    }
 }

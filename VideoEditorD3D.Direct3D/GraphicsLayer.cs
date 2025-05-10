@@ -6,13 +6,16 @@ using SharpDX.Direct3D11;
 using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Direct3D.TextureImages;
 using Buffer = SharpDX.Direct3D11.Buffer;
-using VideoEditorD3D.FF.Types;
+using VideoEditorD3D.FFMpeg.Types;
 
 namespace VideoEditorD3D.Direct3D;
 
-public class GraphicsLayer(IApplicationForm applicationForm) : IDisposable
+public class GraphicsLayer(IApplicationForm applicationForm, Forms.Control control) : IDisposable
 {
-    private IApplicationForm ApplicationForm { get; } = applicationForm;
+    private IApplicationForm ApplicationForm = applicationForm;
+    private Forms.Control Control = control;
+    private int AbsoluteLeft => Control.AbsoluteLeft;
+    private int AbsoluteTop => Control.AbsoluteTop;
 
     public List<Vertex> LineVertices { get; } = [];
     public Buffer? LineVerticesBuffer { get; set; }
@@ -49,14 +52,14 @@ public class GraphicsLayer(IApplicationForm applicationForm) : IDisposable
         if (strokeWidth < 1)
             return;
 
-        RawVector2 start = new RawVector2(startX, startY);
-        RawVector2 end = new RawVector2(endX, endY);
-
         if (strokeWidth == 1)
         {
             DrawLineOnePixelWide(startX, startY, endX, endY, color);
             return;
         }
+
+        RawVector2 start = new RawVector2(startX + AbsoluteLeft, startY + AbsoluteTop);
+        RawVector2 end = new RawVector2(endX + AbsoluteLeft, endY + AbsoluteTop);
 
         // Lijnvector
         var dx = end.X - start.X;
@@ -96,8 +99,8 @@ public class GraphicsLayer(IApplicationForm applicationForm) : IDisposable
     }
     public void DrawLineOnePixelWide(int startX, int startY, int endX, int endY, RawColor4 color)
     {
-        RawVector2 start = new RawVector2(startX, startY);
-        RawVector2 end = new RawVector2(endX, endY);
+        RawVector2 start = new RawVector2(startX + AbsoluteLeft, startY + AbsoluteTop);
+        RawVector2 end = new RawVector2(endX + AbsoluteLeft, endY + AbsoluteTop);
         LineVertices.Add(new Vertex { Position = start.ToClipSpace(ApplicationForm.Width, ApplicationForm.Height), Color = color });
         LineVertices.Add(new Vertex { Position = end.ToClipSpace(ApplicationForm.Width, ApplicationForm.Height), Color = color });
     }
@@ -114,8 +117,10 @@ public class GraphicsLayer(IApplicationForm applicationForm) : IDisposable
         DrawLine(right, bottom, left, bottom, color, strokeWidth);
         DrawLine(left, bottom, left, top, color, strokeWidth);
     }
-    public void FillRectangle(int left, int top, int width, int height, RawColor4 color)
+    public void FillRectangle(int left2, int top2, int width, int height, RawColor4 color)
     {
+        var left = left2 + AbsoluteLeft;
+        var top = top2 + AbsoluteTop;
         var right = left + width;
         var bottom = top + height;
 
@@ -141,27 +146,33 @@ public class GraphicsLayer(IApplicationForm applicationForm) : IDisposable
     /// Tekent een bitmap in de opgegeven rechthoek. Let op: De bitmap wordt niet automatisch vrijgegeven,
     /// dus zorg ervoor dat je deze zelf dispose't.
     /// </summary>
-    public void DrawBitmap(int left, int top, int width, int height, Bitmap bitmap)
+    public void DrawBitmap(int left2, int top2, int width, int height, Bitmap bitmap)
     {
+        var left = left2 + AbsoluteLeft;
+        var top = top2 + AbsoluteTop;
         var vertices = CreateTextureVertices(left, top, width, height);
         var verticesBuffer = Buffer.Create(ApplicationForm.Device, BindFlags.VertexBuffer, vertices);
         var texture = new BitmapTexture(ApplicationForm.Device, bitmap);
         var image = new DisposableTextureImage(vertices, verticesBuffer, texture);
         TextureImages.Add(image);
     }
-    public void DrawFrame(int left, int top, int width, int height, Frame frame)
+    public void DrawFrame(int left2, int top2, int width, int height, Frame frame)
     {
+        var left = left2 + AbsoluteLeft;
+        var top = top2 + AbsoluteTop;
         var vertices = CreateTextureVertices(left, top, width, height);
         var verticesBuffer = Buffer.Create(ApplicationForm.Device, BindFlags.VertexBuffer, vertices);
         var texture = new FrameTexture(ApplicationForm.Device, frame);
         var image = new DisposableTextureImage(vertices, verticesBuffer, texture);
         TextureImages.Add(image);
     }
-    public void DrawText(string text, int left, int top, int width = -1, int height = -1, string font = "Ebrima", float fontSize = 10f, FontStyle fontStyle = FontStyle.Regular, int letterSpacing = -2, RawColor4? foreColor = null, RawColor4? backColor = null)
+    public void DrawText(string text, int left2, int top2, int width = -1, int height = -1, string font = "Ebrima", float fontSize = 10f, FontStyle fontStyle = FontStyle.Regular, int letterSpacing = -2, RawColor4? foreColor = null, RawColor4? backColor = null)
     {
         foreColor ??= new RawColor4(1, 1, 1, 1);
         backColor ??= new RawColor4(0, 0, 0, 0);
 
+        var left = left2 + AbsoluteLeft;
+        var top = top2 + AbsoluteTop;
         var currentLeft = left;
         var currentTop = top;
         var currentBottom = 0;

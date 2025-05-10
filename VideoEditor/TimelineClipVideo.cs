@@ -1,5 +1,5 @@
-﻿using VideoEditorD3D.FF;
-using VideoEditorD3D.FF.Types;
+﻿using VideoEditorD3D.FFMpeg;
+using VideoEditorD3D.FFMpeg.Types;
 
 namespace VideoEditor;
 
@@ -46,7 +46,7 @@ public class TimelineClipVideo : TimelineClip, ITimelineClip, IDisposable
     public bool IsAudioClip => false;
 
     Resolution CurrentResolution { get; set; }
-    FFMpeg_FrameReader? Source { get; set; }
+    FrameReader? Source { get; set; }
 
     double CurrentTime
     {
@@ -83,7 +83,7 @@ public class TimelineClipVideo : TimelineClip, ITimelineClip, IDisposable
             CurrentTime = RequestedCurrentTime;
             if (CurrentTime < 0) return null;
             if (CurrentTime > TimelineEndTime - TimelineStartTime) return null;
-            Source = new FFMpeg_FrameReader(StreamInfo.File.FullName, CurrentResolution, StreamInfo.Fps.Value, CurrentTime);
+            Source = new FrameReader(StreamInfo.File.FullName, CurrentResolution, StreamInfo.Fps.Value, CurrentTime);
         }
 
         if (Source == null) return null; // kan niet

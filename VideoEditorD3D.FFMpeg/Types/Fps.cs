@@ -1,4 +1,4 @@
-﻿namespace VideoEditorD3D.FF.Types;
+﻿namespace VideoEditorD3D.FFMpeg.Types;
 
 public readonly struct Fps
 {
@@ -25,6 +25,15 @@ public readonly struct Fps
         }
     }
 
+    public long ConvertTimeToIndex(double time)
+    {
+        return Convert.ToInt32(time * Base / Divider);
+    }
+    public double ConvertIndexToTime(long index)
+    {
+        return index / Base * Divider;
+    }
+
     public static bool operator ==(Fps p1, Fps p2)
     {
         return p1.Equals(p2);
@@ -48,12 +57,10 @@ public readonly struct Fps
     {
         return HashCode.Combine(Base, Divider);
     }
-
     public override string ToString()
     {
         return $"{Value}";
     }
-
     public static bool TryParse(string? value, out Fps result)
     {
         result = new Fps();
@@ -70,9 +77,9 @@ public readonly struct Fps
         return true;
     }
 
-    public static implicit operator double(Fps windowsScaling)
+    public static implicit operator double(Fps fps)
     {
-        return windowsScaling.Value;
+        return fps.Value;
     }
 }
 

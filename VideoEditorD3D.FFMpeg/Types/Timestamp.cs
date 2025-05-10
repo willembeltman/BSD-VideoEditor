@@ -1,4 +1,4 @@
-﻿namespace VideoEditorD3D.FF.Types;
+﻿namespace VideoEditorD3D.FFMpeg.Types;
 
 public readonly struct TimeStamp
 {
@@ -57,6 +57,10 @@ public readonly struct TimeStamp
     public int Seconds => TimeSpan.Seconds;
     public int Milliseconds => TimeSpan.Milliseconds;
     public double TotalSeconds => TimeSpan.TotalSeconds;
+    public double ConvertToTime()
+    {
+        return TimeSpan.TotalSeconds;
+    }
 
     public static bool operator ==(TimeStamp p1, TimeStamp p2)
     {
@@ -86,4 +90,5 @@ public readonly struct TimeStamp
     }
 
     public override string ToString() => $"{Hours:D2}:{Minutes:D2}:{Seconds:D2}.{Milliseconds:D3}";
+
 }

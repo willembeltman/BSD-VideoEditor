@@ -1,5 +1,5 @@
 ﻿using System.Runtime.InteropServices;
-using VideoEditorD3D.FF.Types;
+using VideoEditorD3D.FFMpeg.Types;
 
 namespace VideoEditorD3D.Direct3D.Helpers;
 

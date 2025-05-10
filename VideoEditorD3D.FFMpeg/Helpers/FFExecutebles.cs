@@ -1,4 +1,4 @@
-﻿namespace VideoEditorD3D.FF
+﻿namespace VideoEditorD3D.FFMpeg.Helpers
 {
     public static class FFExecutebles
     {

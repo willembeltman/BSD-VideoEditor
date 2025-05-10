@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using VideoEditorD3D.FF.Types;
+using VideoEditorD3D.FFMpeg.Types;
 
 namespace VideoEditor.Helpers;
 

@@ -130,6 +130,8 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
         this.MouseClick += EventHandler.OnMouseClick;
         this.MouseDoubleClick += EventHandler.OnMouseDoubleClick;
         this.MouseWheel += EventHandler.OnMouseWheel;
+        this.MouseEnter += EventHandler.OnMouseEnter;
+        this.MouseLeave += EventHandler.OnMouseLeave;
         this.KeyDown += EventHandler.OnKeyDown;
         this.KeyUp += EventHandler.OnKeyUp;
         this.KeyPress += EventHandler.OnKeyPress;

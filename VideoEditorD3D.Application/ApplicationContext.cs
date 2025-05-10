@@ -4,6 +4,7 @@ using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Application.Forms;
 using VideoEditorD3D.Loggers;
 using VideoEditorD3D.Application.Configs;
+using VideoEditorD3D.Application.Types;
 
 namespace VideoEditorD3D.Application;
 

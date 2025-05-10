@@ -1,4 +1,4 @@
-﻿namespace VideoEditorD3D.FF.Types;
+﻿namespace VideoEditorD3D.FFMpeg.Types;
 
 public readonly struct Resolution
 {
@@ -11,10 +11,14 @@ public readonly struct Resolution
     {
         Width = width;
         Height = height;
+        PixelLength = width * height;
+        ByteLength = PixelLength * 4; // RGBA
     }
 
     public int Width { get; }
     public int Height { get; }
+    public int PixelLength { get; }
+    public int ByteLength { get; }
 
     public static bool operator ==(Resolution p1, Resolution p2)
     {

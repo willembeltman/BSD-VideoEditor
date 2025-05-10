@@ -1,15 +1,13 @@
 ﻿using System.Diagnostics;
-using VideoEditorD3D.FF.Enums;
-using VideoEditorD3D.FF.Types;
+using VideoEditorD3D.FFMpeg.Enums;
+using VideoEditorD3D.FFMpeg.Types;
+using VideoEditorD3D.FFMpeg.Helpers;
 
-namespace VideoEditorD3D.FF;
+namespace VideoEditorD3D.FFMpeg;
 
 public static class FFMpegProxy
 {
-    public static IEnumerable<byte[]> ReadFrames(
-        string fullName,
-        Resolution resolution,
-        TimeStamp? startTime = null)
+    public static IEnumerable<byte[]> ReadFramesAsByteArrays(string fullName, Resolution resolution, TimeStamp? startTime = null)
     {
         startTime = startTime ?? new TimeStamp();
 
@@ -35,15 +33,14 @@ public static class FFMpegProxy
                 int frameSize = resolution.Width * resolution.Height * 4; // rgba 4 bytes
                 byte[] buffer = new byte[frameSize];
 
-                while (ReadFrame(stream, buffer))
+                while (ReadFrameAsByteArrays(stream, buffer))
                 {
                     yield return buffer;
                 }
             }
         }
     }
-
-    private static bool ReadFrame(Stream stream, byte[] buffer)
+    private static bool ReadFrameAsByteArrays(Stream stream, byte[] buffer)
     {
         var read = 0;
         while (read < buffer.Length)
@@ -54,14 +51,7 @@ public static class FFMpegProxy
         }
         return read == buffer.Length;
     }
-
-    public static void WriteFrames(
-        string outputFullName,
-        Resolution resolution,
-        Fps fps,
-        IEnumerable<byte[]> frames,
-        byte crf = 23,
-        Preset preset = Preset.medium)
+    public static void WriteFramesAsByteArrays(string outputFullName, Resolution resolution, Fps fps, IEnumerable<byte[]> frames, byte crf = 23, Preset preset = Preset.medium)
     {
         var ffmpegArgs = $"-y -f rawvideo -pixel_format rgba " +
                          $"-video_size {resolution.Width}x{resolution.Height} " +
@@ -96,10 +86,7 @@ public static class FFMpegProxy
         }
     }
 
-    public static IEnumerable<byte[]> ReadAudio(
-        string fullName,
-        int channels = 2,
-        int sampleRate = 48000)
+    public static IEnumerable<byte[]> ReadAudioAsByteArrays(string fullName, int channels = 2, int sampleRate = 48000)
     {
         var ffmpegArgs = $"-i \"{fullName}\" -vn -f s16le -ac {channels} -ar {sampleRate} -";
 
@@ -126,13 +113,7 @@ public static class FFMpegProxy
             yield return buffer;
         }
     }
-
-    public static void WriteAudio(
-        string outputFullName,
-        IEnumerable<byte[]> audioFrames,
-        int channels = 2,
-        int sampleRate = 48000,
-        int quality = 1) // VBR quality factor (0 = best, 5 = worst)
+    public static void WriteAudioAsByteArrays(string outputFullName, IEnumerable<byte[]> audioFrames, int channels = 2, int sampleRate = 48000, int quality = 1) // VBR quality factor (0 = best, 5 = worst)
     {
         var ffmpegArgs = $"-y -f s16le -ac {channels} -ar {sampleRate} -i - -c:a aac -q:a {quality} \"{outputFullName}\"";
 
@@ -155,11 +136,7 @@ public static class FFMpegProxy
             stream.Write(frame, 0, frame.Length);
         }
     }
-
-    public static void MuxVideoWithMultipleAudioStreams(
-        string outputFullName,
-        string videoFullName,
-        IEnumerable<string> audioFullNames)
+    public static void MuxVideoWithMultipleAudioStreams(string outputFullName, string videoFullName, IEnumerable<string> audioFullNames)
     {
         // Basis FFmpeg argumenten voor het muxen van 1 video met meerdere audiostreams.
         var ffmpegArgs = $"-y -i \"{videoFullName}\" ";  // Voeg video toe als eerste input
@@ -209,5 +186,4 @@ public static class FFMpegProxy
         if (process == null) throw new Exception("Cannot start FFmpeg");
         process.WaitForExit(); // Wacht tot het proces klaar is
     }
-
 }

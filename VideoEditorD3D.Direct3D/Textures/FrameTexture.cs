@@ -3,7 +3,7 @@ using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using VideoEditorD3D.Direct3D.Helpers;
 using VideoEditorD3D.Direct3D.Interfaces;
-using VideoEditorD3D.FF.Types;
+using VideoEditorD3D.FFMpeg.Types;
 using Device = SharpDX.Direct3D11.Device;
 
 namespace VideoEditorD3D.Direct3D.Textures;

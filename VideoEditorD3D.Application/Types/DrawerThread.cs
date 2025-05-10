@@ -1,6 +1,6 @@
 ﻿using VideoEditorD3D.Direct3D.Interfaces;
 
-namespace VideoEditorD3D.Application;
+namespace VideoEditorD3D.Application.Types;
 
 public class DrawerThread : IDrawerThread
 {
