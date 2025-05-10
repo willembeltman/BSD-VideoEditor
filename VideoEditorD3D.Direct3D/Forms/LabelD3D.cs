@@ -3,9 +3,9 @@ using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Forms
 {
-    public class ButtonD3D : ControlD3D
+    public class LabelD3D : ControlD3D
     {
-        public ButtonD3D(IApplicationForm application, FormD3D? parentForm, ControlD3D? parentControl) : base(application, parentForm, parentControl)
+        public LabelD3D(IApplicationForm application, FormD3D? parentForm, ControlD3D? parentControl) : base(application, parentForm, parentControl)
         {
             Background = CreateCanvasLayer();
             Foreground = CreateCanvasLayer();
@@ -28,7 +28,7 @@ namespace VideoEditorD3D.Direct3D.Forms
             }
         }
 
-        private RawColor4 _ForegroundColor;
+        private RawColor4 _ForegroundColor = new RawColor4(1, 1, 1, 1);
         public RawColor4 ForegroundColor
         {
             get => _ForegroundColor;
@@ -40,7 +40,7 @@ namespace VideoEditorD3D.Direct3D.Forms
             }
         }
 
-        private RawColor4 _BackgroundColor;
+        private RawColor4 _BackgroundColor = new RawColor4(0, 0, 0, 0);
         public RawColor4 BackgroundColor
         {
             get => _BackgroundColor;
@@ -64,7 +64,7 @@ namespace VideoEditorD3D.Direct3D.Forms
             }
         }
 
-        private string _Font = "Ebrima";
+        private string _Font = "Arial";
         public string Font
         {
             get => _Font;
@@ -100,19 +100,6 @@ namespace VideoEditorD3D.Direct3D.Forms
             }
         }
 
-
-        private int _BorderSize = 1;
-        public int BorderSize
-        {
-            get => _BorderSize;
-            set
-            {
-                if (_BorderSize == value) return;
-                _BorderSize = value;
-                Invalidate();
-            }
-        }
-
         private FontStyle _FontStyle = FontStyle.Regular;
         public FontStyle FontStyle
         {
@@ -121,6 +108,18 @@ namespace VideoEditorD3D.Direct3D.Forms
             {
                 if (_FontStyle == value) return;
                 _FontStyle = value;
+                Invalidate();
+            }
+        }
+
+        private int _BorderSize = 0;
+        public int BorderSize
+        {
+            get => _BorderSize;
+            set
+            {
+                if (_BorderSize == value) return;
+                _BorderSize = value;
                 Invalidate();
             }
         }

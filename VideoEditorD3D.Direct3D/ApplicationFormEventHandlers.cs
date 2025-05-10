@@ -10,7 +10,6 @@ namespace VideoEditorD3D.Direct3D
         private IApplicationForm applicationForm;
         private IApplication application;
         private FormD3D CurrentForm => applicationForm.CurrentForm;
-        private WindowsScaling WindowsScaling => applicationForm.WindowsScaling;
 
         public ApplicationFormEventHandlers(IApplicationForm applicationForm, IApplication application)
         {
@@ -35,66 +34,48 @@ namespace VideoEditorD3D.Direct3D
         }
         public void OnMouseClick(object? sender, MouseEventArgs e)
         {
-            if (WindowsScaling == null || CurrentForm == null) return;
-            var newX = e.X * WindowsScaling.Scaling;
-            var newY = e.Y * WindowsScaling.Scaling;
-            CurrentForm.OnMouseClick(e, new RawVector2(newX, newY));
+            if (CurrentForm == null) return;
+            CurrentForm.OnMouseClick(e);
         }
         public void OnMouseDoubleClick(object? sender, MouseEventArgs e)
         {
-            if (WindowsScaling == null || CurrentForm == null) return;
-            var newX = e.X * WindowsScaling.Scaling;
-            var newY = e.Y * WindowsScaling.Scaling;
-            CurrentForm.OnMouseDoubleClick(e, new RawVector2(newX, newY));
+            if (CurrentForm == null) return;
+            CurrentForm.OnMouseDoubleClick(e);
         }
         public void OnMouseUp(object? sender, MouseEventArgs e)
         {
-            if (WindowsScaling == null || CurrentForm == null) return;
-            var newX = e.X * WindowsScaling.Scaling;
-            var newY = e.Y * WindowsScaling.Scaling;
-            CurrentForm.OnMouseUp(e, new RawVector2(newX, newY));
+            if (CurrentForm == null) return;
+            CurrentForm.OnMouseUp(e);
         }
         public void OnMouseDown(object? sender, MouseEventArgs e)
         {
-            if (WindowsScaling == null || CurrentForm == null) return;
-            var newX = e.X * WindowsScaling.Scaling;
-            var newY = e.Y * WindowsScaling.Scaling;
-            CurrentForm.OnMouseDown(e, new RawVector2(newX, newY));
+            if (CurrentForm == null) return;
+            CurrentForm.OnMouseDown(e);
         }
         public void OnMouseMove(object? sender, MouseEventArgs e)
         {
-            if (WindowsScaling == null || CurrentForm == null) return;
-            var newX = e.X * WindowsScaling.Scaling;
-            var newY = e.Y * WindowsScaling.Scaling;
-            CurrentForm.OnMouseMove(e, new RawVector2(newX, newY));
+            if (CurrentForm == null) return;
+            CurrentForm.OnMouseMove(e);
         }
         public void OnMouseWheel(object? sender, MouseEventArgs e)
         {
-            if (WindowsScaling == null || CurrentForm == null) return;
-            var newX = e.X * WindowsScaling.Scaling;
-            var newY = e.Y * WindowsScaling.Scaling;
-            CurrentForm.OnMouseWheel(e, new RawVector2(newX, newY));
+            if (CurrentForm == null) return;
+            CurrentForm.OnMouseWheel(e);
         }
         public void OnDragDrop(object? sender, DragEventArgs e)
         {
-            if (WindowsScaling == null || CurrentForm == null) return;
-            var newX = e.X * WindowsScaling.Scaling;
-            var newY = e.Y * WindowsScaling.Scaling;
-            CurrentForm.OnDragDrop(e, new RawVector2(newX, newY));
+            if (CurrentForm == null) return;
+            CurrentForm.OnDragDrop(e);
         }
         public void OnDragEnter(object? sender, DragEventArgs e)
         {
-            if (WindowsScaling == null || CurrentForm == null) return;
-            var newX = e.X * WindowsScaling.Scaling;
-            var newY = e.Y * WindowsScaling.Scaling;
-            CurrentForm.OnDragEnter(e, new RawVector2(newX, newY));
+            if (CurrentForm == null) return;
+            CurrentForm.OnDragEnter(e);
         }
         public void OnDragOver(object? sender, DragEventArgs e)
         {
-            if (WindowsScaling == null || CurrentForm == null) return;
-            var newX = e.X * WindowsScaling.Scaling;
-            var newY = e.Y * WindowsScaling.Scaling;
-            CurrentForm.OnDragOver(e, new RawVector2(newX, newY));
+            if (CurrentForm == null) return;
+            CurrentForm.OnDragOver(e);
         }
         public void OnDragLeave(object? sender, EventArgs e)
         {

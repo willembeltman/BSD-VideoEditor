@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using SharpDX.Direct3D11;
 using VideoEditorD3D.Direct3D.Forms;
-using VideoEditorD3D.Direct3D.Helpers;
 using VideoEditorD3D.Timers;
 
 namespace VideoEditorD3D.Direct3D.Interfaces;
@@ -16,7 +15,6 @@ public interface IApplicationForm
     FormD3D CurrentForm { get; set; }
     Stopwatch Stopwatch { get; }
     AllTimers Timers { get; }
-    WindowsScaling WindowsScaling { get; }
 
     void Draw();
 }

@@ -1,5 +1,4 @@
-﻿using SharpDX.Mathematics.Interop;
-using VideoEditorD3D.Direct3D.Interfaces;
+﻿using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Forms;
 
@@ -22,11 +21,9 @@ public class ControlD3D(IApplicationForm applicationForm, FormD3D? parentForm, C
         get => _Left;
         set
         {
-            if (_Left != value)
-            {
-                _Left = value;
-                OnResize();
-            }
+            if (_Left == value) return;
+            _Left = value;
+            OnResize();
         }
     }
     public int Top
@@ -116,102 +113,102 @@ public class ControlD3D(IApplicationForm applicationForm, FormD3D? parentForm, C
             control.OnKeyDown(e);
         }
     }
-    public virtual void OnMouseClick(MouseEventArgs e, RawVector2 position)
+    public virtual void OnMouseClick(MouseEventArgs e)
     {
         foreach (var control in Controls)
         {
-            if (control.Left < position.X && position.X < control.Right &&
-                control.Top < position.Y && position.Y < control.Bottom)
+            if (control.Left < e.X && e.X < control.Right &&
+                control.Top < e.Y && e.Y < control.Bottom)
             {
-                control.OnMouseClick(e, position);
+                control.OnMouseClick(e);
             }
         }
     }
-    public virtual void OnMouseDoubleClick(MouseEventArgs e, RawVector2 position)
+    public virtual void OnMouseDoubleClick(MouseEventArgs e)
     {
         foreach (var control in Controls)
         {
-            if (control.Left < position.X && position.X < control.Right &&
-                control.Top < position.Y && position.Y < control.Bottom)
+            if (control.Left < e.X && e.X < control.Right &&
+                control.Top < e.Y && e.Y < control.Bottom)
             {
-                control.OnMouseDoubleClick(e, position);
+                control.OnMouseDoubleClick(e);
             }
         }
     }
-    public virtual void OnMouseUp(MouseEventArgs e, RawVector2 position)
+    public virtual void OnMouseUp(MouseEventArgs e)
     {
         foreach (var control in Controls)
         {
-            if (control.Left < position.X && position.X < control.Right &&
-                control.Top < position.Y && position.Y < control.Bottom)
+            if (control.Left < e.X && e.X < control.Right &&
+                control.Top < e.Y && e.Y < control.Bottom)
             {
-                control.OnMouseUp(e, position);
+                control.OnMouseUp(e);
             }
         }
     }
-    public virtual void OnMouseDown(MouseEventArgs e, RawVector2 position)
+    public virtual void OnMouseDown(MouseEventArgs e)
     {
         foreach (var control in Controls)
         {
-            if (control.Left < position.X && position.X < control.Right &&
-                control.Top < position.Y && position.Y < control.Bottom)
+            if (control.Left < e.X && e.X < control.Right &&
+                control.Top < e.Y && e.Y < control.Bottom)
             {
-                control.OnMouseDown(e, position);
+                control.OnMouseDown(e);
             }
         }
     }
-    public virtual void OnMouseMove(MouseEventArgs e, RawVector2 position)
+    public virtual void OnMouseMove(MouseEventArgs e)
     {
         foreach (var control in Controls)
         {
-            if (control.Left < position.X && position.X < control.Right &&
-                control.Top < position.Y && position.Y < control.Bottom)
+            if (control.Left < e.X && e.X < control.Right &&
+                control.Top < e.Y && e.Y < control.Bottom)
             {
-                control.OnMouseMove(e, position);
+                control.OnMouseMove(e);
             }
         }
     }
-    public virtual void OnMouseWheel(MouseEventArgs e, RawVector2 position)
+    public virtual void OnMouseWheel(MouseEventArgs e)
     {
         foreach (var control in Controls)
         {
-            if (control.Left < position.X && position.X < control.Right &&
-                control.Top < position.Y && position.Y < control.Bottom)
+            if (control.Left < e.X && e.X < control.Right &&
+                control.Top < e.Y && e.Y < control.Bottom)
             {
-                control.OnMouseWheel(e, position);
+                control.OnMouseWheel(e);
             }
         }
     }
-    public virtual void OnDragDrop(DragEventArgs e, RawVector2 position)
+    public virtual void OnDragDrop(DragEventArgs e)
     {
         foreach (var control in Controls)
         {
-            if (control.Left < position.X && position.X < control.Right &&
-                control.Top < position.Y && position.Y < control.Bottom)
+            if (control.Left < e.X && e.X < control.Right &&
+                control.Top < e.Y && e.Y < control.Bottom)
             {
-                control.OnDragDrop(e, position);
+                control.OnDragDrop(e);
             }
         }
     }
-    public virtual void OnDragEnter(DragEventArgs e, RawVector2 position)
+    public virtual void OnDragEnter(DragEventArgs e)
     {
         foreach (var control in Controls)
         {
-            if (control.Left < position.X && position.X < control.Right &&
-                control.Top < position.Y && position.Y < control.Bottom)
+            if (control.Left < e.X && e.X < control.Right &&
+                control.Top < e.Y && e.Y < control.Bottom)
             {
-                control.OnDragEnter(e, position);
+                control.OnDragEnter(e);
             }
         }
     }
-    public virtual void OnDragOver(DragEventArgs e, RawVector2 position)
+    public virtual void OnDragOver(DragEventArgs e)
     {
         foreach (var control in Controls)
         {
-            if (control.Left < position.X && position.X < control.Right &&
-                control.Top < position.Y && position.Y < control.Bottom)
+            if (control.Left < e.X && e.X < control.Right &&
+                control.Top < e.Y && e.Y < control.Bottom)
             {
-                control.OnDragOver(e, position);
+                control.OnDragOver(e);
             }
         }
     }

@@ -5,14 +5,10 @@ using SharpDX;
 using System.Diagnostics;
 using VideoEditorD3D.Direct3D.Vertices;
 using VideoEditorD3D.Timers;
-using VideoEditorD3D.Loggers;
 using VideoEditorD3D.Direct3D.Forms;
-using Device = SharpDX.Direct3D11.Device;
 using VideoEditorD3D.Direct3D.Extentions;
-using SharpDX.Mathematics.Interop;
 using VideoEditorD3D.Direct3D.Interfaces;
-using VideoEditorD3D.Types;
-using VideoEditorD3D.Direct3D.Helpers;
+using Device = SharpDX.Direct3D11.Device;
 
 namespace VideoEditorD3D.Direct3D;
 
@@ -30,7 +26,6 @@ public partial class ApplicationForm : Form, IApplicationForm
     #endregion
 
     #region Initialized at OnHandleCreated
-    private WindowsScaling? _WindowsScaling;
     private DeviceContext? _DeviceContext;
     private SwapChain? _SwapChain;
     private RenderTargetView? _RenderTargetView;
@@ -42,6 +37,7 @@ public partial class ApplicationForm : Form, IApplicationForm
     private InputLayout? _BitmapInputLayout;
     private SamplerState? _SamplerState;
     private Device? _Device;
+    private BlendState? _AlphaBlendState;
     private CharacterCollection? _Characters;
     private FormD3D? _CurrentForm;
     private int? _PhysicalWidth;
@@ -124,7 +120,7 @@ public partial class ApplicationForm : Form, IApplicationForm
     private void InitializeComponents()
     {
         this.SuspendLayout();
-        this.ClientSize = new Size(800, 450);
+        this.ClientSize = new Size(1280, 720);
         this.Text = "Video editor";
         this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.Opaque, true);
         this.AllowDrop = true;
@@ -158,11 +154,10 @@ public partial class ApplicationForm : Form, IApplicationForm
                 _Device?.Dispose();
                 _SamplerState?.Dispose();
                 _Characters?.Dispose();
+                _AlphaBlendState?.Dispose(); 
 
-                _WindowsScaling = new WindowsScaling(Handle);
-
-                int realWidth = Convert.ToInt32(Width * _WindowsScaling!.Scaling);
-                int realHeight = Convert.ToInt32(Height * _WindowsScaling!.Scaling);
+                int realWidth = ClientRectangle.Width;
+                int realHeight = ClientRectangle.Height;
 
                 if (realWidth == 0 || realHeight == 0)
                     return;
@@ -215,6 +210,28 @@ public partial class ApplicationForm : Form, IApplicationForm
                 });
                 _DeviceContext.PixelShader.SetSampler(0, _SamplerState);
 
+
+                var blendDesc = new BlendStateDescription
+                {
+                    AlphaToCoverageEnable = false,
+                    IndependentBlendEnable = false
+                };
+
+                blendDesc.RenderTarget[0] = new RenderTargetBlendDescription
+                {
+                    IsBlendEnabled = true,
+                    SourceBlend = BlendOption.SourceAlpha,
+                    DestinationBlend = BlendOption.InverseSourceAlpha,
+                    BlendOperation = BlendOperation.Add,
+                    SourceAlphaBlend = BlendOption.One,
+                    DestinationAlphaBlend = BlendOption.Zero,
+                    AlphaBlendOperation = BlendOperation.Add,
+                    RenderTargetWriteMask = ColorWriteMaskFlags.All
+                };
+
+                _AlphaBlendState = new BlendState(_Device, blendDesc);
+                _DeviceContext.OutputMerger.SetBlendState(_AlphaBlendState);
+
                 _Characters = new CharacterCollection(this);
                 _CurrentForm = Application.OnCreateStartForm(this);
                 _CurrentForm.Width = realWidth;
@@ -232,7 +249,7 @@ public partial class ApplicationForm : Form, IApplicationForm
     }
     private void ResizeSwapChain()
     {
-        if (IsNotReadyToDraw || _Device == null || _WindowsScaling == null || _SwapChain == null || _CurrentForm == null)
+        if (IsNotReadyToDraw || _Device == null || _SwapChain == null || _CurrentForm == null)
             return;
 
         if (IsMinimized)
@@ -253,8 +270,8 @@ public partial class ApplicationForm : Form, IApplicationForm
             _Device.ImmediateContext.ClearState();
             _RenderTargetView?.Dispose();
 
-            int newWidth = Convert.ToInt32(Width * _WindowsScaling.Scaling);
-            int newHeight = Convert.ToInt32(Height * _WindowsScaling.Scaling);
+            int newWidth = ClientRectangle.Width;
+            int newHeight = ClientRectangle.Height;
 
             if (newWidth == 0 || newHeight == 0)
                 return;
@@ -414,7 +431,7 @@ public partial class ApplicationForm : Form, IApplicationForm
         if (IsNotReadyToDraw || _DeviceContext == null || _Device == null || _SwapChain == null)
             return;
 
-        _DeviceContext.ClearRenderTargetView(_RenderTargetView, currentForm.BackgroundColor.ToSharpDXColor());
+        _DeviceContext.ClearRenderTargetView(_RenderTargetView, currentForm.BackgroundColor);
 
         foreach (var layer in currentForm.GetCanvasLayers())
         {
@@ -462,7 +479,6 @@ public partial class ApplicationForm : Form, IApplicationForm
     }
 
     #region IApplicationForm interface
-    WindowsScaling IApplicationForm.WindowsScaling => _WindowsScaling!;
     Device IApplicationForm.Device => _Device!;
     CharacterCollection IApplicationForm.Characters => _Characters!;
     int IApplicationForm.Width => _PhysicalWidth!.Value;

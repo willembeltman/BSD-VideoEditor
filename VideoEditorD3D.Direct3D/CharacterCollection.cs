@@ -8,17 +8,17 @@ public class CharacterCollection(IApplicationForm Application) : IDisposable
 {
     private CharacterTexture[] TextItems = [];
 
-    public CharacterTexture GetOrCreate(char character, string font, float fontSize, RawColor4 backColor, RawColor4 foreColor)
+    public CharacterTexture GetOrCreate(char character, string font, float fontSize, FontStyle fontStyle, RawColor4 backColor, RawColor4 foreColor)
     {
         var item = TextItems
             .FirstOrDefault(a =>
                 a.Char == character &&
                 a.FontName == font &&
-                a.FontSize == fontSize);
+                a.FontSize == fontSize && 
+                a.FontStyle == fontStyle);
         if (item == null)
         {
-            item = new CharacterTexture(character, font, fontSize, backColor, foreColor, Application.Device);
-
+            item = new CharacterTexture(character, font, fontSize, fontStyle, backColor, foreColor, Application.Device);
             Array.Resize(ref TextItems, TextItems.Length + 1);
             TextItems[^1] = item;
             return item;

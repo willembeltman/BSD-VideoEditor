@@ -52,11 +52,17 @@ public class GraphicsLayer(IApplicationForm application) : IDisposable
         if (FillVertices.Count > 0)
             FillVerticesBuffer = Buffer.Create(Device, BindFlags.VertexBuffer, FillVertices.ToArray());
     }
-    public void DrawLine(RawVector2 start, RawVector2 end, RawColor4 color, float strokeWidth)
+    public void DrawLine(int startX, int startY, int endX, int endY, RawColor4 color, int strokeWidth)
     {
-        if (strokeWidth > 0.9 && strokeWidth < 1.1)
+        if (strokeWidth < 1)
+            return;
+
+        RawVector2 start = new RawVector2(startX, startY);
+        RawVector2 end = new RawVector2(endX, endY);
+
+        if (strokeWidth == 1)
         {
-            DrawLineOnePixelWide(start, end, color);
+            DrawLineOnePixelWide(startX, startY, endX, endY, color);
             return;
         }
 
@@ -73,10 +79,9 @@ public class GraphicsLayer(IApplicationForm application) : IDisposable
         var nx = -dy / length;
         var ny = dx / length;
 
-
         // Gemiddelde schaal voor uniforme dikte in beide richtingen
-        float halfThicknessx = strokeWidth * 0.5f;
-        float halfThicknessy = strokeWidth * 0.5f;
+        var halfThicknessx = strokeWidth * 0.5f;
+        var halfThicknessy = strokeWidth * 0.5f;
 
         // Offset vector voor dikte
         var offsetX = nx * halfThicknessx;
@@ -97,43 +102,30 @@ public class GraphicsLayer(IApplicationForm application) : IDisposable
         FillVertices.Add(new Vertex { Position = v4, Color = color });
         FillVertices.Add(new Vertex { Position = v1, Color = color });
     }
-    public void DrawLineOnePixelWide(RawVector2 start, RawVector2 end, RawColor4 color)
+    public void DrawLineOnePixelWide(int startX, int startY, int endX, int endY, RawColor4 color)
     {
+        RawVector2 start = new RawVector2(startX, startY);
+        RawVector2 end = new RawVector2(endX, endY);
         LineVertices.Add(new Vertex { Position = start.ToClipSpace(CanvasWidth, CanvasHeight), Color = color });
         LineVertices.Add(new Vertex { Position = end.ToClipSpace(CanvasWidth, CanvasHeight), Color = color });
     }
-    public void DrawRectangle(float left, float top, float width, float height, RawColor4 color, float strokeWidth)
+    public void DrawRectangle(int left, int top, int width, int height, RawColor4 color, int strokeWidth)
     {
-        float right = left + width;
-        float bottom = top + height;
+        if (strokeWidth < 1)
+            return;
 
+        var right = left + width;
+        var bottom = top + height;
 
-        // Clip space coordinaten
-        var p1 = new RawVector2(left, top).ToClipSpace(CanvasWidth, CanvasHeight);
-        var p2 = new RawVector2(right, top).ToClipSpace(CanvasWidth, CanvasHeight);
-        var p3 = new RawVector2(right, bottom).ToClipSpace(CanvasWidth, CanvasHeight);
-        var p4 = new RawVector2(left, bottom).ToClipSpace(CanvasWidth, CanvasHeight);
-
-        // Rand met lijnen
-        if (strokeWidth > 0 && color.A > 0)
-        {
-            LineVertices.Add(new Vertex { Position = p1, Color = color });
-            LineVertices.Add(new Vertex { Position = p2, Color = color });
-
-            LineVertices.Add(new Vertex { Position = p2, Color = color });
-            LineVertices.Add(new Vertex { Position = p3, Color = color });
-
-            LineVertices.Add(new Vertex { Position = p3, Color = color });
-            LineVertices.Add(new Vertex { Position = p4, Color = color });
-
-            LineVertices.Add(new Vertex { Position = p4, Color = color });
-            LineVertices.Add(new Vertex { Position = p1, Color = color });
-        }
+        DrawLine(left, top, right, top, color, strokeWidth);
+        DrawLine(right, top, right, bottom, color, strokeWidth);
+        DrawLine(right, bottom, left, bottom, color, strokeWidth);
+        DrawLine(left, bottom, left, top, color, strokeWidth);
     }
-    public void FillRectangle(float left, float top, float width, float height, RawColor4 color)
+    public void FillRectangle(int left, int top, int width, int height, RawColor4 color)
     {
-        float right = left + width;
-        float bottom = top + height;
+        var right = left + width;
+        var bottom = top + height;
 
         // Clip space coordinaten
         var p1 = new RawVector2(left, top).ToClipSpace(CanvasWidth, CanvasHeight);
@@ -153,30 +145,30 @@ public class GraphicsLayer(IApplicationForm application) : IDisposable
             FillVertices.Add(new Vertex { Position = p1, Color = color });
         }
     }
-    public void DrawBitmap(float left, float top, float width, float height, Bitmap bitmap)
+    public void DrawBitmap(int left, int top, int width, int height, Bitmap bitmap)
     {
-        var vertices = CreateBitmapVertices(left, top, width, height);
+        var vertices = CreateTextureVertices(left, top, width, height);
         var verticesBuffer = Buffer.Create(Device, BindFlags.VertexBuffer, vertices);
         var texture = new BitmapTexture(Device, bitmap);
         var image = new DisposableTextureImage(vertices, verticesBuffer, texture);
         ImageTextures.Add(image);
     }
-    public void DrawFrame(float left, float top, float width, float height, Frame frame)
+    public void DrawFrame(int left, int top, int width, int height, Frame frame)
     {
-        var vertices = CreateBitmapVertices(left, top, width, height);
+        var vertices = CreateTextureVertices(left, top, width, height);
         var verticesBuffer = Buffer.Create(Device, BindFlags.VertexBuffer, vertices);
         var texture = new FrameTexture(Device!, frame);
         var image = new DisposableTextureImage(vertices, verticesBuffer, texture);
         ImageTextures.Add(image);
     }
-    public void DrawText(string text, float left, float top, string font = "Arial", float fontSize = 10f, RawColor4? foreColor = null, RawColor4? backColor = null)
+    public void DrawText(string text, int left, int top, int width = -1, int height = -1, string font = "Ebrima", float fontSize = 10f, FontStyle fontStyle = FontStyle.Regular, int letterSpacing = -2, RawColor4? foreColor = null, RawColor4? backColor = null)
     {
         foreColor ??= new RawColor4(1, 1, 1, 1);
         backColor ??= new RawColor4(0, 0, 0, 0);
 
-        var currentLeft = Convert.ToSingle(Math.Round(left));
-        var currentTop = Convert.ToSingle(Math.Round(top));
-        var currentBottom = float.MaxValue;
+        var currentLeft = left;
+        var currentTop = top;
+        var currentBottom = 0;
 
         var currentText = text.Replace("\r", "");
         var rows = currentText.Split('\n');
@@ -186,16 +178,24 @@ public class GraphicsLayer(IApplicationForm application) : IDisposable
             foreach (var character in row)
             {
                 // Text item aanmaken of ophalen voor het huidige character
-                var texture = Characters.GetOrCreate(character, font, fontSize, backColor.Value, foreColor.Value);
+                var texture = Characters.GetOrCreate(character, font, fontSize, fontStyle, backColor.Value, foreColor.Value);
 
                 // Berekenen
-                var right = currentLeft + texture.Width - 1f;
-                var bottom = currentTop + texture.Height - 2f;
-                if (currentBottom > bottom)
+                var right = currentLeft + texture.BitmapWidth + letterSpacing;
+                if (width != -1 && height != -1 && right > left + width)
+                {
+                    // Nieuwe regel
+                    currentLeft = left;
+                    currentTop = currentBottom;
+                    right = currentLeft + texture.BitmapWidth + letterSpacing;
+                }
+
+                var bottom = currentTop + texture.BitmapHeight;
+                if (currentBottom < bottom)
                     currentBottom = bottom;
 
                 // Vertices laten maken
-                var fillVertices = CreateBitmapVertices(currentLeft, currentTop, texture.TextureBitmap.Bitmap.Width, texture.TextureBitmap.Bitmap.Height);
+                var fillVertices = CreateTextureVertices(currentLeft, currentTop, texture.BitmapWidth, texture.BitmapHeight);
                 var fillVerticesBuffer = Buffer.Create(Device, BindFlags.VertexBuffer, fillVertices);
 
                 // En dit in een model stoppen
@@ -204,60 +204,19 @@ public class GraphicsLayer(IApplicationForm application) : IDisposable
 
                 currentLeft = right;
             }
+            // Nieuwe regel
             currentLeft = left;
             currentTop = currentBottom;
         }
-
-        //return;
-
-        //var label = text.Text;
-        //var width = Convert.ToInt32(text.Width);
-        //var height = Convert.ToInt32(text.Height);
-        //var fontName = text.Font;
-        //var fontSize = text.FontSize;
-
-        //var bitmap = new Bitmap(width, height);
-
-        //using (var g = Graphics.FromImage(bitmap))
-        //{
-        //    // Zorg voor transparante achtergrond
-        //    g.Clear(text.BackColor);
-
-        //    // Instellingen voor kwaliteit
-        //    g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SystemDefault;
-        //    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.Default;
-
-        //    // Font en brush
-        //    using (var font = new Font(fontName, fontSize, FontStyle.Regular))
-        //    using (var brush = new SolidBrush(text.ForeColor))
-        //    {
-        //        // Rect bepalen
-        //        var rect = new RectangleF(0, 0, width, height);
-
-        //        // Tekst tekenen
-        //        g.DrawString(label, font, brush, rect);
-        //    }
-        //}
-
-        //DrawBitmap(new DrawBitmap()
-        //{
-        //    Text = text.Text,
-        //    Left = text.Left,
-        //    Top = text.Top,
-        //    Width = text.Width,
-        //    Height = text.Height,
-        //    Bitmap = bitmap,
-        //});
     }
 
-    private TextureVertex[] CreateBitmapVertices(float left, float top, float width, float height)
+    private TextureVertex[] CreateTextureVertices(int left, int top, int width, int height)
     {
         // Afronden op hele pixels
-
-        var roundLeft = Convert.ToSingle(Math.Round(left));
-        var roundTop = Convert.ToSingle(Math.Round(top));
-        var roundWidth = Convert.ToSingle(Math.Ceiling(width));
-        var roundHeight = Convert.ToSingle(Math.Ceiling(height));
+        var roundLeft = Convert.ToSingle(left);
+        var roundTop = Convert.ToSingle(top);
+        var roundWidth = Convert.ToSingle(width);
+        var roundHeight = Convert.ToSingle(height);
         var roundRight = left + roundWidth;
         var roundBottom = top + roundHeight;
 
