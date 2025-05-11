@@ -3,33 +3,35 @@ using Microsoft.CodeAnalysis.CSharp;
 using System.Reflection;
 using VideoEditorD3D.Entities.ZipDatabase.Helpers;
 
-namespace VideoEditorD3D.Entities.ZipDatabase;
+namespace VideoEditorD3D.Entities.ZipDatabase.GeneratedCode;
 
-public class BinarySerializer<T>
+public class EntitySerializer<T>
 {
     private Action<BinaryWriter, T, DbContext> WriteDelegate;
     private Func<BinaryReader, DbContext, T> ReadDelegate;
     private readonly string code;
 
-    internal BinarySerializer(DbContext dbContext)
+    internal EntitySerializer(DbContext dbContext)
     {
         var type = typeof(T);
-        var serializerName = $"{type.Name}BinarySerializer";
-        code = GenerateSerializerCode(type, serializerName, dbContext);
+        var className = $"{type.Name}EntitySerializer";
+        var readMethodName = "EntitySerializerRead";
+        var writeMethodName = "EntitySerializerWrite";
+        code = GenerateSerializerCode(type, className, readMethodName, writeMethodName, dbContext);
         var asm = Compile(code);
-        var serializerType = asm.GetType(serializerName)!;
+        var serializerType = asm.GetType(className)!;
+        var readMethod = serializerType.GetMethod(readMethodName)!;
+        var writeMethod = serializerType.GetMethod(writeMethodName)!;
 
-        var writeMethod = serializerType.GetMethod("Write")!;
-        var readMethod = serializerType.GetMethod("Read")!;
+        ReadDelegate = (Func<BinaryReader, DbContext, T>)Delegate.CreateDelegate(
+            typeof(Func<BinaryReader, DbContext, T>), readMethod)!;
 
         WriteDelegate = (Action<BinaryWriter, T, DbContext>)Delegate.CreateDelegate(
             typeof(Action<BinaryWriter, T, DbContext>), writeMethod)!;
 
-        ReadDelegate = (Func<BinaryReader, DbContext, T>)Delegate.CreateDelegate(
-            typeof(Func<BinaryReader, DbContext, T>), readMethod)!;
     }
 
-    private string GenerateSerializerCode(Type type, string serializerName, DbContext dbContext)
+    private string GenerateSerializerCode(Type type, string serializerName, string readMethodName, string writeMethodName, DbContext dbContext)
     {
         var className = type.Name;
         var fullClassName = type.FullName;
@@ -37,19 +39,20 @@ public class BinarySerializer<T>
         var writeCode = string.Empty;
         var readCode = string.Empty;
         var newCode = string.Empty;
-        var lazyCode = string.Empty;
+        //var lazyCode = string.Empty;
 
-        var entityDbCollectionType = typeof(EntityProxyForeignCollection<,>);
+        var entityDbCollectionType = typeof(ForeignEntityCollection<,>);
         var entityDbCollectionTypeFullName = entityDbCollectionType.FullName!.Split('`').First();
 
-        var binarySerializerType = typeof(BinarySerializer<>);
+        var binarySerializerType = typeof(EntitySerializer<>);
         var binarySerializerTypeFullName = binarySerializerType.FullName!.Split('`').First();
 
         var dbContextType = typeof(DbContext);
         var dbContextTypeFullName = dbContextType.FullName;
 
-        var binarySerializerCollectionType = typeof(BinarySerializerCollection);
+        var binarySerializerCollectionType = typeof(EntitySerializerCollection);
         var binarySerializerCollectionTypeFullName = binarySerializerCollectionType.FullName;
+        var method = binarySerializerCollectionType.GetMethods().First().Name;
 
         var applicationDbContextType = dbContext.ParentType;
         var applicationDbContextTypeFullName = dbContext.ParentType.FullName;
@@ -64,60 +67,18 @@ public class BinarySerializer<T>
 
             var propertyName = prop.Name;
 
-            //if (ReflectionHelper.HasForeignKeyProperty(prop))
-            //{
-            //    // TODO: Eruit bouwen en gewoon via proxies werken
-            //    var foreignKeyName = ReflectionHelper.GetForeignKeyName(prop);
-
-            //    if (ReflectionHelper.IsICollection(prop))
-            //    {
-            //        var foreignType = ReflectionHelper.GetICollectionType(prop);
-
-            //        var foreignPropertyOnApplicationDbContext = applicationDbContextType.GetProperties()
-            //            .Where(a => ReflectionHelper.IsDbSet(a))
-            //            .FirstOrDefault(a => ReflectionHelper.GetDbSetType(a) == foreignType);
-            //        if (foreignPropertyOnApplicationDbContext == null) continue;
-
-            //        var foreignPropertyOnApplicationDbContextName = foreignPropertyOnApplicationDbContext.Name; // "Files"
-
-            //        lazyCode += $@"
-
-            //            item.{propertyName} = new {entityDbCollectionTypeFullName}<{foreignType.FullName}, {fullClassName}>(
-            //                (db as {applicationDbContextTypeFullName})!.{foreignPropertyOnApplicationDbContextName},
-            //                item,
-            //                (foreign, primary) => foreign.{foreignKeyName} == primary.Id,
-            //                (foreign, primary) => foreign.{foreignKeyName} = primary.Id);";
-            //    }
-            //    else if (ReflectionHelper.IsLazy(prop))
-            //    {
-            //        var lazyType = ReflectionHelper.GetLazyType(prop);
-
-            //        var lazyPropertyOnApplicationDbContext = applicationDbContextType.GetProperties()
-            //            .Where(a => ReflectionHelper.IsDbSet(a))
-            //            .FirstOrDefault(a => ReflectionHelper.GetDbSetType(a) == lazyType);
-            //        if (lazyPropertyOnApplicationDbContext == null) continue;
-
-            //        var lazyPropertyOnApplicationDbContextName = lazyPropertyOnApplicationDbContext.Name; // "Files"
-
-            //        lazyCode += @$"
-
-            //            item.{propertyName} = new Lazy<{lazyType.FullName}?>(() => (db as {applicationDbContextTypeFullName}).{lazyPropertyOnApplicationDbContextName}.FirstOrDefault(t => t.Id == item.{foreignKeyName}));";
-            //    }
-            //}
-            //else
-            //{
             var readMethod = GetBinaryReadMethod(prop.PropertyType);
             if (readMethod == null)
             {
                 writeCode += @$"
 
-                        var {prop.PropertyType.Name.ToLower()}Serializer = {binarySerializerCollectionTypeFullName}.GetSerializer<{prop.PropertyType.FullName}>(db);
-                        {prop.PropertyType.Name.ToLower()}Serializer.Write(writer, value.{propertyName}, db);";
+                        var {propertyName}Serializer = {binarySerializerCollectionTypeFullName}.{method}<{prop.PropertyType.FullName}>(db);
+                        {propertyName}Serializer.Write(writer, value.{propertyName}, db);";
 
                 readCode += @$"
 
-                        var {prop.PropertyType.Name.ToLower()}Serializer = {binarySerializerCollectionTypeFullName}.GetSerializer<{prop.PropertyType.FullName}>(db);
-                        var {propertyName} = {prop.PropertyType.Name.ToLower()}Serializer.Read(reader, db);";
+                        var {propertyName}Serializer = {binarySerializerCollectionTypeFullName}.{method}<{prop.PropertyType.FullName}>(db);
+                        var {propertyName} = {propertyName}Serializer.Read(reader, db);";
 
             }
             else
@@ -125,6 +86,7 @@ public class BinarySerializer<T>
                 if (ReflectionHelper.IsNulleble(prop))
                 {
                     writeCode += @$"
+
                         if (value.{propertyName} == null)
                             writer.Write(true);
                         else
@@ -134,6 +96,7 @@ public class BinarySerializer<T>
                         }}";
 
                     readCode += @$"
+
                         {prop.PropertyType.FullName} {propertyName} = null;
                         if (!reader.ReadBoolean())
                         {{
@@ -152,7 +115,6 @@ public class BinarySerializer<T>
 
             newCode += @$"
                             {propertyName} = {propertyName},";
-            //}
         }
 
         return $@"
@@ -162,16 +124,16 @@ public class BinarySerializer<T>
 
                 public static class {serializerName}
                 {{
-                    public static void Write(BinaryWriter writer, {fullClassName} value, {dbContextTypeFullName} db)
+                    public static void {writeMethodName}(BinaryWriter writer, {fullClassName} value, {dbContextTypeFullName} db)
                     {{{writeCode}
                     }}
 
-                    public static {fullClassName} Read(BinaryReader reader, {dbContextTypeFullName} db)
+                    public static {fullClassName} {readMethodName}(BinaryReader reader, {dbContextTypeFullName} db)
                     {{{readCode}
 
                         var item = new {fullClassName}
                         {{{newCode}
-                        }};{lazyCode}
+                        }};
 
                         return item;
                     }}

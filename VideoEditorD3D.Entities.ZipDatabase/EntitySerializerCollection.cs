@@ -1,22 +1,24 @@
-﻿namespace VideoEditorD3D.Entities.ZipDatabase;
+﻿using VideoEditorD3D.Entities.ZipDatabase.GeneratedCode;
 
-public static class BinarySerializerCollection
+namespace VideoEditorD3D.Entities.ZipDatabase;
+
+public static class EntitySerializerCollection
 {
     private static readonly Dictionary<Type, object> Serializers = new();
 
-    public static BinarySerializer<T> GetSerializer<T>(DbContext dbContext)
+    public static EntitySerializer<T> GetEntitySerializer<T>(DbContext dbContext)
     {
         var type = typeof(T);
         var serializer = Serializers.ContainsKey(type) ? Serializers[type] : null;
         if (serializer == null)
         {
-            var newSerializer = new BinarySerializer<T>(dbContext);
+            var newSerializer = new EntitySerializer<T>(dbContext);
             Serializers[type] = newSerializer;
             return newSerializer;
         }
         else
         {
-            return (BinarySerializer<T>)serializer;
+            return (EntitySerializer<T>)serializer;
         }
     }
 }

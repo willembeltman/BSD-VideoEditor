@@ -50,6 +50,9 @@ public class ApplicationContext : IApplicationContext
     {
         Logger.StartThread();
 
+        var timeline = new Timeline();
+        Db.Timelines.Add(timeline);
+
         var mediaFile = new MediaFile();
         Db.MediaFiles.Add(mediaFile);
 
@@ -59,9 +62,6 @@ public class ApplicationContext : IApplicationContext
         };
         Db.MediaStreams.Add(mediaStream);
 
-        var timeline = new Timeline();
-        Db.Timelines.Add(timeline);
-
         var timelineVideo = new TimelineVideo()
         {
             TimelineId = timeline.Id,
@@ -70,10 +70,13 @@ public class ApplicationContext : IApplicationContext
         Db.TimelineVideos.Add(timelineVideo);
         Db.SaveChanges();
 
-        var a = Db.MediaFiles.FirstOrDefault();
-        var b = Db.MediaStreams.FirstOrDefault();
-        var c = Db.Timelines.FirstOrDefault();
-        var d = Db.TimelineVideos.FirstOrDefault();
+        mediaFile = Db.MediaFiles.FirstOrDefault();
+        mediaStream = Db.MediaStreams.FirstOrDefault();
+        timeline = Db.Timelines.FirstOrDefault();
+        timelineVideo = Db.TimelineVideos.FirstOrDefault();
+
+        var aa = mediaFile!.MediaStreams.FirstOrDefault();
+        var bbb = aa!.MediaFile.Value.MediaStreams.First().TimelineVideos.First().Timeline.Value.TimelineAudios.ToArray();
     }
 
     public void Dispose()

@@ -9,6 +9,5 @@ public class MediaFile : IEntity
     public string? FullName { get; set; }
 
     [ForeignKey("MediaFileId")]
-    public virtual ICollection<MediaStream> MediaStreams { get; set; } = [];
-
+    public ICollection<MediaStream> MediaStreams { get; set; } = [];
 }

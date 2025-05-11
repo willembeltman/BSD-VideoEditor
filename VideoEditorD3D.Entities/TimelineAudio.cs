@@ -14,7 +14,7 @@ public class TimelineAudio : IEntity, ITimelineClip
     public double ClipEndTime { get; set; }
 
     [ForeignKey("TimelineId")]
-    public virtual Timeline? TimelineItem { get; set; }
+    public Lazy<Timeline?> TimelineItem { get; set; } = new Lazy<Timeline?>(() => null, true);
     [ForeignKey("MediaStreamId")]
-    public virtual MediaStream? MediaStream { get; set; }
+    public Lazy<MediaStream?> MediaStream { get; set; } = new Lazy<MediaStream?>(() => null, true);
 }

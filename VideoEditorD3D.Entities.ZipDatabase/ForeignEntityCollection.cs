@@ -3,7 +3,7 @@ using VideoEditorD3D.Entities.ZipDatabase.Interfaces;
 
 namespace VideoEditorD3D.Entities.ZipDatabase;
 
-public class EntityProxyForeignCollection<TForeign, TPrimary> : ICollection<TForeign>
+public class ForeignEntityCollection<TForeign, TPrimary> : ICollection<TForeign>
     where TForeign : IEntity
     where TPrimary : IEntity
 {
@@ -12,7 +12,7 @@ public class EntityProxyForeignCollection<TForeign, TPrimary> : ICollection<TFor
     private readonly Action<TForeign, TPrimary> SetForeignKey;
     private readonly TPrimary Primary;
 
-    public EntityProxyForeignCollection(
+    public ForeignEntityCollection(
         DbSet<TForeign> dbSet, 
         TPrimary primary, 
         Func<TForeign, TPrimary, bool> whereHasForeignKey, 
@@ -43,7 +43,7 @@ public class EntityProxyForeignCollection<TForeign, TPrimary> : ICollection<TFor
     }
     public bool Remove(TForeign item)
     {
-        if (!DbSet.Where(a => WhereHasForeignKey(a, Primary)).Any(a => a.Id == item.Id)) return false;
+        if (!DbSet.Any(a => WhereHasForeignKey(a, Primary) && a.Id == item.Id)) return false;
         return DbSet.Remove(item);
     }
 
@@ -55,7 +55,7 @@ public class EntityProxyForeignCollection<TForeign, TPrimary> : ICollection<TFor
 
     public bool Contains(TForeign item)
     {
-        return DbSet.Where(a => WhereHasForeignKey(a, Primary)).Contains(item);
+        return DbSet.Any(a => WhereHasForeignKey(a, Primary) && a.Id == item.Id);
     }
 
     public IEnumerator<TForeign> GetEnumerator()

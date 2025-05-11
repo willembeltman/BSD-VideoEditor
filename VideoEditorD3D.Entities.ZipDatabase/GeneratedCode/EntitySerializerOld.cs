@@ -3,15 +3,15 @@ using Microsoft.CodeAnalysis.CSharp;
 using System.Reflection;
 using VideoEditorD3D.Entities.ZipDatabase.Helpers;
 
-namespace VideoEditorD3D.Entities.ZipDatabase;
+namespace VideoEditorD3D.Entities.ZipDatabase.GeneratedCode;
 
-public class BinarySerializerOld<T>
+public class EntitySerializerOld<T>
 {
     private Action<BinaryWriter, T, DbContext> WriteDelegate;
     private Func<BinaryReader, DbContext, T> ReadDelegate;
     private readonly string code;
 
-    internal BinarySerializerOld(DbContext dbContext)
+    internal EntitySerializerOld(DbContext dbContext)
     {
         var type = typeof(T);
         var serializerName = $"{type.Name}BinarySerializer";
@@ -39,16 +39,16 @@ public class BinarySerializerOld<T>
         var newCode = string.Empty;
         var lazyCode = string.Empty;
 
-        var entityDbCollectionType = typeof(EntityProxyForeignCollection<,>);
+        var entityDbCollectionType = typeof(ForeignEntityCollection<,>);
         var entityDbCollectionTypeFullName = entityDbCollectionType.FullName!.Split('`').First();
 
-        var binarySerializerType = typeof(BinarySerializer<>);
+        var binarySerializerType = typeof(EntitySerializer<>);
         var binarySerializerTypeFullName = binarySerializerType.FullName!.Split('`').First();
 
         var dbContextType = typeof(DbContext);
         var dbContextTypeFullName = dbContextType.FullName;
 
-        var binarySerializerCollectionType = typeof(BinarySerializerCollection);
+        var binarySerializerCollectionType = typeof(EntitySerializerCollection);
         var binarySerializerCollectionTypeFullName = binarySerializerCollectionType.FullName;
 
         var applicationDbContextType = dbContext.ParentType;

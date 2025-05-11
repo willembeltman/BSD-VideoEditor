@@ -2,6 +2,7 @@
 using System.IO.Compression;
 using VideoEditorD3D.Entities.ZipDatabase.Interfaces;
 using VideoEditorD3D.Entities.ZipDatabase.Extentions;
+using VideoEditorD3D.Entities.ZipDatabase.GeneratedCode;
 
 namespace VideoEditorD3D.Entities.ZipDatabase;
 
@@ -10,8 +11,8 @@ public class DbSet<T> : ICollection<T>, IDbSet
 {
     private readonly ReaderWriterLockSlim Lock;
     private readonly Dictionary<long, T> Cache;
-    private readonly BinarySerializer<T> Serializer;
-
+    private readonly EntitySerializer<T> EntitySerializer;
+    private readonly EntityExtender<T> EntityExtender;
     private long LastId;
 
     public DbContext DbContext { get; }
@@ -25,7 +26,8 @@ public class DbSet<T> : ICollection<T>, IDbSet
         TypeName = typeof(T).Name;
         Lock = new ReaderWriterLockSlim();
         Cache = new Dictionary<long, T>();
-        Serializer = BinarySerializerCollection.GetSerializer<T>(dbContext);
+        EntitySerializer = EntitySerializerCollection.GetEntitySerializer<T>(dbContext);
+        EntityExtender = EntityExtenderCollection.GetEntityExtender<T>(dbContext);
 
         LoadCache(dbContext.ZipArchive);
     }
@@ -57,7 +59,7 @@ public class DbSet<T> : ICollection<T>, IDbSet
                 if (dataPosition >= 0)
                 {
                     dataStream.Position = dataPosition;
-                    var item = Serializer.Read(dataReader!, DbContext);
+                    var item = EntitySerializer.Read(dataReader!, DbContext);
                     Cache[item.Id] = item;
                 }
             }
@@ -88,7 +90,7 @@ public class DbSet<T> : ICollection<T>, IDbSet
             foreach (var item in Cache.Values)
             {
                 indexWriter.Write(dataStream.Position);
-                Serializer.Write(dataWriter, item, DbContext);
+                EntitySerializer.Write(dataWriter, item, DbContext);
             }
         }
         finally
@@ -118,6 +120,7 @@ public class DbSet<T> : ICollection<T>, IDbSet
         {
             item.Id = ++LastId;
             Cache[item.Id] = item;
+            EntityExtender.ExtendEntity(item, DbContext);
         }
         finally
         {
@@ -198,6 +201,7 @@ public class DbSet<T> : ICollection<T>, IDbSet
         {
             foreach (var item in Cache.Values)
             {
+                EntityExtender.ExtendEntity(item, DbContext);
                 if (arrayIndex >= array.Length) throw new ArgumentException("Target array too small");
                 array[arrayIndex++] = item;
             }
@@ -212,11 +216,10 @@ public class DbSet<T> : ICollection<T>, IDbSet
         Lock.EnterReadLock();
         try
         {
-            var entityProxyCreator = EntityProxyCreaterCollection.GetEntityProxyCreator<T>(DbContext);
             foreach (var item in Cache.Values)
             {
-                var proxy = entityProxyCreator.CreateProxy(item, DbContext);
-                yield return proxy;
+                EntityExtender.ExtendEntity(item, DbContext);
+                yield return item;
             }
         }
         finally
@@ -225,7 +228,6 @@ public class DbSet<T> : ICollection<T>, IDbSet
         }
     }
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
 
     #endregion
 }

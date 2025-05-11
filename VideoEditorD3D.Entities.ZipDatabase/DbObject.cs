@@ -1,6 +1,7 @@
 ﻿using System.IO.Compression;
 using VideoEditorD3D.Entities.ZipDatabase.Interfaces;
 using VideoEditorD3D.Entities.ZipDatabase.Extentions;
+using VideoEditorD3D.Entities.ZipDatabase.GeneratedCode;
 
 namespace VideoEditorD3D.Entities.ZipDatabase;
 
@@ -9,7 +10,7 @@ public class DbObject<T> : IDbObject
 {
     private readonly string Name;
     private readonly ReaderWriterLockSlim Lock;
-    private readonly BinarySerializer<T> Serializer;
+    private readonly EntitySerializer<T> Serializer;
     private T? Cache;
 
     public DbContext DbContext { get; }
@@ -21,7 +22,7 @@ public class DbObject<T> : IDbObject
 
         Name = typeof(T).Name;
         Lock = new ReaderWriterLockSlim();
-        Serializer = BinarySerializerCollection.GetSerializer<T>(dbContext);
+        Serializer = EntitySerializerCollection.GetEntitySerializer<T>(dbContext);
 
         LoadCache(dbContext.ZipArchive);
     }
