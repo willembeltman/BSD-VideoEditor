@@ -3,7 +3,7 @@ using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Forms;
 
-public class Control
+public class Control : IDisposable
 {
     public IApplicationForm ApplicationForm { get; }
     public Form? ParentForm { get; }
@@ -13,6 +13,7 @@ public class Control
 
     public bool Loaded { get; private set; }
     public bool Dirty { get; private set; }
+
     private int _Left = 0;
     private int _Top = 0;
     private int _Width = 480;
@@ -45,6 +46,7 @@ public class Control
     public event EventHandler<EventArgs>? DragLeave;
     public event EventHandler<DragEventArgs>? DragDrop;
 
+    public virtual bool Visible { get; set; } = true;
     public int Left
     {
         get => _Left;
@@ -337,10 +339,15 @@ public class Control
             control.OnUpdate();
         }
     }
+    public virtual void OnDispose()
+    {
+    }
 
 
     public IEnumerable<GraphicsLayer> GetAllCanvasLayers()
     {
+        if (!Visible) yield break;
+
         if (Dirty)
         {
             OnDraw();
@@ -357,6 +364,19 @@ public class Control
             {
                 yield return layer;
             }
+        }
+    }
+
+    public void Dispose()
+    {
+        OnDispose();
+        foreach (var layer in CanvasLayers)
+        {
+            layer.Dispose();
+        }
+        foreach (var control in Controls)
+        {
+            control.Dispose();
         }
     }
 }

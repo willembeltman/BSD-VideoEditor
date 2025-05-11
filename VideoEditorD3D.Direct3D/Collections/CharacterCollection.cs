@@ -4,13 +4,13 @@ using VideoEditorD3D.Direct3D.Textures;
 
 namespace VideoEditorD3D.Direct3D.Collections;
 
-public class CharacterCollection(IApplicationForm Application) : IDisposable
+public class CharacterCollection(IApplicationForm application) : ObservableArrayCollection<CharacterTexture>, IDisposable
 {
-    private CharacterTexture[] TextItems = [];
+    private readonly IApplicationForm Application = application;
 
     public CharacterTexture GetOrCreate(char character, string font, float fontSize, FontStyle fontStyle, RawColor4 backColor, RawColor4 foreColor)
     {
-        var item = TextItems
+        var item = this
             .FirstOrDefault(a =>
                 a.Char == character &&
                 a.FontName == font &&
@@ -33,16 +33,9 @@ public class CharacterCollection(IApplicationForm Application) : IDisposable
         return item;
     }
 
-    // Resizes the array to accommodate the new item then adds it to the end of the array.
-    private void Add(CharacterTexture item)
-    {
-        Array.Resize(ref TextItems, TextItems.Length + 1);
-        TextItems[^1] = item;
-    }
-
     public void Dispose()
     {
-        foreach (var item in TextItems)
+        foreach (var item in this)
         {
             item.Dispose();
         }

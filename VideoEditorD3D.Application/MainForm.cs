@@ -1,5 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using SharpDX.Mathematics.Interop;
+﻿using SharpDX.Mathematics.Interop;
 using VideoEditorD3D.Application.Controls;
 using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Direct3D.Interfaces;
@@ -12,7 +11,7 @@ public class MainForm : Form
     private readonly DisplayControl DisplayControl;
     private readonly TimelineControl TimelineControl;
     private readonly PropertiesControl PropertiesControl;
-    private readonly Label FpsLabel;
+    private readonly Button FpsLabel;
     private readonly ApplicationContext ApplicationContext;
 
     private int TimelineHeight = 200;
@@ -71,7 +70,7 @@ public class MainForm : Form
         TimelineControl.BackColor = new RawColor4(0, 0, 0, 1);
         Controls.Add(TimelineControl);
 
-        FpsLabel = new Label(applicationForm, this, this);
+        FpsLabel = new Button(applicationForm, this, this);
         FpsLabel.Left = 3;
         FpsLabel.Top = 3;
         FpsLabel.Width = 200;
@@ -82,18 +81,6 @@ public class MainForm : Form
         FpsLabel.BorderSize = 1;
         FpsLabel.FontSize = 6f;
         FpsLabel.Font = "Ebrima";
-        FpsLabel.MouseDown += (sender, args) =>
-        {
-            FpsLabel.BackColor = new RawColor4(1, 1, 1, 1);
-            FpsLabel.BorderColor = new RawColor4(0, 0, 0, 1);
-            FpsLabel.ForeColor = new RawColor4(0, 0, 0, 1);
-        };
-        FpsLabel.MouseUp += (sender, args) =>
-        {
-            FpsLabel.BackColor = new RawColor4(0, 0, 0, 0.5f);
-            FpsLabel.BorderColor = new RawColor4(1, 1, 1, 1);
-            FpsLabel.ForeColor = new RawColor4(1, 1, 1, 1);
-        };
         Controls.Add(FpsLabel);
     }
 
@@ -200,20 +187,24 @@ public class MainForm : Form
         {
             ApplicationForm.Cursor = System.Windows.Forms.Cursors.Default;
         }
+        base.OnMouseMove(e);
     }
     public override void OnMouseDown(System.Windows.Forms.MouseEventArgs e)
     {
         IsMovingX = MouseIsOverXResizer(e);
         IsMovingY = MouseIsOverYResizer(e);
+        base.OnMouseDown(e);
     }
     public override void OnMouseUp(System.Windows.Forms.MouseEventArgs e)
     {
         IsMovingX = false;
         IsMovingY = false;
+        base.OnMouseUp(e);
     }
     public override void OnMouseLeave(EventArgs e)
     {
         ApplicationForm.Cursor = System.Windows.Forms.Cursors.Default;
+        base.OnMouseLeave(e);
     }
 
 

@@ -18,6 +18,8 @@ public class Default60FpsDrawerThread : IDrawerThread
     private readonly IApplicationContext Application;
     private readonly Thread Thread;
 
+    public virtual double FrameTime => 1d / 60d;
+
     public void StartThread()
     {
         Thread.Start();
@@ -27,7 +29,7 @@ public class Default60FpsDrawerThread : IDrawerThread
     {
         while (!Application.KillSwitch)
         {
-            ApplicationForm.Timers.FpsTimer.SleepTillNextFrame(1d / 60);
+            ApplicationForm.Timers.FpsTimer.SleepTillNextFrame(FrameTime);
             ApplicationForm.TryDraw();
         }
         ApplicationForm.CloseForm();
