@@ -15,14 +15,12 @@ public class DbSet<T> : ICollection<T>, IDbSet
     private readonly EntityExtender<T> EntityExtender;
     private long LastId;
 
-    public object DbContextObject { get; }
     public DbContext DbContext { get; }
     public string TypeName { get; }
 
-    public DbSet(object dbContextObject)
+    public DbSet(DbContext dbContext)
     {
-        DbContextObject = dbContextObject;
-        DbContext = (dbContextObject as DbContext)!;
+        DbContext = dbContext;
         DbContext.AddDbSet(this);
 
         TypeName = typeof(T).Name;
@@ -62,6 +60,7 @@ public class DbSet<T> : ICollection<T>, IDbSet
                 {
                     dataStream.Position = dataPosition;
                     var item = EntitySerializer.Read(dataReader!);
+                    EntityExtender.ExtendEntity(item, DbContext);
                     Cache[item.Id] = item;
                 }
             }
@@ -116,13 +115,14 @@ public class DbSet<T> : ICollection<T>, IDbSet
     public void Add(T item)
     {
         if (item == null) throw new ArgumentNullException(nameof(item));
+        if (Contains(item)) throw new ArgumentException("Item already exists in the collection");
 
         Lock.EnterWriteLock();
         try
         {
             item.Id = ++LastId;
             Cache[item.Id] = item;
-            EntityExtender.ExtendEntity(item, DbContextObject);
+            EntityExtender.ExtendEntity(item, DbContext);
         }
         finally
         {
@@ -203,7 +203,7 @@ public class DbSet<T> : ICollection<T>, IDbSet
         {
             foreach (var item in Cache.Values)
             {
-                EntityExtender.ExtendEntity(item, DbContextObject);
+                //EntityExtender.ExtendEntity(item, DbContext);
                 if (arrayIndex >= array.Length) throw new ArgumentException("Target array too small");
                 array[arrayIndex++] = item;
             }
@@ -220,7 +220,7 @@ public class DbSet<T> : ICollection<T>, IDbSet
         {
             foreach (var item in Cache.Values)
             {
-                EntityExtender.ExtendEntity(item, DbContextObject);
+                //EntityExtender.ExtendEntity(item, DbContext);
                 yield return item;
             }
         }

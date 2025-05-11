@@ -63,9 +63,12 @@ public class ApplicationContext : IApplicationContext
         project.Files.Add(mediaFile);
         var mediaStream = new MediaStream();
         mediaFile.MediaStreams.Add(mediaStream);
-        var timelineVideo = new TimelineVideo();
+        var timelineVideo = new TimelineVideo()
+        {
+            MediaStreamId = mediaStream.Id
+        };
         timeline.TimelineVideos.Add(timelineVideo);
-        mediaStream.TimelineVideos.Add(timelineVideo);
+        //mediaStream.TimelineVideos.Add(timelineVideo);
 
         var n = timeline.Project.Value;
 

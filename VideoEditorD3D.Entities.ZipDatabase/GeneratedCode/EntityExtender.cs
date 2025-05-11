@@ -8,7 +8,7 @@ namespace VideoEditorD3D.Entities.ZipDatabase.GeneratedCode;
 
 public class EntityExtender<T>
 {
-    private Action<T, object> ExtendEntityDelegate;
+    private Action<T, DbContext> ExtendEntityDelegate;
 
     public readonly string Code;
 
@@ -23,8 +23,8 @@ public class EntityExtender<T>
         var serializerType = asm.GetType(className)!;
         var createProxyMethod = serializerType.GetMethod(methodName)!;
 
-        ExtendEntityDelegate = (Action<T, object>)Delegate.CreateDelegate(
-            typeof(Action<T, object>), createProxyMethod)!;
+        ExtendEntityDelegate = (Action<T, DbContext>)Delegate.CreateDelegate(
+            typeof(Action<T, DbContext>), createProxyMethod)!;
     }
 
     private string GenerateSerializerCode(Type type, string proxyName, string methodName, DbContext dbContext)
@@ -108,7 +108,7 @@ public class EntityExtender<T>
 
                 public static class {proxyName}
                 {{
-                    public static void {methodName}({fullClassName} item, object objDb)
+                    public static void {methodName}({fullClassName} item, {dbContextTypeFullName} objDb)
                     {{
                         var db = objDb as {applicationDbContextTypeFullName};
 {lazyCode}
@@ -164,7 +164,7 @@ public class EntityExtender<T>
         return Assembly.Load(ms.ToArray());
     }
 
-    public void ExtendEntity(T entity, object dbContext)
+    public void ExtendEntity(T entity, DbContext dbContext)
     {
         ExtendEntityDelegate(entity, dbContext);
     }
