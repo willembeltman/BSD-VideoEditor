@@ -15,24 +15,26 @@ public class DbSet<T> : ICollection<T>, IDbSet
     private readonly EntityExtender<T> EntityExtender;
     private long LastId;
 
+    public object DbContextObject { get; }
     public DbContext DbContext { get; }
     public string TypeName { get; }
 
-    public DbSet(DbContext dbContext)
+    public DbSet(object dbContextObject)
     {
-        DbContext = dbContext;
-        dbContext.AddDbSet(this);
+        DbContextObject = dbContextObject;
+        DbContext = (dbContextObject as DbContext)!;
+        DbContext.AddDbSet(this);
 
         TypeName = typeof(T).Name;
         Lock = new ReaderWriterLockSlim();
         Cache = new Dictionary<long, T>();
-        EntitySerializer = EntitySerializerCollection.GetEntitySerializer<T>(dbContext);
-        EntityExtender = EntityExtenderCollection.GetEntityExtender<T>(dbContext);
+        EntitySerializer = EntitySerializerCollection.GetEntitySerializer<T>();
+        EntityExtender = EntityExtenderCollection.GetEntityExtender<T>(DbContext);
 
-        LoadCache(dbContext.ZipArchive);
+        //LoadCache(DbContext.ZipArchive);
     }
 
-    private void LoadCache(ZipArchive zipArchive)
+    public void LoadCache(ZipArchive zipArchive)
     {
         Lock.EnterWriteLock();
         try
@@ -120,7 +122,7 @@ public class DbSet<T> : ICollection<T>, IDbSet
         {
             item.Id = ++LastId;
             Cache[item.Id] = item;
-            EntityExtender.ExtendEntity(item, DbContext);
+            EntityExtender.ExtendEntity(item, DbContextObject);
         }
         finally
         {
@@ -201,7 +203,7 @@ public class DbSet<T> : ICollection<T>, IDbSet
         {
             foreach (var item in Cache.Values)
             {
-                EntityExtender.ExtendEntity(item, DbContext);
+                EntityExtender.ExtendEntity(item, DbContextObject);
                 if (arrayIndex >= array.Length) throw new ArgumentException("Target array too small");
                 array[arrayIndex++] = item;
             }
@@ -218,7 +220,7 @@ public class DbSet<T> : ICollection<T>, IDbSet
         {
             foreach (var item in Cache.Values)
             {
-                EntityExtender.ExtendEntity(item, DbContext);
+                EntityExtender.ExtendEntity(item, DbContextObject);
                 yield return item;
             }
         }

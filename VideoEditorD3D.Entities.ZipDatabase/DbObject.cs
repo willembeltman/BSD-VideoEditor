@@ -6,28 +6,32 @@ using VideoEditorD3D.Entities.ZipDatabase.GeneratedCode;
 namespace VideoEditorD3D.Entities.ZipDatabase;
 
 public class DbObject<T> : IDbObject
-    where T : class, new()
+    where T : class, IEntity, new()
 {
     private readonly string Name;
     private readonly ReaderWriterLockSlim Lock;
-    private readonly EntitySerializer<T> Serializer;
+    private readonly EntitySerializer<T> EntitySerializer;
+    private readonly EntityExtender<T> EntityExtender;
     private T? Cache;
 
+    public object DbContextObject { get; }
     public DbContext DbContext { get; }
 
-    public DbObject(DbContext dbContext)
+    public DbObject(object dbContext)
     {
-        DbContext = dbContext;
-        dbContext.AddDbObject(this);
+        DbContextObject = dbContext;
+        DbContext = (dbContext as DbContext)!;
+        DbContext.AddDbObject(this);
 
         Name = typeof(T).Name;
         Lock = new ReaderWriterLockSlim();
-        Serializer = EntitySerializerCollection.GetEntitySerializer<T>(dbContext);
+        EntitySerializer = EntitySerializerCollection.GetEntitySerializer<T>();
+        EntityExtender = EntityExtenderCollection.GetEntityExtender<T>(DbContext);
 
-        LoadCache(dbContext.ZipArchive);
+        //LoadCache(DbContext.ZipArchive);
     }
 
-    public T? Value
+    public T Value
     {
         get
         {
@@ -48,7 +52,7 @@ public class DbObject<T> : IDbObject
     }
 
 
-    private void LoadCache(ZipArchive zipArchive)
+    public void LoadCache(ZipArchive zipArchive)
     {
         Lock.EnterWriteLock();
         try
@@ -58,9 +62,14 @@ public class DbObject<T> : IDbObject
             using var dataReader = new BinaryReader(dataStream);
 
             if (dataStream.Position < dataStream.Length)
-                Cache = Serializer.Read(dataReader);
+                Cache = EntitySerializer.Read(dataReader);
             else
-                Cache = new T();
+                Cache = new T()
+                {
+                    Id = 1
+                };
+
+            EntityExtender.ExtendEntity(Cache, DbContextObject);
         }
         finally
         {
@@ -75,7 +84,7 @@ public class DbObject<T> : IDbObject
             var dataFile = zipArchive.GetOrCreateEntry($"{Name}.data");
             using var dataStream = dataFile!.Open();
             using var dataWriter = new BinaryWriter(dataStream);
-            Serializer.Write(dataWriter, Cache!);
+            EntitySerializer.Write(dataWriter, Cache!);
         }
         finally
         {

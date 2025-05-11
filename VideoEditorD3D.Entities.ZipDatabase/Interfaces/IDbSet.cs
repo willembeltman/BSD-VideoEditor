@@ -6,5 +6,6 @@ public interface IDbSet
 {
     string TypeName { get; }
 
+    void LoadCache(ZipArchive zipArchive);
     void WriteCache(ZipArchive zipArchive);
 }

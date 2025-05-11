@@ -9,7 +9,7 @@ public class EntitySerializer<T>
 {
     private Action<BinaryWriter, T> WriteDelegate;
     private Func<BinaryReader, T> ReadDelegate;
-    private readonly string code;
+    public readonly string Code;
 
     internal EntitySerializer()
     {
@@ -17,8 +17,8 @@ public class EntitySerializer<T>
         var className = $"{type.Name}EntitySerializer";
         var readMethodName = "EntitySerializerRead";
         var writeMethodName = "EntitySerializerWrite";
-        code = GenerateSerializerCode(type, className, readMethodName, writeMethodName);
-        var asm = Compile(code);
+        Code = GenerateSerializerCode(type, className, readMethodName, writeMethodName);
+        var asm = Compile(Code);
         var serializerType = asm.GetType(className)!;
         var readMethod = serializerType.GetMethod(readMethodName)!;
         var writeMethod = serializerType.GetMethod(writeMethodName)!;
@@ -28,7 +28,6 @@ public class EntitySerializer<T>
 
         WriteDelegate = (Action<BinaryWriter, T>)Delegate.CreateDelegate(
             typeof(Action<BinaryWriter, T>), writeMethod)!;
-
     }
 
     private string GenerateSerializerCode(Type type, string serializerName, string readMethodName, string writeMethodName)
@@ -54,28 +53,16 @@ public class EntitySerializer<T>
         var props = type.GetProperties();
         foreach (var prop in props)
         {
-            if (!ReflectionHelper.IsPublic(prop)) continue;
-            if (!ReflectionHelper.HasSetter(prop)) continue;
-            if (ReflectionHelper.IsVirtual(prop)) continue;
-            if (ReflectionHelper.HasForeignKeyProperty(prop)) continue;
+            if (!ReflectionHelper.HasPublicGetter(prop)) continue;
+            if (!ReflectionHelper.HasPublicSetter(prop)) continue;
+            //if (ReflectionHelper.IsVirtual(prop)) continue;
+            if (ReflectionHelper.HasNotMappedAttribute(prop)) continue;
+            if (ReflectionHelper.HasForeignKeyAttribute(prop)) continue;
 
             var propertyName = prop.Name;
 
             var readMethod = GetBinaryReadMethod(prop.PropertyType);
-            if (readMethod == null)
-            {
-                writeCode += @$"
-
-                        var {propertyName}Serializer = {binarySerializerCollectionTypeFullName}.{method}<{prop.PropertyType.FullName}>(db);
-                        {propertyName}Serializer.Write(writer, value.{propertyName}, db);";
-
-                readCode += @$"
-
-                        var {propertyName}Serializer = {binarySerializerCollectionTypeFullName}.{method}<{prop.PropertyType.FullName}>(db);
-                        var {propertyName} = {propertyName}Serializer.Read(reader, db);";
-
-            }
-            else
+            if (readMethod != null)
             {
                 if (ReflectionHelper.IsNulleble(prop))
                 {
@@ -105,6 +92,19 @@ public class EntitySerializer<T>
                     readCode += @$"
                         var {propertyName} = reader.Read{readMethod}();";
                 }
+            }
+            else
+            {
+                writeCode += @$"
+
+                        var {propertyName}Serializer = {binarySerializerCollectionTypeFullName}.{method}<{prop.PropertyType.FullName}>();
+                        {propertyName}Serializer.Write(writer, value.{propertyName});";
+
+                readCode += @$"
+
+                        var {propertyName}Serializer = {binarySerializerCollectionTypeFullName}.{method}<{prop.PropertyType.FullName}>();
+                        var {propertyName} = {propertyName}Serializer.Read(reader);";
+
             }
 
             newCode += @$"

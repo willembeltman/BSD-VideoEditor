@@ -6,13 +6,17 @@ namespace VideoEditorD3D.Entities.ZipDatabase.Helpers
     public static class ReflectionHelper
     {
         // Controleert of de eigenschap een foreign key attribuut heeft
-        public static bool HasForeignKeyProperty(PropertyInfo prop)
+        public static bool HasForeignKeyAttribute(PropertyInfo prop)
         {
             return prop.GetCustomAttribute<ForeignKeyAttribute>() != null;
         }
+        public static bool HasNotMappedAttribute(PropertyInfo prop)
+        {
+            return prop.GetCustomAttribute<NotMappedAttribute>() != null;
+        }
 
         // Haalt de naam op van de foreign key zoals aangegeven in het [ForeignKey("...")] attribuut
-        public static string? GetForeignKeyName(PropertyInfo prop)
+        public static string? GetForeignKeyAttributeName(PropertyInfo prop)
         {
             var attr = prop.GetCustomAttribute<ForeignKeyAttribute>();
             return attr?.Name;
@@ -31,14 +35,14 @@ namespace VideoEditorD3D.Entities.ZipDatabase.Helpers
         }
 
         // Controleert of de property publiek toegankelijk is (ten minste met een getter)
-        public static bool IsPublic(PropertyInfo prop)
+        public static bool HasPublicGetter(PropertyInfo prop)
         {
             var getter = prop.GetGetMethod(false);
             return getter != null;
         }
 
         // Controleert of de property een publieke of private setter heeft
-        public static bool HasSetter(PropertyInfo prop)
+        public static bool HasPublicSetter(PropertyInfo prop)
         {
             return prop.GetSetMethod(false) != null;
         }
@@ -99,6 +103,7 @@ namespace VideoEditorD3D.Entities.ZipDatabase.Helpers
         {
             return prop.PropertyType;
         }
+
     }
 
 }

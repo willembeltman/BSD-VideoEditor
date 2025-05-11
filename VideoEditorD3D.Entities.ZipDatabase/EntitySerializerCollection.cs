@@ -6,7 +6,7 @@ public static class EntitySerializerCollection
 {
     private static readonly Dictionary<Type, object> Serializers = new();
 
-    public static EntitySerializer<T> GetEntitySerializer<T>(DbContext dbContext)
+    public static EntitySerializer<T> GetEntitySerializer<T>()
     {
         var type = typeof(T);
         var serializer = Serializers.ContainsKey(type) ? Serializers[type] : null;

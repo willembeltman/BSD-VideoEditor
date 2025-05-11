@@ -50,24 +50,42 @@ public class ApplicationContext : IApplicationContext
     {
         Logger.StartThread();
 
+        //Db.Project
+        var project = Db.Project.Value;
         var timeline = new Timeline();
-        Db.Timelines.Add(timeline);
-
+        project.Timelines.Add(timeline);
         var mediaFile = new MediaFile();
-        Db.MediaFiles.Add(mediaFile);
+        project.Files.Add(mediaFile);
+        var mediaStream = new MediaStream();
+        mediaFile.MediaStreams.Add(mediaStream);
+        var timelineVideo = new TimelineVideo();
+        timeline.TimelineVideos.Add(timelineVideo);
+        mediaStream.TimelineVideos.Add(timelineVideo);
 
-        var mediaStream = new MediaStream()
-        {
-            MediaFileId = mediaFile.Id,
-        };
-        Db.MediaStreams.Add(mediaStream);
+        //var timeline = new Timeline()
+        //{
+        //    ProjectId = project.Id,
+        //};
+        //Db.Timelines.Add(timeline);
 
-        var timelineVideo = new TimelineVideo()
-        {
-            TimelineId = timeline.Id,
-            MediaStreamId = mediaStream.Id,
-        };
-        Db.TimelineVideos.Add(timelineVideo);
+        //var mediaFile = new MediaFile()
+        //{
+        //    ProjectId = project.Id
+        //};
+        //Db.MediaFiles.Add(mediaFile);
+
+        //var mediaStream = new MediaStream()
+        //{
+        //    MediaFileId = mediaFile.Id,
+        //};
+        //Db.MediaStreams.Add(mediaStream);
+
+        //var timelineVideo = new TimelineVideo()
+        //{
+        //    TimelineId = timeline.Id,
+        //    MediaStreamId = mediaStream.Id,
+        //};
+        //Db.TimelineVideos.Add(timelineVideo);
         Db.SaveChanges();
 
         mediaFile = Db.MediaFiles.FirstOrDefault();
@@ -77,6 +95,7 @@ public class ApplicationContext : IApplicationContext
 
         var aa = mediaFile!.MediaStreams.FirstOrDefault();
         var bbb = aa!.MediaFile.Value.MediaStreams.First().TimelineVideos.First().Timeline.Value.TimelineAudios.ToArray();
+
     }
 
     public void Dispose()

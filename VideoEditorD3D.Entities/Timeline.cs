@@ -7,9 +7,14 @@ namespace VideoEditorD3D.Entities;
 public class Timeline : IEntity
 {
     public long Id { get; set; }
+    public long ProjectId { get; set; }
+
     public bool IsCurrent { get; set; }
     public Fps Fps { get; set; }
     public Resolution Resolution { get; set; }
+
+    [ForeignKey("ProjectId")]
+    public Lazy<Project?> Project { get; set; } = new Lazy<Project?>(() => null, true);
 
     [ForeignKey("TimelineId")]
     public virtual ICollection<TimelineVideo> TimelineVideos { get; set; } = [];
