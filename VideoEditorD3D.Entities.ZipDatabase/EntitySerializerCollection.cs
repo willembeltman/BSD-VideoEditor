@@ -12,7 +12,7 @@ public static class EntitySerializerCollection
         var serializer = Serializers.ContainsKey(type) ? Serializers[type] : null;
         if (serializer == null)
         {
-            var newSerializer = new EntitySerializer<T>(dbContext);
+            var newSerializer = new EntitySerializer<T>();
             Serializers[type] = newSerializer;
             return newSerializer;
         }

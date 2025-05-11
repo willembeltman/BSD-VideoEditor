@@ -58,7 +58,7 @@ public class DbObject<T> : IDbObject
             using var dataReader = new BinaryReader(dataStream);
 
             if (dataStream.Position < dataStream.Length)
-                Cache = Serializer.Read(dataReader, DbContext);
+                Cache = Serializer.Read(dataReader);
             else
                 Cache = new T();
         }
@@ -75,7 +75,7 @@ public class DbObject<T> : IDbObject
             var dataFile = zipArchive.GetOrCreateEntry($"{Name}.data");
             using var dataStream = dataFile!.Open();
             using var dataWriter = new BinaryWriter(dataStream);
-            Serializer.Write(dataWriter, Cache!, DbContext);
+            Serializer.Write(dataWriter, Cache!);
         }
         finally
         {

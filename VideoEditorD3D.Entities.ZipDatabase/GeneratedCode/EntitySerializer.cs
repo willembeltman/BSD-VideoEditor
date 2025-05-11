@@ -7,31 +7,31 @@ namespace VideoEditorD3D.Entities.ZipDatabase.GeneratedCode;
 
 public class EntitySerializer<T>
 {
-    private Action<BinaryWriter, T, DbContext> WriteDelegate;
-    private Func<BinaryReader, DbContext, T> ReadDelegate;
+    private Action<BinaryWriter, T> WriteDelegate;
+    private Func<BinaryReader, T> ReadDelegate;
     private readonly string code;
 
-    internal EntitySerializer(DbContext dbContext)
+    internal EntitySerializer()
     {
         var type = typeof(T);
         var className = $"{type.Name}EntitySerializer";
         var readMethodName = "EntitySerializerRead";
         var writeMethodName = "EntitySerializerWrite";
-        code = GenerateSerializerCode(type, className, readMethodName, writeMethodName, dbContext);
+        code = GenerateSerializerCode(type, className, readMethodName, writeMethodName);
         var asm = Compile(code);
         var serializerType = asm.GetType(className)!;
         var readMethod = serializerType.GetMethod(readMethodName)!;
         var writeMethod = serializerType.GetMethod(writeMethodName)!;
 
-        ReadDelegate = (Func<BinaryReader, DbContext, T>)Delegate.CreateDelegate(
-            typeof(Func<BinaryReader, DbContext, T>), readMethod)!;
+        ReadDelegate = (Func<BinaryReader, T>)Delegate.CreateDelegate(
+            typeof(Func<BinaryReader, T>), readMethod)!;
 
-        WriteDelegate = (Action<BinaryWriter, T, DbContext>)Delegate.CreateDelegate(
-            typeof(Action<BinaryWriter, T, DbContext>), writeMethod)!;
+        WriteDelegate = (Action<BinaryWriter, T>)Delegate.CreateDelegate(
+            typeof(Action<BinaryWriter, T>), writeMethod)!;
 
     }
 
-    private string GenerateSerializerCode(Type type, string serializerName, string readMethodName, string writeMethodName, DbContext dbContext)
+    private string GenerateSerializerCode(Type type, string serializerName, string readMethodName, string writeMethodName)
     {
         var className = type.Name;
         var fullClassName = type.FullName;
@@ -47,15 +47,9 @@ public class EntitySerializer<T>
         var binarySerializerType = typeof(EntitySerializer<>);
         var binarySerializerTypeFullName = binarySerializerType.FullName!.Split('`').First();
 
-        var dbContextType = typeof(DbContext);
-        var dbContextTypeFullName = dbContextType.FullName;
-
         var binarySerializerCollectionType = typeof(EntitySerializerCollection);
         var binarySerializerCollectionTypeFullName = binarySerializerCollectionType.FullName;
         var method = binarySerializerCollectionType.GetMethods().First().Name;
-
-        var applicationDbContextType = dbContext.ParentType;
-        var applicationDbContextTypeFullName = dbContext.ParentType.FullName;
 
         var props = type.GetProperties();
         foreach (var prop in props)
@@ -124,11 +118,11 @@ public class EntitySerializer<T>
 
                 public static class {serializerName}
                 {{
-                    public static void {writeMethodName}(BinaryWriter writer, {fullClassName} value, {dbContextTypeFullName} db)
+                    public static void {writeMethodName}(BinaryWriter writer, {fullClassName} value)
                     {{{writeCode}
                     }}
 
-                    public static {fullClassName} {readMethodName}(BinaryReader reader, {dbContextTypeFullName} db)
+                    public static {fullClassName} {readMethodName}(BinaryReader reader)
                     {{{readCode}
 
                         var item = new {fullClassName}
@@ -176,12 +170,12 @@ public class EntitySerializer<T>
         return Assembly.Load(ms.ToArray());
     }
 
-    public void Write(BinaryWriter bw, T item, DbContext dbContext)
+    public void Write(BinaryWriter bw, T item)
     {
-        WriteDelegate(bw, item, dbContext);
+        WriteDelegate(bw, item);
     }
-    public T Read(BinaryReader bw, DbContext dbContext)
+    public T Read(BinaryReader bw)
     {
-        return ReadDelegate(bw, dbContext);
+        return ReadDelegate(bw);
     }
 }
