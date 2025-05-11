@@ -1,8 +1,9 @@
-﻿using VideoEditorD3D.Entities.ZipDatabase.Interfaces;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using VideoEditorD3D.Entities.ZipDatabase.Interfaces;
 
 namespace VideoEditorD3D.Entities;
 
-public class TimelineVideo : IEntity
+public class TimelineVideo : IEntity, ITimelineClip
 {
     public long Id { get; set; }
     public long TimelineId { get; set; }
@@ -11,4 +12,9 @@ public class TimelineVideo : IEntity
     public double EndTime { get; set; }
     public double ClipStartTime { get; set; }
     public double ClipEndTime { get; set; }
+
+    [ForeignKey("TimelineId")]
+    public virtual Timeline? TimelineItem { get; set; }
+    [ForeignKey("MediaStreamId")]
+    public virtual MediaStream? MediaStream { get; set; }
 }

@@ -7,39 +7,78 @@ namespace VideoEditorD3D.Entities.ZipDatabase;
 public class DbObject<T> : IDbObject
     where T : class, new()
 {
-    public DbObject(DbContext dbContext)
-    {
-        dbContext.AddDbObject(this);
-
-        Name = typeof(T).Name;
-        Lock = new ReaderWriterLockSlim();
-        Serializer = new BinarySerializer<T>();
-
-        LoadCache(dbContext.ZipArchive);
-    }
-
     private readonly string Name;
     private readonly ReaderWriterLockSlim Lock;
     private readonly BinarySerializer<T> Serializer;
     private T? Cache;
-    public T Value => Cache!;
+
+    public DbContext DbContext { get; }
+
+    public DbObject(DbContext dbContext)
+    {
+        DbContext = dbContext;
+        dbContext.AddDbObject(this);
+
+        Name = typeof(T).Name;
+        Lock = new ReaderWriterLockSlim();
+        Serializer = BinarySerializerCollection.GetSerializer<T>(dbContext);
+
+        LoadCache(dbContext.ZipArchive);
+    }
+
+    public T? Value
+    {
+        get
+        {
+            T? item = null;
+
+            Lock.EnterReadLock();
+            try
+            {
+                item = Cache!;
+            }
+            finally
+            {
+                Lock.ExitReadLock();
+            }
+
+            return item;
+        }
+    }
+
 
     private void LoadCache(ZipArchive zipArchive)
     {
-        var dataFile = zipArchive.GetOrCreateEntry($"{Name}.data");
-        using var dataStream = dataFile!.Open();
-        using var dataReader = new BinaryReader(dataStream);
+        Lock.EnterWriteLock();
+        try
+        {
+            var dataFile = zipArchive.GetOrCreateEntry($"{Name}.data");
+            using var dataStream = dataFile!.Open();
+            using var dataReader = new BinaryReader(dataStream);
 
-        if (dataStream.Position < dataStream.Length)
-            Cache = Serializer.Read(dataReader);
-        else 
-            Cache = new T();
+            if (dataStream.Position < dataStream.Length)
+                Cache = Serializer.Read(dataReader, DbContext);
+            else
+                Cache = new T();
+        }
+        finally
+        {
+            Lock.ExitWriteLock();
+        }
     }
     public void WriteCache(ZipArchive zipArchive)
     {
-        var dataFile = zipArchive.GetOrCreateEntry($"{Name}.data");
-        using var dataStream = dataFile!.Open();
-        using var dataWriter = new BinaryWriter(dataStream);
-        Serializer.Write(dataWriter, Cache!);
+        Lock.EnterReadLock();
+        try
+        {
+            var dataFile = zipArchive.GetOrCreateEntry($"{Name}.data");
+            using var dataStream = dataFile!.Open();
+            using var dataWriter = new BinaryWriter(dataStream);
+            Serializer.Write(dataWriter, Cache!, DbContext);
+        }
+        finally
+        {
+            Lock.ExitReadLock();
+        }
     }
 }

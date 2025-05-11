@@ -47,7 +47,7 @@ public class GraphicsLayer(IApplicationForm applicationForm, Forms.Control contr
         if (TriangleVertices.Count > 0)
             TriangleVerticesBuffer = Buffer.Create(ApplicationForm.Device, BindFlags.VertexBuffer, TriangleVertices.ToArray());
     }
-    public void DrawLine(int startX, int startY, int endX, int endY, RawColor4 color, int strokeWidth)
+    public void DrawLine(int startX, int startY, int endX, int endY, RawColor4 color, int strokeWidth = 1)
     {
         if (strokeWidth < 1)
             return;
@@ -117,18 +117,18 @@ public class GraphicsLayer(IApplicationForm applicationForm, Forms.Control contr
         DrawLine(right, bottom, left, bottom, color, strokeWidth);
         DrawLine(left, bottom, left, top, color, strokeWidth);
     }
-    public void FillRectangle(int left2, int top2, int width, int height, RawColor4 color)
+    public void FillRectangle(int left, int top, int width, int height, RawColor4 color)
     {
-        var left = left2 + AbsoluteLeft;
-        var top = top2 + AbsoluteTop;
-        var right = left + width;
-        var bottom = top + height;
+        var absoluteLeft = left + AbsoluteLeft;
+        var absoluteTop = top + AbsoluteTop;
+        var right = absoluteLeft + width;
+        var bottom = absoluteTop + height;
 
         // Clip space coordinaten
-        var p1 = new RawVector2(left, top).ToClipSpace(ApplicationForm.Width, ApplicationForm.Height);
-        var p2 = new RawVector2(right, top).ToClipSpace(ApplicationForm.Width, ApplicationForm.Height);
+        var p1 = new RawVector2(absoluteLeft, absoluteTop).ToClipSpace(ApplicationForm.Width, ApplicationForm.Height);
+        var p2 = new RawVector2(right, absoluteTop).ToClipSpace(ApplicationForm.Width, ApplicationForm.Height);
         var p3 = new RawVector2(right, bottom).ToClipSpace(ApplicationForm.Width, ApplicationForm.Height);
-        var p4 = new RawVector2(left, bottom).ToClipSpace(ApplicationForm.Width, ApplicationForm.Height);
+        var p4 = new RawVector2(absoluteLeft, bottom).ToClipSpace(ApplicationForm.Width, ApplicationForm.Height);
 
         // Vulling met 2 driehoeken
         if (color.A > 0)
@@ -146,35 +146,35 @@ public class GraphicsLayer(IApplicationForm applicationForm, Forms.Control contr
     /// Tekent een bitmap in de opgegeven rechthoek. Let op: De bitmap wordt niet automatisch vrijgegeven,
     /// dus zorg ervoor dat je deze zelf dispose't.
     /// </summary>
-    public void DrawBitmap(int left2, int top2, int width, int height, Bitmap bitmap)
+    public void DrawBitmap(int left, int top, int width, int height, Bitmap bitmap)
     {
-        var left = left2 + AbsoluteLeft;
-        var top = top2 + AbsoluteTop;
-        var vertices = CreateTextureVertices(left, top, width, height);
+        var absoluteLeft = left + AbsoluteLeft;
+        var absoluteTop = top + AbsoluteTop;
+        var vertices = CreateTextureVertices(absoluteLeft, absoluteTop, width, height);
         var verticesBuffer = Buffer.Create(ApplicationForm.Device, BindFlags.VertexBuffer, vertices);
         var texture = new BitmapTexture(ApplicationForm.Device, bitmap);
         var image = new DisposableTextureImage(vertices, verticesBuffer, texture);
         TextureImages.Add(image);
     }
-    public void DrawFrame(int left2, int top2, int width, int height, Frame frame)
+    public void DrawFrame(int left, int top, int width, int height, Frame frame)
     {
-        var left = left2 + AbsoluteLeft;
-        var top = top2 + AbsoluteTop;
-        var vertices = CreateTextureVertices(left, top, width, height);
+        var absoluteLeft = left + AbsoluteLeft;
+        var absoluteTop = top + AbsoluteTop;
+        var vertices = CreateTextureVertices(absoluteLeft, absoluteTop, width, height);
         var verticesBuffer = Buffer.Create(ApplicationForm.Device, BindFlags.VertexBuffer, vertices);
         var texture = new FrameTexture(ApplicationForm.Device, frame);
         var image = new DisposableTextureImage(vertices, verticesBuffer, texture);
         TextureImages.Add(image);
     }
-    public void DrawText(string text, int left2, int top2, int width = -1, int height = -1, string font = "Ebrima", float fontSize = 10f, FontStyle fontStyle = FontStyle.Regular, int letterSpacing = -2, RawColor4? foreColor = null, RawColor4? backColor = null)
+    public void DrawText(string text, int left, int top, int width = -1, int height = -1, string font = "Ebrima", float fontSize = 10f, FontStyle fontStyle = FontStyle.Regular, int letterSpacing = -2, RawColor4? foreColor = null, RawColor4? backColor = null)
     {
         foreColor ??= new RawColor4(1, 1, 1, 1);
         backColor ??= new RawColor4(0, 0, 0, 0);
 
-        var left = left2 + AbsoluteLeft;
-        var top = top2 + AbsoluteTop;
-        var currentLeft = left;
-        var currentTop = top;
+        var absoluteLeft = left + AbsoluteLeft;
+        var absoluteTop = top + AbsoluteTop;
+        var currentLeft = absoluteLeft;
+        var currentTop = absoluteTop;
         var currentBottom = 0;
 
         var currentText = text.Replace("\r", "");
@@ -189,10 +189,10 @@ public class GraphicsLayer(IApplicationForm applicationForm, Forms.Control contr
 
                 // Berekenen
                 var right = currentLeft + texture.Width + letterSpacing;
-                if (width != -1 && height != -1 && right > left + width)
+                if (width != -1 && height != -1 && right > absoluteLeft + width)
                 {
                     // Nieuwe regel
-                    currentLeft = left;
+                    currentLeft = absoluteLeft;
                     currentTop = currentBottom;
                     right = currentLeft + texture.Width + letterSpacing;
                 }
@@ -212,10 +212,15 @@ public class GraphicsLayer(IApplicationForm applicationForm, Forms.Control contr
                 currentLeft = right;
             }
             // Nieuwe regel
-            currentLeft = left;
+            currentLeft = absoluteLeft;
             currentTop = currentBottom;
         }
     }
+    public Size MeasureText(string text, string font = "Ebrima", float fontSize = 10f, FontStyle fontStyle = FontStyle.Regular, int letterSpacing = -2, RawColor4? foreColor = null, RawColor4? backColor = null)
+    {
+        return new Size();
+    }
+
 
     private TextureVertex[] CreateTextureVertices(int left, int top, int width, int height)
     {

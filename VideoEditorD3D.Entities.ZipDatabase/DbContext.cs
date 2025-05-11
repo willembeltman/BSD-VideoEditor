@@ -8,6 +8,8 @@ public class DbContext : IDisposable
     public DbContext(string fullName)
     {
         FullName = fullName;
+        ParentType = GetType();
+
         ZipStream = File.Open(FullName!, FileMode.OpenOrCreate);
         ZipArchive = new ZipArchive(ZipStream, ZipArchiveMode.Update);
         // Hou de zip open, zodat hij gelocked is
@@ -16,11 +18,13 @@ public class DbContext : IDisposable
     }
 
     public string FullName { get; }
+    public Type ParentType { get; }
     internal Stream ZipStream { get; private set; }
     internal ZipArchive ZipArchive { get; private set; }
 
-    private List<IDbSet> DbSets;
-    private List<IDbObject> DbObjects;
+    internal List<IDbSet> DbSets;
+    internal List<IDbObject> DbObjects;
+
 
     internal void AddDbSet(IDbSet dbSet)
     {
@@ -52,5 +56,11 @@ public class DbContext : IDisposable
         ZipArchive.Dispose();
         ZipStream.Dispose();
         GC.SuppressFinalize(this);
+    }
+
+    public IDbSet GetDbSet(string typeName)
+    {
+        return DbSets.FirstOrDefault(x => x.TypeName == typeName) ??
+               throw new Exception($"DbSet for {typeName} not found");
     }
 }

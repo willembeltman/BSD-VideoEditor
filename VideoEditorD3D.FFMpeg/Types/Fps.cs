@@ -1,6 +1,6 @@
 ﻿namespace VideoEditorD3D.FFMpeg.Types;
 
-public readonly struct Fps
+public struct Fps
 {
     public Fps()
     {
@@ -14,8 +14,8 @@ public readonly struct Fps
         Divider = divider;
     }
 
-    public long Base { get; }
-    public long Divider { get; }
+    public long Base { get; set; }
+    public long Divider { get; set; }
 
     public double Value
     {

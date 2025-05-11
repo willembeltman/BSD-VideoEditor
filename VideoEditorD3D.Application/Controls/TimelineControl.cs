@@ -1,5 +1,4 @@
-﻿using SharpDX.DXGI;
-using SharpDX.Mathematics.Interop;
+﻿using SharpDX.Mathematics.Interop;
 using SharpDX;
 using System.Diagnostics;
 using System.Drawing;
@@ -9,17 +8,32 @@ using VideoEditorD3D.Direct3D.Forms.Generic;
 using VideoEditorD3D.Direct3D.Interfaces;
 using Rectangle = SharpDX.Rectangle;
 using Point = System.Drawing.Point;
+using VideoEditorD3D.Application.Helpers;
+using VideoEditorD3D.Entities;
 
 namespace VideoEditorD3D.Application.Controls;
 
 public class TimelineControl : BackControl
 {
+    private readonly ApplicationContext Application;
     private readonly GraphicsLayer Background;
     private readonly GraphicsLayer Foreground;
     private readonly HScrollBar HScrollBarControl;
 
+    private readonly AllBrushes Brushes = new();
+    private readonly DragAndDrop DragAndDrop = new();
+    private readonly Dragging SelectedClipsDragging = new();
+    private readonly Dragging MiddleDragging = new();
+    private readonly Scrolling Scrolling = new();
+
+    private Timeline Timeline => Application.Db.Timelines.First(a => a.IsCurrent);
+    private Rectangle TimelineRectangle => new Rectangle(Left, Top, Width, Height - HScrollBarControl.Height);
+    private int MiddleOffset => HScrollBarControl.Height / 2;
+
     public TimelineControl(ApplicationContext application, IApplicationForm applicationForm, Form? parentForm, Control? parentControl) : base(applicationForm, parentForm, parentControl)
     {
+        Application = application;
+
         Background = CanvasLayers.Create();
         Foreground = CanvasLayers.Create();
 
@@ -40,6 +54,12 @@ public class TimelineControl : BackControl
         //MouseWheel += TimelineControl_MouseWheel;
     }
 
+    public override void OnLoad()
+    {
+        base.OnLoad();
+        //SetupScrollbar();
+    }
+
     public override void OnResize()
     {
         var marge = 0;
@@ -56,34 +76,16 @@ public class TimelineControl : BackControl
         Background.FillRectangle(0, 0, Width, Height, BackColor);
         Background.EndDrawing();
 
-        //Foreground.StartDrawing();
+        Foreground.StartDrawing();
         //DrawTimeMarkers(Foreground);
         //DrawVideoClips(Foreground);
         //DrawPlayerPosition(Foreground);
-        //Foreground.EndDrawing();
+        Foreground.EndDrawing();
 
         base.OnDraw();
     }
 
-    //public override void OnLoad()
-    //{
-    //    base.OnLoad();
-    //    SetupScrollbar();
-    //}
 
-    //DragAndDrop DragAndDrop { get; } = new();
-    //Dragging SelectedClipsDragging { get; } = new();
-    //Dragging MiddleDragging { get; } = new();
-    //Scrolling Scrolling { get; } = new();
-
-    //Timeline Timeline => Engine.Timeline;
-
-    //Rectangle TimelineRectangle => new Rectangle(
-    //    Left,
-    //    Top,
-    //    Width,
-    //    Height - HScrollBarControl.Height);
-    //int MiddleOffset => HScrollBarControl.Height / 2;
 
     //private void DrawTimeMarkers(GraphicsLayer RenderTarget)
     //{
@@ -95,30 +97,22 @@ public class TimelineControl : BackControl
     //    for (var i = 0; i < Timeline.VisibleVideoLayers; i++)
     //    {
     //        var y = TimelineRectangle.Top + middle - i * videoBlockHeight - MiddleOffset;
-    //        var start = new RawVector2(0, y);
-    //        var end = new RawVector2(TimelineRectangle.Width, y);
-    //        RenderTarget!.DrawLine(start, end, Brushes!.HorizontalLines);
+    //        RenderTarget.DrawLine(0, y, TimelineRectangle.Width, y, Brushes.HorizontalLines);
 
     //        var text = $"{i + Timeline.FirstVisibleVideoLayer}";
-    //        using var layout = new TextLayout(dwriteFactory, text, textFormat, 100, 100); // 100x100 is max grootte van tekst
-
-    //        var textY = y - videoBlockHeight / 2 - layout.Metrics.Height / 2;
-    //        var textPosition = new RawVector2(2, (float)textY);
-    //        RenderTarget!.DrawTextLayout(textPosition, layout, Brushes.Text);
+    //        var meting = RenderTarget.MeasureText(text, "Ebrima", 10, FontStyle.Regular, -2, Brushes.Text);
+    //        var textY = y - videoBlockHeight / 2 - meting.Height / 2;
+    //        RenderTarget.DrawText(text, 2, textY, -1, -1, "Ebrima", 10, FontStyle.Regular, -2, Brushes.Text);
     //    }
     //    for (var i = 0; i < Timeline.VisibleAudioLayers; i++)
     //    {
     //        var y = TimelineRectangle.Top + middle + i * audioBlockHeight + MiddleOffset;
-    //        var start = new RawVector2(0, y);
-    //        var end = new RawVector2(TimelineRectangle.Width, y);
-    //        RenderTarget!.DrawLine(start, end, Brushes!.HorizontalLines);
+    //        RenderTarget.DrawLine(0, y, TimelineRectangle.Width, y, Brushes.HorizontalLines);
 
     //        var text = $"{i + Timeline.FirstVisibleAudioLayer}";
-    //        using var layout = new TextLayout(dwriteFactory, text, textFormat, 100, 100);
-
-    //        var textY = y + audioBlockHeight / 2 - layout.Metrics.Height / 2;
-    //        var textPosition = new RawVector2(2, (float)textY);
-    //        RenderTarget.DrawTextLayout(textPosition, layout, Brushes.Text);
+    //        var meting = RenderTarget.MeasureText(text, "Ebrima", 10, FontStyle.Regular, -2, Brushes.Text);
+    //        var textY = y + audioBlockHeight / 2 - meting.Height / 2;
+    //        RenderTarget.DrawText(text, 2, textY, -1, -1, "Ebrima", 10, FontStyle.Regular, -2, Brushes.Text);
     //    }
 
     //    // Tijd stap bepalen
@@ -440,7 +434,7 @@ public class TimelineControl : BackControl
     //    }
 
     //    var selectedClips = GetSelectedClips(e);
-    //    if (selectedClips.Any(a => Timeline.SelectedClips.Any(b => b.Equals(a))))
+    //    if (Enumerable.Any<ITimelineClip>(selectedClips, a => Timeline.SelectedClips.Any((object b) => b.Equals(a))))
     //    {
     //        SelectedClipsDragging.Set(startpoint, startposition);
     //        foreach (var clip in selectedClips)
@@ -489,7 +483,7 @@ public class TimelineControl : BackControl
     //    SelectedClipsDragging.IsDragging = false;
     //}
 
-    //private ITimelineClip[] GetSelectedClips(MouseEventArgs e)
+    //private ITimelineClip[] GetSelectedClips(System.Windows.Forms.MouseEventArgs e)
     //{
     //    var selectedClips = new List<ITimelineClip>();
     //    foreach (var clip in Timeline.AllClips)

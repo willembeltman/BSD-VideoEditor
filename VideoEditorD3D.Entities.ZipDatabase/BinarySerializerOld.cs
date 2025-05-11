@@ -5,13 +5,13 @@ using VideoEditorD3D.Entities.ZipDatabase.Helpers;
 
 namespace VideoEditorD3D.Entities.ZipDatabase;
 
-public class BinarySerializer<T>
+public class BinarySerializerOld<T>
 {
     private Action<BinaryWriter, T, DbContext> WriteDelegate;
     private Func<BinaryReader, DbContext, T> ReadDelegate;
     private readonly string code;
 
-    internal BinarySerializer(DbContext dbContext)
+    internal BinarySerializerOld(DbContext dbContext)
     {
         var type = typeof(T);
         var serializerName = $"{type.Name}BinarySerializer";
@@ -60,71 +60,70 @@ public class BinarySerializer<T>
             if (!ReflectionHelper.IsPublic(prop)) continue;
             if (!ReflectionHelper.HasSetter(prop)) continue;
             if (ReflectionHelper.IsVirtual(prop)) continue;
-            if (ReflectionHelper.HasForeignKeyProperty(prop)) continue;
 
             var propertyName = prop.Name;
 
-            //if (ReflectionHelper.HasForeignKeyProperty(prop))
-            //{
-            //    // TODO: Eruit bouwen en gewoon via proxies werken
-            //    var foreignKeyName = ReflectionHelper.GetForeignKeyName(prop);
-
-            //    if (ReflectionHelper.IsICollection(prop))
-            //    {
-            //        var foreignType = ReflectionHelper.GetICollectionType(prop);
-
-            //        var foreignPropertyOnApplicationDbContext = applicationDbContextType.GetProperties()
-            //            .Where(a => ReflectionHelper.IsDbSet(a))
-            //            .FirstOrDefault(a => ReflectionHelper.GetDbSetType(a) == foreignType);
-            //        if (foreignPropertyOnApplicationDbContext == null) continue;
-
-            //        var foreignPropertyOnApplicationDbContextName = foreignPropertyOnApplicationDbContext.Name; // "Files"
-
-            //        lazyCode += $@"
-
-            //            item.{propertyName} = new {entityDbCollectionTypeFullName}<{foreignType.FullName}, {fullClassName}>(
-            //                (db as {applicationDbContextTypeFullName})!.{foreignPropertyOnApplicationDbContextName},
-            //                item,
-            //                (foreign, primary) => foreign.{foreignKeyName} == primary.Id,
-            //                (foreign, primary) => foreign.{foreignKeyName} = primary.Id);";
-            //    }
-            //    else if (ReflectionHelper.IsLazy(prop))
-            //    {
-            //        var lazyType = ReflectionHelper.GetLazyType(prop);
-
-            //        var lazyPropertyOnApplicationDbContext = applicationDbContextType.GetProperties()
-            //            .Where(a => ReflectionHelper.IsDbSet(a))
-            //            .FirstOrDefault(a => ReflectionHelper.GetDbSetType(a) == lazyType);
-            //        if (lazyPropertyOnApplicationDbContext == null) continue;
-
-            //        var lazyPropertyOnApplicationDbContextName = lazyPropertyOnApplicationDbContext.Name; // "Files"
-
-            //        lazyCode += @$"
-
-            //            item.{propertyName} = new Lazy<{lazyType.FullName}?>(() => (db as {applicationDbContextTypeFullName}).{lazyPropertyOnApplicationDbContextName}.FirstOrDefault(t => t.Id == item.{foreignKeyName}));";
-            //    }
-            //}
-            //else
-            //{
-            var readMethod = GetBinaryReadMethod(prop.PropertyType);
-            if (readMethod == null)
+            if (ReflectionHelper.HasForeignKeyProperty(prop))
             {
-                writeCode += @$"
+                // TODO: Eruit bouwen en gewoon via proxies werken
+                var foreignKeyName = ReflectionHelper.GetForeignKeyName(prop);
+
+                if (ReflectionHelper.IsICollection(prop))
+                {
+                    var foreignType = ReflectionHelper.GetICollectionType(prop);
+
+                    var foreignPropertyOnApplicationDbContext = applicationDbContextType.GetProperties()
+                        .Where(a => ReflectionHelper.IsDbSet(a))
+                        .FirstOrDefault(a => ReflectionHelper.GetDbSetType(a) == foreignType);
+                    if (foreignPropertyOnApplicationDbContext == null) continue;
+
+                    var foreignPropertyOnApplicationDbContextName = foreignPropertyOnApplicationDbContext.Name; // "Files"
+
+                    lazyCode += $@"
+
+                        item.{propertyName} = new {entityDbCollectionTypeFullName}<{foreignType.FullName}, {fullClassName}>(
+                            (db as {applicationDbContextTypeFullName})!.{foreignPropertyOnApplicationDbContextName},
+                            item,
+                            (foreign, primary) => foreign.{foreignKeyName} == primary.Id,
+                            (foreign, primary) => foreign.{foreignKeyName} = primary.Id);";
+                }
+                else if (ReflectionHelper.IsLazy(prop))
+                {
+                    var lazyType = ReflectionHelper.GetLazyType(prop);
+
+                    var lazyPropertyOnApplicationDbContext = applicationDbContextType.GetProperties()
+                        .Where(a => ReflectionHelper.IsDbSet(a))
+                        .FirstOrDefault(a => ReflectionHelper.GetDbSetType(a) == lazyType);
+                    if (lazyPropertyOnApplicationDbContext == null) continue;
+
+                    var lazyPropertyOnApplicationDbContextName = lazyPropertyOnApplicationDbContext.Name; // "Files"
+
+                    lazyCode += @$"
+
+                        item.{propertyName} = new Lazy<{lazyType.FullName}?>(() => (db as {applicationDbContextTypeFullName}).{lazyPropertyOnApplicationDbContextName}.FirstOrDefault(t => t.Id == item.{foreignKeyName}));";
+                }
+            }
+            else 
+            {
+                var readMethod = GetBinaryReadMethod(prop.PropertyType);
+                if (readMethod == null)
+                {
+                    writeCode += @$"
 
                         var {prop.PropertyType.Name.ToLower()}Serializer = {binarySerializerCollectionTypeFullName}.GetSerializer<{prop.PropertyType.FullName}>(db);
                         {prop.PropertyType.Name.ToLower()}Serializer.Write(writer, value.{propertyName}, db);";
 
-                readCode += @$"
+                    readCode += @$"
 
                         var {prop.PropertyType.Name.ToLower()}Serializer = {binarySerializerCollectionTypeFullName}.GetSerializer<{prop.PropertyType.FullName}>(db);
                         var {propertyName} = {prop.PropertyType.Name.ToLower()}Serializer.Read(reader, db);";
 
-            }
-            else
-            {
-                if (ReflectionHelper.IsNulleble(prop))
+                }
+                else
                 {
-                    writeCode += @$"
+                    if (ReflectionHelper.IsNulleble(prop))
+                    {
+                        writeCode += @$"
                         if (value.{propertyName} == null)
                             writer.Write(true);
                         else
@@ -133,26 +132,26 @@ public class BinarySerializer<T>
                             writer.Write(value.{propertyName});
                         }}";
 
-                    readCode += @$"
+                        readCode += @$"
                         {prop.PropertyType.FullName} {propertyName} = null;
                         if (!reader.ReadBoolean())
                         {{
                             {propertyName} = reader.Read{readMethod}();
                         }}";
-                }
-                else
-                {
-                    writeCode += @$"
+                    }
+                    else
+                    {
+                        writeCode += @$"
                         writer.Write(value.{propertyName});";
 
-                    readCode += @$"
+                        readCode += @$"
                         var {propertyName} = reader.Read{readMethod}();";
+                    }
                 }
-            }
 
-            newCode += @$"
+                newCode += @$"
                             {propertyName} = {propertyName},";
-            //}
+            }
         }
 
         return $@"

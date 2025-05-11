@@ -8,73 +8,92 @@ namespace VideoEditorD3D.Entities.ZipDatabase;
 public class DbSet<T> : ICollection<T>, IDbSet
     where T : IEntity
 {
-    public DbSet(DbContext dbContext)
-    {
-        dbContext.AddDbSet(this);
-
-        Name = typeof(T).Name;
-        Lock = new ReaderWriterLockSlim();
-        Cache = new Dictionary<long, T>();
-        Serializer = new BinarySerializer<T>();
-
-        LoadCache(dbContext.ZipArchive);
-    }
-
-    private readonly string Name;
     private readonly ReaderWriterLockSlim Lock;
     private readonly Dictionary<long, T> Cache;
     private readonly BinarySerializer<T> Serializer;
 
     private long LastId;
 
+    public DbContext DbContext { get; }
+    public string TypeName { get; }
+
+    public DbSet(DbContext dbContext)
+    {
+        DbContext = dbContext;
+        dbContext.AddDbSet(this);
+
+        TypeName = typeof(T).Name;
+        Lock = new ReaderWriterLockSlim();
+        Cache = new Dictionary<long, T>();
+        Serializer = BinarySerializerCollection.GetSerializer<T>(dbContext);
+
+        LoadCache(dbContext.ZipArchive);
+    }
+
     private void LoadCache(ZipArchive zipArchive)
     {
-        var idFile = zipArchive.GetOrCreateEntry($"{Name}.id");
-        using var idStream = idFile!.Open();
-        using var idReader = new BinaryReader(idStream);
-
-        var indexFile = zipArchive.GetOrCreateEntry($"{Name}.index");
-        using var indexStream = indexFile!.Open();
-        using var indexReader = new BinaryReader(indexStream);
-
-        var dataFile = zipArchive.GetOrCreateEntry($"{Name}.data");
-        using var dataStream = dataFile!.Open();
-        using var dataReader = new BinaryReader(dataStream);
-
-        if (idStream.Position < idStream.Length)
-            LastId = idReader.ReadInt64();
-
-        while (indexStream!.Position < indexStream.Length)
+        Lock.EnterWriteLock();
+        try
         {
-            var indexPosition = indexStream.Position;
-            var dataPosition = indexReader!.ReadInt64();
-            if (dataPosition >= 0)
+            var idFile = zipArchive.GetOrCreateEntry($"{TypeName}.id");
+            using var idStream = idFile!.Open();
+            using var idReader = new BinaryReader(idStream);
+
+            var indexFile = zipArchive.GetOrCreateEntry($"{TypeName}.index");
+            using var indexStream = indexFile!.Open();
+            using var indexReader = new BinaryReader(indexStream);
+
+            var dataFile = zipArchive.GetOrCreateEntry($"{TypeName}.data");
+            using var dataStream = dataFile!.Open();
+            using var dataReader = new BinaryReader(dataStream);
+
+            if (idStream.Position < idStream.Length)
+                LastId = idReader.ReadInt64();
+
+            while (indexStream!.Position < indexStream.Length)
             {
-                dataStream.Position = dataPosition;
-                var item = Serializer.Read(dataReader!);
-                Cache[item.Id] = item;
+                var indexPosition = indexStream.Position;
+                var dataPosition = indexReader!.ReadInt64();
+                if (dataPosition >= 0)
+                {
+                    dataStream.Position = dataPosition;
+                    var item = Serializer.Read(dataReader!, DbContext);
+                    Cache[item.Id] = item;
+                }
             }
+        }
+        finally
+        {
+            Lock.ExitWriteLock();
         }
     }
     public void WriteCache(ZipArchive zipArchive)
     {
-        var idFile = zipArchive.GetOrCreateEntry($"{Name}.id");
-        using var idStream = idFile!.Open();
-        using var idWriter = new BinaryWriter(idStream);
-
-        var indexFile = zipArchive.GetOrCreateEntry($"{Name}.index");
-        using var indexStream = indexFile!.Open();
-        using var indexWriter = new BinaryWriter(indexStream);
-
-        var dataFile = zipArchive.GetOrCreateEntry($"{Name}.data");
-        using var dataStream = dataFile!.Open();
-        using var dataWriter = new BinaryWriter(dataStream);
-
-        idWriter.Write(LastId);
-        foreach (var item in Cache.Values)
+        Lock.EnterReadLock();
+        try
         {
-            indexWriter.Write(dataStream.Position);
-            Serializer.Write(dataWriter, item);
+            var idFile = zipArchive.GetOrCreateEntry($"{TypeName}.id");
+            using var idStream = idFile!.Open();
+            using var idWriter = new BinaryWriter(idStream);
+
+            var indexFile = zipArchive.GetOrCreateEntry($"{TypeName}.index");
+            using var indexStream = indexFile!.Open();
+            using var indexWriter = new BinaryWriter(indexStream);
+
+            var dataFile = zipArchive.GetOrCreateEntry($"{TypeName}.data");
+            using var dataStream = dataFile!.Open();
+            using var dataWriter = new BinaryWriter(dataStream);
+
+            idWriter.Write(LastId);
+            foreach (var item in Cache.Values)
+            {
+                indexWriter.Write(dataStream.Position);
+                Serializer.Write(dataWriter, item, DbContext);
+            }
+        }
+        finally
+        {
+            Lock.ExitReadLock();
         }
     }
 
@@ -120,6 +139,31 @@ public class DbSet<T> : ICollection<T>, IDbSet
         {
             Lock.ExitWriteLock();
         }
+    }
+    public int RemoveRange(IEnumerable<T> enumerable)
+    {
+        int count = 0;
+
+        Lock.EnterWriteLock();
+        try
+        {
+            foreach (var item in enumerable)
+            {
+                if (item == null) throw new ArgumentNullException(nameof(item));
+                if (!Cache.TryGetValue(item.Id, out var entry))
+                {
+                    continue;
+                }
+                Cache.Remove(item.Id);
+                count++;
+            }
+        }
+        finally
+        {
+            Lock.ExitWriteLock();
+        }
+
+        return count;
     }
     public void Clear()
     {
@@ -168,7 +212,12 @@ public class DbSet<T> : ICollection<T>, IDbSet
         Lock.EnterReadLock();
         try
         {
-            return Cache.Values.GetEnumerator(); // safe snapshot
+            var entityProxyCreator = EntityProxyCreaterCollection.GetEntityProxyCreator<T>(DbContext);
+            foreach (var item in Cache.Values)
+            {
+                var proxy = entityProxyCreator.CreateProxy(item, DbContext);
+                yield return proxy;
+            }
         }
         finally
         {
@@ -176,6 +225,7 @@ public class DbSet<T> : ICollection<T>, IDbSet
         }
     }
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
 
     #endregion
 }

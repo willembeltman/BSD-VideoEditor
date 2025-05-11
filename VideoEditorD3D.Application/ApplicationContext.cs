@@ -1,10 +1,10 @@
 ﻿using VideoEditorD3D.Entities;
 using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Direct3D.Interfaces;
-using VideoEditorD3D.Application.Forms;
 using VideoEditorD3D.Loggers;
 using VideoEditorD3D.Application.Configs;
 using VideoEditorD3D.Application.Types;
+using VideoEditorD3D.Entities.ZipDatabase;
 
 namespace VideoEditorD3D.Application;
 
@@ -49,6 +49,31 @@ public class ApplicationContext : IApplicationContext
     public void Start()
     {
         Logger.StartThread();
+
+        var mediaFile = new MediaFile();
+        Db.MediaFiles.Add(mediaFile);
+
+        var mediaStream = new MediaStream()
+        {
+            MediaFileId = mediaFile.Id,
+        };
+        Db.MediaStreams.Add(mediaStream);
+
+        var timeline = new Timeline();
+        Db.Timelines.Add(timeline);
+
+        var timelineVideo = new TimelineVideo()
+        {
+            TimelineId = timeline.Id,
+            MediaStreamId = mediaStream.Id,
+        };
+        Db.TimelineVideos.Add(timelineVideo);
+        Db.SaveChanges();
+
+        var a = Db.MediaFiles.FirstOrDefault();
+        var b = Db.MediaStreams.FirstOrDefault();
+        var c = Db.Timelines.FirstOrDefault();
+        var d = Db.TimelineVideos.FirstOrDefault();
     }
 
     public void Dispose()

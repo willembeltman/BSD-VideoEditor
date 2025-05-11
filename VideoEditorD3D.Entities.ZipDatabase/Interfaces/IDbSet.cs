@@ -2,7 +2,9 @@
 
 namespace VideoEditorD3D.Entities.ZipDatabase.Interfaces;
 
-internal interface IDbSet
+public interface IDbSet
 {
+    string TypeName { get; }
+
     void WriteCache(ZipArchive zipArchive);
 }

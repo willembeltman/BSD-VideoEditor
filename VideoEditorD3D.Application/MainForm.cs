@@ -3,7 +3,7 @@ using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Application.Controls;
 
-namespace VideoEditorD3D.Application.Forms;
+namespace VideoEditorD3D.Application;
 
 public class MainForm : Form
 {
