@@ -6,7 +6,7 @@ public class ApplicationDbContext : DbContext
 {
     public ApplicationDbContext(string fullName) : base(fullName)
     {
-        Project = new DbObject<Project>(this);
+        Projects = new DbSet<Project>(this);
         TimelineAudios = new DbSet<TimelineAudio>(this);
         MediaFiles = new DbSet<MediaFile>(this);
         MediaStreams = new DbSet<MediaStream>(this);
@@ -15,7 +15,7 @@ public class ApplicationDbContext : DbContext
         Load();
     }
 
-    public DbObject<Project> Project { get; }
+    public DbSet<Project> Projects { get; }
     public DbSet<TimelineAudio> TimelineAudios { get; }
     public DbSet<MediaFile> MediaFiles { get; }
     public DbSet<MediaStream> MediaStreams { get; }

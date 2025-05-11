@@ -51,7 +51,12 @@ public class ApplicationContext : IApplicationContext
         Logger.StartThread();
 
         //Db.Project
-        var project = Db.Project.Value;
+        var project = Db.Projects.FirstOrDefault();
+        if (project == null)
+        {
+            project = new Project();
+            Db.Projects.Add(project);
+        }
         var timeline = new Timeline();
         project.Timelines.Add(timeline);
         var mediaFile = new MediaFile();
@@ -61,6 +66,8 @@ public class ApplicationContext : IApplicationContext
         var timelineVideo = new TimelineVideo();
         timeline.TimelineVideos.Add(timelineVideo);
         mediaStream.TimelineVideos.Add(timelineVideo);
+
+        var n = timeline.Project.Value;
 
         //var timeline = new Timeline()
         //{
