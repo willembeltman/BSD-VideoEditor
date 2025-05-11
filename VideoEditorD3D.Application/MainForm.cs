@@ -1,4 +1,5 @@
-﻿using SharpDX.Mathematics.Interop;
+﻿using System.Collections.ObjectModel;
+using SharpDX.Mathematics.Interop;
 using VideoEditorD3D.Application.Controls;
 using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Direct3D.Interfaces;
@@ -28,6 +29,35 @@ public class MainForm : Form
         MenuStrip = new MenuStrip(applicationForm, this, this);
         MenuStrip.BackColor = new RawColor4(0.5f, 0.5f, 0.5f, 1);
         Controls.Add(MenuStrip);
+
+        var fileMenu = new MenuStripItem(ApplicationForm, this, MenuStrip, "File");
+        MenuStrip.Items.Add(fileMenu);
+        fileMenu.Items.Add(new MenuStripItem(ApplicationForm, this, fileMenu, "New"));
+        fileMenu.Items.Add(new MenuStripItem(ApplicationForm, this, fileMenu, "Open"));
+        fileMenu.Items.Add(new MenuStripItem(ApplicationForm, this, fileMenu, "Save"));
+        fileMenu.Items.Add(new MenuStripItem(ApplicationForm, this, fileMenu, "Save As"));
+        fileMenu.Items.Add(new MenuStripItem(ApplicationForm, this, fileMenu, "Exit"));
+
+        var editMenu = new MenuStripItem(ApplicationForm, this, MenuStrip, "Edit");
+        MenuStrip.Items.Add(editMenu);
+        editMenu.Items.Add(new MenuStripItem(ApplicationForm, this, editMenu, "Undo"));
+        editMenu.Items.Add(new MenuStripItem(ApplicationForm, this, editMenu, "Redo"));
+        editMenu.Items.Add(new MenuStripItem(ApplicationForm, this, editMenu, "Cut"));
+        editMenu.Items.Add(new MenuStripItem(ApplicationForm, this, editMenu, "Copy"));
+        editMenu.Items.Add(new MenuStripItem(ApplicationForm, this, editMenu, "Paste"));
+        editMenu.Items.Add(new MenuStripItem(ApplicationForm, this, editMenu, "Preferences"));
+
+        var viewMenu = new MenuStripItem(ApplicationForm, this, MenuStrip, "View");
+        MenuStrip.Items.Add(viewMenu);
+        viewMenu.Items.Add(new MenuStripItem(ApplicationForm, this, viewMenu, "Zoom In"));
+        viewMenu.Items.Add(new MenuStripItem(ApplicationForm, this, viewMenu, "Zoom Out"));
+        viewMenu.Items.Add(new MenuStripItem(ApplicationForm, this, viewMenu, "Reset Zoom"));
+
+        var helpMenu = new MenuStripItem(ApplicationForm, this, MenuStrip, "Help");
+        MenuStrip.Items.Add(helpMenu);
+        helpMenu.Items.Add(new MenuStripItem(ApplicationForm, this, helpMenu, "About"));
+        helpMenu.Items.Add(new MenuStripItem(ApplicationForm, this, helpMenu, "Documentation"));
+
 
         DisplayControl = new DisplayControl(applicationContext, applicationForm, this, this);
         DisplayControl.BackColor = new RawColor4(0, 0, 0, 1);

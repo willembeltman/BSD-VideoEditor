@@ -10,7 +10,7 @@ public class Timeline : IEntity
     public long Id { get; set; }
     public long ProjectId { get; set; }
 
-    public Fps Fps { get; set; } = new Fps(1, 60);
+    public Fps Fps { get; set; } = new Fps(1, 25);
     public Resolution Resolution { get; set; } = new Resolution(1920, 1080);
     public int SampleRate { get; set; } = 48000;
     public int AudioChannels { get; set; } = 2;

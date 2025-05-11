@@ -27,7 +27,7 @@ public class VideoDrawerThread : IDrawerThread
     {
         while (!Application.KillSwitch)
         {
-            ApplicationForm.Timers.FpsTimer.SleepTillNextFrame(60);
+            ApplicationForm.Timers.FpsTimer.SleepTillNextFrame(Application.Timeline.Fps);
             ApplicationForm.TryDraw();
         }
         ApplicationForm.CloseForm();

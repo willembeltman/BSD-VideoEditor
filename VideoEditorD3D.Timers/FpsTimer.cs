@@ -14,9 +14,8 @@ public class FpsTimer
         FpsQueue = new Queue<double>();
     }
 
-    public void SleepTillNextFrame(double fps)
+    public void SleepTillNextFrame(double interval)
     {
-        var interval = 1d / fps;
         var currentTime = Stopwatch.Elapsed.TotalSeconds;
         var waitInSeconds = interval - currentTime % interval;
         var wait = Convert.ToInt32(waitInSeconds * 1000);

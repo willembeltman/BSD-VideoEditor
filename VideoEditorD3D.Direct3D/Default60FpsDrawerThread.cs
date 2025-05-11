@@ -27,7 +27,7 @@ public class Default60FpsDrawerThread : IDrawerThread
     {
         while (!Application.KillSwitch)
         {
-            ApplicationForm.Timers.FpsTimer.SleepTillNextFrame(60);
+            ApplicationForm.Timers.FpsTimer.SleepTillNextFrame(1d / 60);
             ApplicationForm.TryDraw();
         }
         ApplicationForm.CloseForm();

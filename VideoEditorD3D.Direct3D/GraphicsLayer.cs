@@ -4,7 +4,7 @@ using VideoEditorD3D.Direct3D.Extentions;
 using VideoEditorD3D.Direct3D.Textures;
 using SharpDX.Direct3D11;
 using VideoEditorD3D.Direct3D.Interfaces;
-using VideoEditorD3D.Direct3D.TextureImages;
+using VideoEditorD3D.Direct3D.TexturesWithVerticies;
 using Buffer = SharpDX.Direct3D11.Buffer;
 using VideoEditorD3D.FFMpeg.Types;
 
@@ -47,6 +47,7 @@ public class GraphicsLayer(IApplicationForm applicationForm, Forms.Control contr
         if (TriangleVertices.Count > 0)
             TriangleVerticesBuffer = Buffer.Create(ApplicationForm.Device, BindFlags.VertexBuffer, TriangleVertices.ToArray());
     }
+
     public void DrawLine(int startX, int startY, int endX, int endY, RawColor4 color, int strokeWidth = 1)
     {
         if (strokeWidth < 1)
@@ -153,9 +154,13 @@ public class GraphicsLayer(IApplicationForm applicationForm, Forms.Control contr
         var vertices = CreateTextureVertices(absoluteLeft, absoluteTop, width, height);
         var verticesBuffer = Buffer.Create(ApplicationForm.Device, BindFlags.VertexBuffer, vertices);
         var texture = new BitmapTexture(ApplicationForm.Device, bitmap);
-        var image = new DisposableTextureImage(vertices, verticesBuffer, texture);
+        var image = new DisposableTextureWithVerticies(vertices, verticesBuffer, texture);
         TextureImages.Add(image);
     }
+    /// <summary>
+    /// Tekent een bitmap in de opgegeven rechthoek. Let op: De frame wordt niet automatisch vrijgegeven,
+    /// dus zorg ervoor dat je deze zelf dispose't.
+    /// </summary>
     public void DrawFrame(int left, int top, int width, int height, Frame frame)
     {
         var absoluteLeft = left + AbsoluteLeft;
@@ -163,7 +168,7 @@ public class GraphicsLayer(IApplicationForm applicationForm, Forms.Control contr
         var vertices = CreateTextureVertices(absoluteLeft, absoluteTop, width, height);
         var verticesBuffer = Buffer.Create(ApplicationForm.Device, BindFlags.VertexBuffer, vertices);
         var texture = new FrameTexture(ApplicationForm.Device, frame);
-        var image = new DisposableTextureImage(vertices, verticesBuffer, texture);
+        var image = new DisposableTextureWithVerticies(vertices, verticesBuffer, texture);
         TextureImages.Add(image);
     }
     public void DrawText(string text, int left, int top, int width = -1, int height = -1, string font = "Ebrima", float fontSize = 10f, FontStyle fontStyle = FontStyle.Regular, int letterSpacing = -2, RawColor4? foreColor = null, RawColor4? backColor = null)
@@ -189,7 +194,8 @@ public class GraphicsLayer(IApplicationForm applicationForm, Forms.Control contr
 
                 // Berekenen
                 var right = currentLeft + texture.Width + letterSpacing;
-                if (width != -1 && height != -1 && right > absoluteLeft + width)
+
+                if (width != -1 && height != -1 && absoluteLeft + width < right)
                 {
                     // Nieuwe regel
                     currentLeft = absoluteLeft;
@@ -206,7 +212,7 @@ public class GraphicsLayer(IApplicationForm applicationForm, Forms.Control contr
                 var fillVerticesBuffer = Buffer.Create(ApplicationForm.Device, BindFlags.VertexBuffer, fillVertices);
 
                 // En dit in een model stoppen
-                var image = new CachedTextureImage(fillVertices, fillVerticesBuffer, texture);
+                var image = new CachedTextureWithVerticies(fillVertices, fillVerticesBuffer, texture);
                 TextureImages.Add(image);
 
                 currentLeft = right;
@@ -216,11 +222,51 @@ public class GraphicsLayer(IApplicationForm applicationForm, Forms.Control contr
             currentTop = currentBottom;
         }
     }
-    public Size MeasureText(string text, string font = "Ebrima", float fontSize = 10f, FontStyle fontStyle = FontStyle.Regular, int letterSpacing = -2, RawColor4? foreColor = null, RawColor4? backColor = null)
+    public Size MeasureText(string text, int width = -1, int height = -1, string font = "Ebrima", float fontSize = 10f, FontStyle fontStyle = FontStyle.Regular, int letterSpacing = -2, RawColor4? foreColor = null, RawColor4? backColor = null)
     {
-        return new Size();
-    }
+        foreColor ??= new RawColor4(1, 1, 1, 1);
+        backColor ??= new RawColor4(0, 0, 0, 0);
 
+        var currentLeft = 0;
+        var maxRight = 0;
+        var currentTop = 0;
+        var currentBottom = 0;
+
+        var currentText = text.Replace("\r", "");
+        var rows = currentText.Split('\n');
+
+        foreach (var row in rows)
+        {
+            foreach (var character in row)
+            {
+                // Text item aanmaken of ophalen voor het huidige character
+                var texture = ApplicationForm.Characters.GetOrCreate(character, font, fontSize, fontStyle, backColor.Value, foreColor.Value);
+
+                // Berekenen
+                var right = currentLeft + texture.Width + letterSpacing;
+
+                if (width != -1 && height != -1 && width < right)
+                {
+                    // Nieuwe regel
+                    currentLeft = 0;
+                    currentTop = currentBottom;
+                    right = currentLeft + texture.Width + letterSpacing;
+                }
+
+                var bottom = currentTop + texture.Height;
+                if (currentBottom < bottom)
+                    currentBottom = bottom;
+                if (maxRight < right)
+                    maxRight = right;
+
+                currentLeft = right;
+            }
+            // Nieuwe regel
+            currentLeft = 0;
+            currentTop = currentBottom;
+        }
+        return new Size(maxRight, currentBottom);
+    }
 
     private TextureVertex[] CreateTextureVertices(int left, int top, int width, int height)
     {
@@ -256,10 +302,5 @@ public class GraphicsLayer(IApplicationForm applicationForm, Forms.Control contr
             image.Dispose();
 
         GC.SuppressFinalize(this);
-    }
-
-    public void DrawLine(int x1, int v, int x2, int height, object verticalLines)
-    {
-        throw new NotImplementedException();
     }
 }

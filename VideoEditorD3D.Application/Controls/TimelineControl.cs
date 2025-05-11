@@ -119,7 +119,7 @@ public class TimelineControl : BackControl
             background.DrawLine(0, y, TimelineRectangle.Width, y, Brushes.HorizontalLines);
 
             var text = $"{i + Timeline.FirstVisibleVideoLayer}";
-            var meting = background.MeasureText(text, "Ebrima", 8, FontStyle.Regular, -2, Brushes.Text);
+            var meting = background.MeasureText(text, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, Brushes.Text);
             var textY = y - videoBlockHeight / 2 - meting.Height / 2;
             foreground.DrawText(text, 2, textY, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, Brushes.Text);
         }
@@ -129,7 +129,7 @@ public class TimelineControl : BackControl
             background.DrawLine(0, y, TimelineRectangle.Width, y, Brushes.HorizontalLines);
 
             var text = $"{i + Timeline.FirstVisibleAudioLayer}";
-            var meting = background.MeasureText(text, "Ebrima", 8, FontStyle.Regular, -2, Brushes.Text);
+            var meting = background.MeasureText(text, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, Brushes.Text);
             var textY = y + audioBlockHeight / 2 - meting.Height / 2;
             foreground.DrawText(text, 2, textY, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, Brushes.Text);
         }
@@ -152,7 +152,7 @@ public class TimelineControl : BackControl
             background!.DrawLine(x, 0, x, TimelineRectangle.Height, Brushes.VerticalLines);
 
             var text = $"{sec.ToString("F" + decimals)}s";
-            var meting = background.MeasureText(text, "Ebrima", 8, FontStyle.Regular, -2, Brushes.Text);
+            var meting = background.MeasureText(text, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, Brushes.Text);
             var textY = TimelineRectangle.Top + middle - meting.Height / 2;
             foreground.DrawText(text, 2, textY, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, Brushes.Text);
         }
