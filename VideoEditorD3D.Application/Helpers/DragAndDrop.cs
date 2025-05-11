@@ -1,4 +1,5 @@
 ﻿using VideoEditorD3D.Entities;
+using VideoEditorD3D.Entities.Interfaces;
 
 namespace VideoEditorD3D.Application.Helpers;
 

@@ -10,8 +10,8 @@ public class Timeline : IEntity
     public long ProjectId { get; set; }
 
     public bool IsCurrent { get; set; }
-    public Fps Fps { get; set; }
-    public Resolution Resolution { get; set; }
+    public Fps Fps { get; set; } = new Fps();
+    public Resolution Resolution { get; set; } = new Resolution();
 
     [ForeignKey("ProjectId")]
     public Lazy<Project?> Project { get; set; } = new Lazy<Project?>(() => null, true);

@@ -12,7 +12,6 @@ public class ApplicationDbContext : DbContext
         MediaStreams = new DbSet<MediaStream>(this);
         Timelines = new DbSet<Timeline>(this);
         TimelineVideos = new DbSet<TimelineVideo>(this);
-        Load();
     }
 
     public DbSet<Project> Projects { get; }

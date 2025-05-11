@@ -56,55 +56,15 @@ public class ApplicationContext : IApplicationContext
         {
             project = new Project();
             Db.Projects.Add(project);
+            Db.SaveChanges();
         }
-        var timeline = new Timeline();
-        project.Timelines.Add(timeline);
-        var mediaFile = new MediaFile();
-        project.Files.Add(mediaFile);
-        var mediaStream = new MediaStream();
-        mediaFile.MediaStreams.Add(mediaStream);
-        var timelineVideo = new TimelineVideo()
+        if (!project.Timelines.Any())
         {
-            MediaStreamId = mediaStream.Id
-        };
-        timeline.TimelineVideos.Add(timelineVideo);
-        //mediaStream.TimelineVideos.Add(timelineVideo);
-
-        var n = timeline.Project.Value;
-
-        //var timeline = new Timeline()
-        //{
-        //    ProjectId = project.Id,
-        //};
-        //Db.Timelines.Add(timeline);
-
-        //var mediaFile = new MediaFile()
-        //{
-        //    ProjectId = project.Id
-        //};
-        //Db.MediaFiles.Add(mediaFile);
-
-        //var mediaStream = new MediaStream()
-        //{
-        //    MediaFileId = mediaFile.Id,
-        //};
-        //Db.MediaStreams.Add(mediaStream);
-
-        //var timelineVideo = new TimelineVideo()
-        //{
-        //    TimelineId = timeline.Id,
-        //    MediaStreamId = mediaStream.Id,
-        //};
-        //Db.TimelineVideos.Add(timelineVideo);
-        Db.SaveChanges();
-
-        mediaFile = Db.MediaFiles.FirstOrDefault();
-        mediaStream = Db.MediaStreams.FirstOrDefault();
-        timeline = Db.Timelines.FirstOrDefault();
-        timelineVideo = Db.TimelineVideos.FirstOrDefault();
-
-        var aa = mediaFile!.MediaStreams.FirstOrDefault();
-        var bbb = aa!.MediaFile.Value.MediaStreams.First().TimelineVideos.First().Timeline.Value.TimelineAudios.ToArray();
+            var timeline = new Timeline();
+            project.Timelines.Add(timeline);
+            project.CurrentTimelineId = timeline.Id;
+            Db.SaveChanges();
+        }
 
     }
 

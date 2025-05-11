@@ -98,12 +98,5 @@ namespace VideoEditorD3D.Entities.ZipDatabase.Helpers
             var res = a.PropertyType.GenericTypeArguments[0];
             return res;
         }
-
-        public static Type GetPropertyType(PropertyInfo prop)
-        {
-            return prop.PropertyType;
-        }
-
     }
-
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using System.Diagnostics;
 using System.Reflection;
 using VideoEditorD3D.Entities.ZipDatabase.Helpers;
 
@@ -18,6 +19,7 @@ public class EntitySerializer<T>
         var readMethodName = "EntitySerializerRead";
         var writeMethodName = "EntitySerializerWrite";
         Code = GenerateSerializerCode(type, className, readMethodName, writeMethodName);
+        Debug.WriteLine($"Generated {className}:\r\n{Code}");
         var asm = Compile(Code);
         var serializerType = asm.GetType(className)!;
         var readMethod = serializerType.GetMethod(readMethodName)!;
@@ -68,70 +70,70 @@ public class EntitySerializer<T>
                 {
                     writeCode += @$"
 
-                        if (value.{propertyName} == null)
-                            writer.Write(true);
-                        else
-                        {{
-                            writer.Write(false);
-                            writer.Write(value.{propertyName});
-                        }}";
+        if (value.{propertyName} == null)
+            writer.Write(true);
+        else
+        {{
+            writer.Write(false);
+            writer.Write(value.{propertyName});
+        }}";
 
                     readCode += @$"
 
-                        {prop.PropertyType.FullName} {propertyName} = null;
-                        if (!reader.ReadBoolean())
-                        {{
-                            {propertyName} = reader.Read{readMethod}();
-                        }}";
+        {prop.PropertyType.FullName} {propertyName} = null;
+        if (!reader.ReadBoolean())
+        {{
+            {propertyName} = reader.Read{readMethod}();
+        }}";
                 }
                 else
                 {
                     writeCode += @$"
-                        writer.Write(value.{propertyName});";
+        writer.Write(value.{propertyName});";
 
                     readCode += @$"
-                        var {propertyName} = reader.Read{readMethod}();";
+        var {propertyName} = reader.Read{readMethod}();";
                 }
             }
             else
             {
                 writeCode += @$"
 
-                        var {propertyName}Serializer = {binarySerializerCollectionTypeFullName}.{method}<{prop.PropertyType.FullName}>();
-                        {propertyName}Serializer.Write(writer, value.{propertyName});";
+        var {propertyName}Serializer = {binarySerializerCollectionTypeFullName}.{method}<{prop.PropertyType.FullName}>();
+        {propertyName}Serializer.Write(writer, value.{propertyName});";
 
                 readCode += @$"
 
-                        var {propertyName}Serializer = {binarySerializerCollectionTypeFullName}.{method}<{prop.PropertyType.FullName}>();
-                        var {propertyName} = {propertyName}Serializer.Read(reader);";
+        var {propertyName}Serializer = {binarySerializerCollectionTypeFullName}.{method}<{prop.PropertyType.FullName}>();
+        var {propertyName} = {propertyName}Serializer.Read(reader);";
 
             }
 
             newCode += @$"
-                            {propertyName} = {propertyName},";
+            {propertyName} = {propertyName},";
         }
 
         return $@"
-                using System;
-                using System.IO;
-                using System.Linq;
+using System;
+using System.IO;
+using System.Linq;
 
-                public static class {serializerName}
-                {{
-                    public static void {writeMethodName}(BinaryWriter writer, {fullClassName} value)
-                    {{{writeCode}
-                    }}
+public static class {serializerName}
+{{
+    public static void {writeMethodName}(BinaryWriter writer, {fullClassName} value)
+    {{{writeCode}
+    }}
 
-                    public static {fullClassName} {readMethodName}(BinaryReader reader)
-                    {{{readCode}
+    public static {fullClassName} {readMethodName}(BinaryReader reader)
+    {{{readCode}
 
-                        var item = new {fullClassName}
-                        {{{newCode}
-                        }};
+        var item = new {fullClassName}
+        {{{newCode}
+        }};
 
-                        return item;
-                    }}
-                }}";
+        return item;
+    }}
+}}";
     }
     private string? GetBinaryReadMethod(Type type)
     {

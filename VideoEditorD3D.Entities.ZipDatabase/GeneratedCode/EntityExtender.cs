@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json.Serialization;
 using VideoEditorD3D.Entities.ZipDatabase.Helpers;
@@ -19,6 +20,7 @@ public class EntityExtender<T>
         var methodName = "ExtendEntity";
 
         Code = GenerateSerializerCode(type, className, methodName, dbContext);
+        Debug.WriteLine($"Generated {className}:\r\n{Code}");
         var asm = Compile(Code);
         var serializerType = asm.GetType(className)!;
         var createProxyMethod = serializerType.GetMethod(methodName)!;
@@ -58,7 +60,6 @@ public class EntityExtender<T>
             var isNulleble = ReflectionHelper.IsNulleble(prop);
 
             if (!ReflectionHelper.HasForeignKeyAttribute(prop)) continue;
-            //if (!ReflectionHelper.(prop)) continue;
 
             var foreignKeyName = ReflectionHelper.GetForeignKeyAttributeName(prop);
 
@@ -71,17 +72,14 @@ public class EntityExtender<T>
                     .FirstOrDefault(a => ReflectionHelper.GetDbSetType(a) == foreignType);
                 if (foreignPropertyOnApplicationDbContext == null) continue;
 
-                var foreignPropertyOnApplicationDbContextName = foreignPropertyOnApplicationDbContext.Name; // "Files"
-
-                
+                var foreignPropertyOnApplicationDbContextName = foreignPropertyOnApplicationDbContext.Name; 
 
                 lazyCode += $@"
-                        //System.Windows.Forms.MessageBox.Show(""Hello, World! \r\n"" + JsonConvert.SerializeObject((({applicationDbContextTypeFullName})db)));
-                        item.{propertyName} = new {entityDbCollectionTypeFullName}<{foreignType.FullName}, {fullClassName}>(
-                            db.{foreignPropertyOnApplicationDbContextName},
-                            item,
-                            (foreign, primary) => foreign.{foreignKeyName} == primary.Id,
-                            (foreign, primary) => foreign.{foreignKeyName} = primary.Id);";
+        item.{propertyName} = new {entityDbCollectionTypeFullName}<{foreignType.FullName}, {fullClassName}>(
+            db.{foreignPropertyOnApplicationDbContextName},
+            item,
+            (foreign, primary) => foreign.{foreignKeyName} == primary.Id,
+            (foreign, primary) => foreign.{foreignKeyName} = primary.Id);";
             }
             else if (ReflectionHelper.IsLazy(prop))
             {
@@ -92,34 +90,33 @@ public class EntityExtender<T>
                     .FirstOrDefault(a => ReflectionHelper.GetDbSetType(a) == lazyType);
                 if (lazyPropertyOnApplicationDbContext == null) continue;
 
-                var lazyPropertyOnApplicationDbContextName = lazyPropertyOnApplicationDbContext.Name; // "Files"
+                var lazyPropertyOnApplicationDbContextName = lazyPropertyOnApplicationDbContext.Name; 
 
                 lazyCode += @$"
-                        item.{propertyName} = new Lazy<{lazyType.FullName}?>(
-                            () => db.{lazyPropertyOnApplicationDbContextName}.FirstOrDefault(t => t.Id == item.{foreignKeyName}));";
+        item.{propertyName} = new Lazy<{lazyType.FullName}?>(
+            () => db.{lazyPropertyOnApplicationDbContextName}.FirstOrDefault(t => t.Id == item.{foreignKeyName}));";
             }
         }
 
         return $@"
-                using System;
-                using System.Linq;
-                using System.Collections.Generic;
-                using Newtonsoft.Json;
+using System;
+using System.Linq;
+using System.Collections.Generic;
+using Newtonsoft.Json;
 
-                public static class {proxyName}
-                {{
-                    public static void {methodName}({fullClassName} item, {dbContextTypeFullName} objDb)
-                    {{
-                        var db = objDb as {applicationDbContextTypeFullName};
+public static class {proxyName}
+{{
+    public static void {methodName}({fullClassName} item, {dbContextTypeFullName} objDb)
+    {{
+        var db = objDb as {applicationDbContextTypeFullName};
 {lazyCode}
-                    }}
-                }}
+    }}
+}}
 ";
     }
 
     public static string? GetCSharpTypeName(Type type)
     {
-        //System.Diagnostics.Debug.WriteLine("ADSGSDG !!!!!!!!!!!!!!!!!");
         if (type == typeof(int)) return "int";
         if (type == typeof(long)) return "long";
         if (type == typeof(short)) return "short";

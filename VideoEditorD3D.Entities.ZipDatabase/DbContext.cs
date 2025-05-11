@@ -25,7 +25,7 @@ public class DbContext : IDisposable
     internal List<IDbSet> DbSets;
     internal List<IDbObject> DbObjects;
 
-    public void Load()
+    public void InitializeCache()
     {
         foreach (var dbSet in DbSets)
             dbSet.LoadCache(ZipArchive);

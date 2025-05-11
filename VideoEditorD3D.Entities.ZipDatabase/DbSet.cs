@@ -29,7 +29,7 @@ public class DbSet<T> : ICollection<T>, IDbSet
         EntitySerializer = EntitySerializerCollection.GetEntitySerializer<T>();
         EntityExtender = EntityExtenderCollection.GetEntityExtender<T>(DbContext);
 
-        //LoadCache(DbContext.ZipArchive);
+        LoadCache(DbContext.ZipArchive);
     }
 
     public void LoadCache(ZipArchive zipArchive)
@@ -60,7 +60,7 @@ public class DbSet<T> : ICollection<T>, IDbSet
                 {
                     dataStream.Position = dataPosition;
                     var item = EntitySerializer.Read(dataReader!);
-                    EntityExtender.ExtendEntity(item, DbContext);
+                    //EntityExtender.ExtendEntity(item, DbContext);
                     Cache[item.Id] = item;
                 }
             }
@@ -220,7 +220,7 @@ public class DbSet<T> : ICollection<T>, IDbSet
         {
             foreach (var item in Cache.Values)
             {
-                //EntityExtender.ExtendEntity(item, DbContext);
+                EntityExtender.ExtendEntity(item, DbContext);
                 yield return item;
             }
         }
