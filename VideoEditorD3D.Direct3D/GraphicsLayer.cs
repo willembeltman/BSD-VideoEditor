@@ -257,4 +257,9 @@ public class GraphicsLayer(IApplicationForm applicationForm, Forms.Control contr
 
         GC.SuppressFinalize(this);
     }
+
+    public void DrawLine(int x1, int v, int x2, int height, object verticalLines)
+    {
+        throw new NotImplementedException();
+    }
 }

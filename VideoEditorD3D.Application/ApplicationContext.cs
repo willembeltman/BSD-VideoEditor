@@ -16,7 +16,7 @@ public class ApplicationContext : IApplicationContext
     public MainForm? MainForm { get; private set; }
     public VideoDrawerThread? DrawerThread { get; private set; }
     public Project CurrentProject { get; private set; } = new Project();
-    public Timeline CurrentTimeline { get; private set; } = new Timeline();
+    public Timeline Timeline { get; private set; } = new Timeline();
 
     public ApplicationContext()
     {
@@ -24,13 +24,13 @@ public class ApplicationContext : IApplicationContext
         Config = ApplicationConfig.Load();
         if (Config.LastDatabaseFullName == null)
         {
-            Db = new ApplicationDbContext($"NewProject_{DateTime.Now:yyyy-MM-dd HH-mm}.zip");
+            Db = new ApplicationDbContext($"NewProject_{DateTime.Now:yyyy-MM-dd HH-mm}.zip", Logger);
             Config.LastDatabaseFullName = Db.FullName;
             Config.Save();
         }
         else
         {
-            Db = new ApplicationDbContext(Config.LastDatabaseFullName);
+            Db = new ApplicationDbContext(Config.LastDatabaseFullName, Logger);
         }
     }
 
@@ -65,20 +65,20 @@ public class ApplicationContext : IApplicationContext
         }
         if (!CurrentProject.Timelines.Any())
         {
-            CurrentTimeline = new Timeline();
-            CurrentProject.Timelines.Add(CurrentTimeline);
-            CurrentProject.CurrentTimelineId = CurrentTimeline.Id;
+            Timeline = new Timeline();
+            CurrentProject.Timelines.Add(Timeline);
+            CurrentProject.CurrentTimelineId = Timeline.Id;
             Db.SaveChanges();
             return;
         }
         if (CurrentProject.CurrentTimeline.Value == null)
         {
-            CurrentTimeline = CurrentProject.Timelines.First();
-            CurrentProject.CurrentTimelineId = CurrentTimeline.Id;
+            Timeline = CurrentProject.Timelines.First();
+            CurrentProject.CurrentTimelineId = Timeline.Id;
             Db.SaveChanges();
             return;
         }
-        CurrentTimeline = CurrentProject.CurrentTimeline.Value;
+        Timeline = CurrentProject.CurrentTimeline.Value;
     }
 
     public void Dispose()

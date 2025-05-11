@@ -4,14 +4,14 @@ namespace VideoEditorD3D.Direct3D;
 
 public class ApplicationFormEvents
 {
-    private IApplicationForm applicationForm;
-    private IApplicationContext application;
-    private Forms.Form CurrentForm => applicationForm.CurrentForm;
+    private IApplicationForm ApplicationForm;
+    private IApplicationContext Application;
+    private Forms.Form CurrentForm => ApplicationForm.CurrentForm;
 
     public ApplicationFormEvents(IApplicationForm applicationForm, IApplicationContext application)
     {
-        this.applicationForm = applicationForm;
-        this.application = application;
+        this.ApplicationForm = applicationForm;
+        this.Application = application;
     }
 
     public void OnKeyPress(object? sender, KeyPressEventArgs e)
@@ -62,17 +62,26 @@ public class ApplicationFormEvents
     public void OnDragDrop(object? sender, DragEventArgs e)
     {
         if (CurrentForm == null) return;
-        CurrentForm.OnDragDrop(e);
+        var formPoint = new Point(e.X, e.Y);
+        var ucPoint = ApplicationForm.PointToClient(formPoint);
+        var newE = new DragEventArgs(e.Data, e.KeyState, ucPoint.X, ucPoint.Y, e.AllowedEffect, e.Effect);
+        CurrentForm.OnDragDrop(newE);
     }
     public void OnDragEnter(object? sender, DragEventArgs e)
     {
         if (CurrentForm == null) return;
-        CurrentForm.OnDragEnter(e);
+        var formPoint = new Point(e.X, e.Y);
+        var ucPoint = ApplicationForm.PointToClient(formPoint);
+        var newE = new DragEventArgs(e.Data, e.KeyState, ucPoint.X, ucPoint.Y, e.AllowedEffect, e.Effect);
+        CurrentForm.OnDragEnter(newE);
     }
     public void OnDragOver(object? sender, DragEventArgs e)
     {
         if (CurrentForm == null) return;
-        CurrentForm.OnDragOver(e);
+        var formPoint = new Point(e.X, e.Y);
+        var ucPoint = ApplicationForm.PointToClient(formPoint);
+        var newE = new DragEventArgs(e.Data, e.KeyState, ucPoint.X, ucPoint.Y, e.AllowedEffect, e.Effect);
+        CurrentForm.OnDragOver(newE);
     }
     public void OnDragLeave(object? sender, EventArgs e)
     {

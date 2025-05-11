@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Text.Json.Serialization;
 using VideoEditorD3D.Entities.ZipDatabase.Helpers;
+using VideoEditorD3D.Loggers;
 
 namespace VideoEditorD3D.Entities.ZipDatabase.GeneratedCode;
 
@@ -13,14 +14,14 @@ public class EntityExtender<T>
 
     public readonly string Code;
 
-    internal EntityExtender(DbContext dbContext)
+    internal EntityExtender(DbContext dbContext, ILogger logger)
     {
         var type = typeof(T);
         var className = $"{type.Name}EntityExtender";
         var methodName = "ExtendEntity";
 
         Code = GenerateSerializerCode(type, className, methodName, dbContext);
-        Debug.WriteLine($"Generated {className}:\r\n{Code}");
+        logger.WriteLine($"Generated {className}:\r\n{Code}");
         var asm = Compile(Code);
         var serializerType = asm.GetType(className)!;
         var createProxyMethod = serializerType.GetMethod(methodName)!;

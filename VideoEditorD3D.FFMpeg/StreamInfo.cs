@@ -3,11 +3,11 @@ using VideoEditorD3D.FFMpeg.Types;
 using VideoEditorD3D.FFMpeg.Enums;
 using VideoEditorD3D.FFMpeg.Helpers;
 
-namespace VideoEditor;
+namespace VideoEditorD3D.FFMpeg;
 
 public class StreamInfo
 {
-    public StreamInfo(File file, FFProbeStream stream)
+    public StreamInfo(MediaContainer file, FFProbeStream stream)
     {
         File = file;
         Index = stream.index;
@@ -25,7 +25,7 @@ public class StreamInfo
         SampleRate = FFInt.TryParse(stream.sample_rate, out int sampleRate) ? sampleRate : null;
     }
 
-    public File File { get; }
+    public MediaContainer File { get; }
     public int Index { get; }
     public string? Title { get; }
     public string? CodecName { get; }

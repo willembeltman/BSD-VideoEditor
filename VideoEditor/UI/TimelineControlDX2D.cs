@@ -323,7 +323,7 @@ public class TimelineControlDX2D : BaseControlDX2D
         var layerIndex = timelinePosition.Value.Layer;
         foreach (var fullName in fullNames)
         {
-            var file = File.Open(fullName);
+            var file = VideoEditorD3D.FFMpeg.MediaContainer.Open(fullName);
             if (file == null) continue;
             if (file.Duration == null) continue;
 

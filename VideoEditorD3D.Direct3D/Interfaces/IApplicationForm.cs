@@ -15,7 +15,9 @@ public interface IApplicationForm
     Forms.Form CurrentForm { get; set; }
     Stopwatch Stopwatch { get; }
     AllTimers Timers { get; }
+    Cursor Cursor { get; set; }
 
     void TryDraw();
     void CloseForm();
+    Point PointToClient(Point formPoint);
 }

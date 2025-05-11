@@ -3,6 +3,7 @@ using System.IO.Compression;
 using VideoEditorD3D.Entities.ZipDatabase.Interfaces;
 using VideoEditorD3D.Entities.ZipDatabase.Extentions;
 using VideoEditorD3D.Entities.ZipDatabase.GeneratedCode;
+using VideoEditorD3D.Loggers;
 
 namespace VideoEditorD3D.Entities.ZipDatabase;
 
@@ -18,7 +19,7 @@ public class DbSet<T> : ICollection<T>, IDbSet
     public DbContext DbContext { get; }
     public string TypeName { get; }
 
-    public DbSet(DbContext dbContext)
+    public DbSet(DbContext dbContext, ILogger logger)
     {
         DbContext = dbContext;
         DbContext.AddDbSet(this);
@@ -27,7 +28,7 @@ public class DbSet<T> : ICollection<T>, IDbSet
         Lock = new ReaderWriterLockSlim();
         Cache = new Dictionary<long, T>();
         EntitySerializer = EntitySerializerCollection.GetEntitySerializer<T>();
-        EntityExtender = EntityExtenderCollection.GetEntityExtender<T>(DbContext);
+        EntityExtender = EntityExtenderCollection.GetEntityExtender<T>(DbContext, logger);
 
         LoadCache(DbContext.ZipArchive);
     }

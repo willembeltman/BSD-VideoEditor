@@ -1,13 +1,12 @@
-﻿using VideoEditorD3D.FFMpeg;
-using VideoEditorD3D.FFMpeg.Json;
+﻿using VideoEditorD3D.FFMpeg.Json;
 using VideoEditorD3D.FFMpeg.Enums;
 using VideoEditorD3D.FFMpeg.Helpers;
 
-namespace VideoEditor;
+namespace VideoEditorD3D.FFMpeg;
 
-public class File
+public class MediaContainer
 {
-    private File(string fullName, FFProbeRapport rapport)
+    private MediaContainer(string fullName, FFProbeRapport rapport)
     {
         if (rapport.streams == null) throw new Exception("Media container rapport has no 'streams'");
         if (rapport.format == null) throw new Exception("Media container rapport has no 'format'");
@@ -35,24 +34,24 @@ public class File
     public StreamInfo[] AudioStreams { get; }
     public double? Duration { get; }
 
-    public static IEnumerable<File> OpenMultiple(IEnumerable<string> files)
+    public static IEnumerable<MediaContainer> OpenMultiple(IEnumerable<string> files)
     {
         return files
             .Select(Open)
             .Where(a => a != null)
             .Select(a => a!);
     }
-    public static File? Open(string fullName)
+    public static MediaContainer? Open(string fullName)
     {
         var rapport = FFProbeProxy.GetRapport(fullName);
         if (rapport == null) return null;
-        return new File(fullName, rapport);
+        return new MediaContainer(fullName, rapport);
     }
 
     public bool EqualTo(object? obj)
     {
-        if (!(obj is File)) return false; 
-        var other = obj as File;
+        if (!(obj is MediaContainer)) return false; 
+        var other = obj as MediaContainer;
         if (other == null) return false;
         if (FullName != other.FullName) return false;
         return true;

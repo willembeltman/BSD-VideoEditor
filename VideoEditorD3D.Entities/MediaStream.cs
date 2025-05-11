@@ -14,5 +14,5 @@ public class MediaStream : IEntity
     public Lazy<MediaFile?> MediaFile { get; set; } = new Lazy<MediaFile?>(() => null, true);
 
     [ForeignKey("MediaStreamId")]
-    public ICollection<TimelineVideo> TimelineVideos { get; set; } = [];
+    public ICollection<TimelineClipVideo> TimelineVideos { get; set; } = [];
 }

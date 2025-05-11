@@ -1,8 +1,10 @@
-﻿namespace VideoEditor.Types;
+﻿using MediaContainer = VideoEditorD3D.FFMpeg.MediaContainer;
+
+namespace VideoEditor.Types;
 
 public class DragAndDrop
 {
-    public List<File> Files { get; } = [];
+    public List<MediaContainer> Files { get; } = [];
     public List<TimelineClipVideo> VideoClips { get; } = [];
     public List<TimelineClipAudio> AudioClips { get; } = [];
     public IEnumerable<ITimelineClip> AllClips =>

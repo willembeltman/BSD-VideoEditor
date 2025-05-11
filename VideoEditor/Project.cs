@@ -1,4 +1,5 @@
-﻿
+﻿using MediaContainer = VideoEditorD3D.FFMpeg.MediaContainer;
+
 namespace VideoEditor;
 
 public class Project : IDisposable
@@ -9,7 +10,7 @@ public class Project : IDisposable
         Timelines.Add(CurrentTimeline);
     }
 
-    public ConcurrentArray<File> Files { get; } = [];
+    public ConcurrentArray<MediaContainer> Files { get; } = [];
     public ConcurrentArray<Timeline> Timelines { get; } = [];
 
     public string? Path { get; set; }

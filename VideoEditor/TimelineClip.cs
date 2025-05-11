@@ -1,4 +1,6 @@
-﻿namespace VideoEditor;
+﻿using VideoEditorD3D.FFMpeg;
+
+namespace VideoEditor;
 
 public class TimelineClip
 {
