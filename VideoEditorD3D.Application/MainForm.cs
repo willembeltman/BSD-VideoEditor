@@ -12,7 +12,7 @@ public class MainForm : Form
     private readonly DisplayControl DisplayControl;
     private readonly TimelineControl TimelineControl;
     private readonly PropertiesControl PropertiesControl;
-    private readonly Button FpsLabel;
+    private readonly FpsControl FpsControl;
     private readonly ApplicationContext ApplicationContext;
 
     private int TimelineHeight = 200;
@@ -71,25 +71,10 @@ public class MainForm : Form
         TimelineControl.BackColor = new RawColor4(0, 0, 0, 1);
         Controls.Add(TimelineControl);
 
-        FpsLabel = new Button(applicationForm, this, this);
-        FpsLabel.Left = 3;
-        FpsLabel.Top = 3;
-        FpsLabel.Width = 200;
-        FpsLabel.Height = 20;
-        FpsLabel.BackColor = new RawColor4(0, 0, 0, 0.5f);
-        FpsLabel.BorderColor = new RawColor4(1, 1, 1, 1);
-        FpsLabel.ForeColor = new RawColor4(1, 1, 1, 1);
-        FpsLabel.BorderSize = 1;
-        FpsLabel.FontSize = 6f;
-        FpsLabel.Font = "Ebrima";
-        Controls.Add(FpsLabel);
+        FpsControl = new FpsControl(applicationForm, this, this);
+        Controls.Add(FpsControl);
     }
-
-    public override void OnUpdate()
-    {
-        FpsLabel.Text = $"{ApplicationForm.Timers.FpsTimer.Fps}fps   {ApplicationForm.Timers.OnUpdateTimer.Time * 1000:F3}ms   {ApplicationForm.Timers.RenderToGpuTimer.Time * 1000:F3}ms";
-        base.OnUpdate();
-    }
+     
     public override void OnResize()
     {
         MenuStrip.Left = 0;
@@ -97,24 +82,10 @@ public class MainForm : Form
         MenuStrip.Width = Width;
         MenuStrip.Height = 40;
 
-        //var marge = 10;
-        //var propertiesWidth = 240;
-        //var timelineHeight = 240;
-
-        //DisplayControl.Top = MenuStrip.Bottom + marge;
-        //DisplayControl.Left = marge;
-        //DisplayControl.Width = Width - propertiesWidth - marge * 3;
-        //DisplayControl.Height = Height - MenuStrip.Bottom - timelineHeight - marge * 3;
-
-        //PropertiesControl.Top = MenuStrip.Bottom + marge;
-        //PropertiesControl.Left = marge + Width - propertiesWidth - marge * 3 + marge;
-        //PropertiesControl.Width = propertiesWidth;
-        //PropertiesControl.Height = Height - MenuStrip.Bottom - timelineHeight - marge * 3;
-
-        //TimelineControl.Top = marge + Height - timelineHeight - marge * 3 + marge;
-        //TimelineControl.Left = marge;
-        //TimelineControl.Width = Width - marge * 2;
-        //TimelineControl.Height = timelineHeight;
+        FpsControl.Left = 3;
+        FpsControl.Top = 3;
+        FpsControl.Width = 200;
+        FpsControl.Height = 20;
 
         var nettowidth = Width - Constants.Margin;
         var nettoheight = Height - Constants.Margin - MenuStrip.Height;
@@ -207,7 +178,6 @@ public class MainForm : Form
         ApplicationForm.Cursor = System.Windows.Forms.Cursors.Default;
         base.OnMouseLeave(e);
     }
-
 
     private bool MouseIsOverXResizer(System.Windows.Forms.MouseEventArgs e)
     {
