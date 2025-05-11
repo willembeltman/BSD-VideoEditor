@@ -8,7 +8,6 @@ using VideoEditorD3D.Direct3D.Vertices;
 using VideoEditorD3D.Timers;
 using Device = SharpDX.Direct3D11.Device;
 using VideoEditorD3D.Direct3D.Collections;
-using System.Runtime.InteropServices;
 
 namespace VideoEditorD3D.Direct3D;
 

@@ -6,30 +6,34 @@ namespace VideoEditorD3D.Direct3D.Forms;
 
 public class MenuStrip : ForeBorderBackControl
 {
-    public MenuStrip(IApplicationForm applicationForm, Form? parentForm, Control? parentControl) : base(applicationForm, parentForm, parentControl)
+    public MenuStrip(IApplicationForm applicationForm, Form? parentForm, Control? parentControl)
+        : base(applicationForm, parentForm, parentControl)
     {
         Items = new ObservableArrayCollection<MenuStripItem>();
-        Items.Added += (sender, item) => { Controls.Add(item); };
-        Items.Removed += (sender, item) => { Controls.Remove(item); };
+        Items.Added += (sender, item) => {
+            Controls.Add(item);
+            PerformLayout();
+        };
+        Items.Removed += (sender, item) => {
+            Controls.Remove(item);
+            PerformLayout();
+        };
+        Height = 24;
     }
 
     public ObservableArrayCollection<MenuStripItem> Items { get; }
-}
 
-public class MenuStripItem : ForeBorderBackControl
-{
-    private bool _Visible;
-
-    public MenuStripItem(IApplicationForm applicationForm, Form? parentForm, Control? parentControl, string text) : base(applicationForm, parentForm, parentControl)
+    public void PerformLayout()
     {
-        Text = text;
-        Items = new ObservableArrayCollection<MenuStripItem>();
-        Items.Added += (sender, item) => { Controls.Add(item); };
-        Items.Removed += (sender, item) => { Controls.Remove(item); };
+        int x = 0;
+        foreach (var item in Items)
+        {
+            item.Left = x;
+            item.Top = 0;
+            item.Height = Height;
+            item.Width = 60; // Math.Max(60, TextRenderer.MeasureText(item.Text, item.Font).Width + 20);
+            x += item.Width;
+        }
     }
-
-    public string Text { get; }
-    public override bool Visible { get => _Visible; set => _Visible = value; }
-
-    public ObservableArrayCollection<MenuStripItem> Items { get; } = new ObservableArrayCollection<MenuStripItem>();
 }
+

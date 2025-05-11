@@ -286,7 +286,7 @@ public class Control : IDisposable
         }
         MouseLeave?.Invoke(this, e);
     }
-    
+
     public virtual void OnDragEnter(DragEventArgs e)
     {
         foreach (var control in Controls)
