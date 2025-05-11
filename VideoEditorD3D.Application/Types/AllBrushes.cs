@@ -1,6 +1,6 @@
 ﻿using SharpDX.Mathematics.Interop;
 
-namespace VideoEditorD3D.Application.Helpers
+namespace VideoEditorD3D.Application.Types
 {
     public class AllBrushes
     {

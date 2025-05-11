@@ -2,7 +2,7 @@
 using VideoEditorD3D.Entities.Interfaces;
 using VideoEditorD3D.FFMpeg;
 
-namespace VideoEditorD3D.Application.Helpers;
+namespace VideoEditorD3D.Application.Types;
 
 public class DragAndDrop
 {

@@ -8,9 +8,9 @@ using VideoEditorD3D.Direct3D.Forms.Generic;
 using VideoEditorD3D.Direct3D.Interfaces;
 using Rectangle = SharpDX.Rectangle;
 using Point = System.Drawing.Point;
-using VideoEditorD3D.Application.Helpers;
 using VideoEditorD3D.Entities;
 using VideoEditorD3D.Entities.Interfaces;
+using VideoEditorD3D.Application.Types;
 
 namespace VideoEditorD3D.Application.Controls;
 

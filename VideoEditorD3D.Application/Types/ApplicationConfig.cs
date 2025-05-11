@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace VideoEditorD3D.Application.Configs;
+namespace VideoEditorD3D.Application.Types;
 
 public class ApplicationConfig
 {

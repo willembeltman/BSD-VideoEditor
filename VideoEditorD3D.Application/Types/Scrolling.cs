@@ -1,7 +1,7 @@
 ﻿
 using System.Windows.Forms;
 
-namespace VideoEditorD3D.Application.Helpers;
+namespace VideoEditorD3D.Application.Types;
 
 public class Scrolling
 {
