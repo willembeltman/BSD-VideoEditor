@@ -18,8 +18,4 @@
     <ProjectReference Include="..\VideoEditorD3D.Timers\VideoEditorD3D.Timers.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Models\" />
-  </ItemGroup>
-
 </Project>

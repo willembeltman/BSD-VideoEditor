@@ -7,6 +7,7 @@ using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Direct3D.Vertices;
 using VideoEditorD3D.Timers;
 using Device = SharpDX.Direct3D11.Device;
+using VideoEditorD3D.Direct3D.Collections;
 
 namespace VideoEditorD3D.Direct3D;
 
@@ -17,7 +18,7 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
     private readonly Lock UILock;
     private readonly Stopwatch Stopwatch;
     private readonly AllTimers Timers;
-    private readonly ApplicationFormEventHandlers EventHandler;
+    private readonly ApplicationFormEvents EventHandler;
     private readonly IDrawerThread DrawerThread;
     private bool ReInitialize;
     private bool Initialized;
@@ -50,7 +51,7 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
         Stopwatch = new Stopwatch();
         Timers = new AllTimers(Stopwatch);
         DrawerThread = application.OnCreateDrawerThread(this) ?? new Default60FpsDrawerThread(this, application);
-        EventHandler = new ApplicationFormEventHandlers(this, application);
+        EventHandler = new ApplicationFormEvents(this, application);
 
         InitializeComponents();
     }
@@ -83,7 +84,7 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
         CenterToScreen();
         Stopwatch.Start();
         DrawerThread.StartThread();
-        Application.Start();
+        Application.Start(this);
     }
     protected override void OnResize(EventArgs e)
     {

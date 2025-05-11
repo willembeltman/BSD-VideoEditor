@@ -57,5 +57,5 @@ public interface IApplicationContext : IDisposable
     /// it's own threads and initialize it's own engine. This call is blocking the render thread,
     /// so after this method has returned the Direct3D engine will begin drawing it's first frame,
     /// </summary>
-    void Start();
+    void Start(IApplicationForm applicationForm);
 }

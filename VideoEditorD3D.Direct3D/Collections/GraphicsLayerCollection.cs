@@ -1,8 +1,9 @@
 ﻿using System.Collections;
+using Control = VideoEditorD3D.Direct3D.Forms.Control;
 
-namespace VideoEditorD3D.Direct3D.Forms.Helpers
+namespace VideoEditorD3D.Direct3D.Collections
 {
-    public class CanvasLayers(Control control) : IEnumerable<GraphicsLayer>
+    public class GraphicsLayerCollection(Control control) : IEnumerable<GraphicsLayer>
     {
         private Control Control = control;
         private GraphicsLayer[] CanvasLayerList = [];

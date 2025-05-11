@@ -1,7 +1,7 @@
 ﻿using SharpDX.Mathematics.Interop;
+using VideoEditorD3D.Application.Controls;
 using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Direct3D.Interfaces;
-using VideoEditorD3D.Application.Controls;
 
 namespace VideoEditorD3D.Application;
 
@@ -12,19 +12,19 @@ public class MainForm : Form
     private readonly PropertiesControl PropertiesControl;
     private readonly Label FpsLabel;
 
-    public MainForm(ApplicationContext application, IApplicationForm applicationForm) : base(applicationForm)
+    public MainForm(ApplicationContext applicationContext, IApplicationForm applicationForm) : base(applicationForm)
     {
         BackColor = new RawColor4(0.125f, 0.25f, 0.5f, 1);
 
-        DisplayControl = new DisplayControl(application, applicationForm, this, this);
+        DisplayControl = new DisplayControl(applicationContext, applicationForm, this, this);
         DisplayControl.BackColor = new RawColor4(0, 0, 0, 1);
         Controls.Add(DisplayControl);
 
-        PropertiesControl = new PropertiesControl(application, applicationForm, this, this);
+        PropertiesControl = new PropertiesControl(applicationContext, applicationForm, this, this);
         PropertiesControl.BackColor = new RawColor4(0, 0, 0, 1);
         Controls.Add(PropertiesControl);
 
-        TimelineControl = new TimelineControl(application, applicationForm, this, this);
+        TimelineControl = new TimelineControl(applicationContext, applicationForm, this, this);
         TimelineControl.BackColor = new RawColor4(0, 0, 0, 1);
         Controls.Add(TimelineControl);
 
@@ -75,7 +75,6 @@ public class MainForm : Form
         TimelineControl.Left = marge;
         TimelineControl.Width = Width - marge * 2;
         TimelineControl.Height = timelineHeight;
-
 
         base.OnResize();
     }

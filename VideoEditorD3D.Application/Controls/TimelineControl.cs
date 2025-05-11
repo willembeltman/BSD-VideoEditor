@@ -30,9 +30,9 @@ public class TimelineControl : BackControl
     private Rectangle TimelineRectangle => new Rectangle(Left, Top, Width, Height - HScrollBarControl.Height);
     private int MiddleOffset => HScrollBarControl.Height / 2;
 
-    public TimelineControl(ApplicationContext application, IApplicationForm applicationForm, Form? parentForm, Control? parentControl) : base(applicationForm, parentForm, parentControl)
+    public TimelineControl(ApplicationContext applicationContext, IApplicationForm applicationForm, Form? parentForm, Control? parentControl) : base(applicationForm, parentForm, parentControl)
     {
-        Application = application;
+        Application = applicationContext;
 
         Background = CanvasLayers.Create();
         Foreground = CanvasLayers.Create();

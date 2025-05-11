@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using SharpDX.Direct3D11;
+using VideoEditorD3D.Direct3D.Collections;
 using VideoEditorD3D.Timers;
 
 namespace VideoEditorD3D.Direct3D.Interfaces;

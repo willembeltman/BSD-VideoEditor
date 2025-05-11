@@ -1,10 +1,10 @@
 ﻿using VideoEditorD3D.Direct3D.Interfaces;
 
-namespace VideoEditorD3D.Application.Types;
+namespace VideoEditorD3D.Application;
 
-public class DrawerThread : IDrawerThread
+public class VideoDrawerThread : IDrawerThread
 {
-    public DrawerThread(ApplicationContext application, IApplicationForm applicationForm)
+    public VideoDrawerThread(ApplicationContext application, IApplicationForm applicationForm)
     {
         Application = application;
         ApplicationForm = applicationForm;

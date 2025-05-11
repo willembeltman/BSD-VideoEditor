@@ -1,8 +1,9 @@
 ﻿using System.Collections;
+using Control = VideoEditorD3D.Direct3D.Forms.Control;
 
-namespace VideoEditorD3D.Direct3D.Forms.Helpers
+namespace VideoEditorD3D.Direct3D.Collections
 {
-    public class Controls(Control control) : IEnumerable<Control>
+    public class ControlCollection(Control control) : IEnumerable<Control>
     {
         private Control Control = control;
         private Control[] ControlList = [];

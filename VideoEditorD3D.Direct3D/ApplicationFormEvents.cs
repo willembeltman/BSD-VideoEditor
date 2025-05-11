@@ -2,13 +2,13 @@
 
 namespace VideoEditorD3D.Direct3D;
 
-public class ApplicationFormEventHandlers
+public class ApplicationFormEvents
 {
     private IApplicationForm applicationForm;
     private IApplicationContext application;
     private Forms.Form CurrentForm => applicationForm.CurrentForm;
 
-    public ApplicationFormEventHandlers(IApplicationForm applicationForm, IApplicationContext application)
+    public ApplicationFormEvents(IApplicationForm applicationForm, IApplicationContext application)
     {
         this.applicationForm = applicationForm;
         this.application = application;

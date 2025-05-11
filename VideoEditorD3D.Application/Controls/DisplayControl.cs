@@ -8,7 +8,7 @@ namespace VideoEditorD3D.Application.Controls;
 
 public class DisplayControl : BackControl
 {
-    public DisplayControl(ApplicationContext application, IApplicationForm applicationForm, Form? parentForm, Control? parentControl) : base(applicationForm, parentForm, parentControl)
+    public DisplayControl(ApplicationContext applicationContext, IApplicationForm applicationForm, Form? parentForm, Control? parentControl) : base(applicationForm, parentForm, parentControl)
     {
         Background = CanvasLayers.Create();
         Foreground = CanvasLayers.Create();

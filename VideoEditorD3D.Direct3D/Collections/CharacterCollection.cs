@@ -2,7 +2,7 @@ using SharpDX.Mathematics.Interop;
 using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Direct3D.Textures;
 
-namespace VideoEditorD3D.Direct3D;
+namespace VideoEditorD3D.Direct3D.Collections;
 
 public class CharacterCollection(IApplicationForm Application) : IDisposable
 {

@@ -7,7 +7,7 @@ namespace VideoEditorD3D.Application.Controls;
 
 public class PropertiesControl : BackControl
 {
-    public PropertiesControl(ApplicationContext application, IApplicationForm applicationForm, Form? parentForm, Control? parentControl) : base(applicationForm, parentForm, parentControl)
+    public PropertiesControl(ApplicationContext applicationContext, IApplicationForm applicationForm, Form? parentForm, Control? parentControl) : base(applicationForm, parentForm, parentControl)
     {
         Background = CanvasLayers.Create();
         Foreground = CanvasLayers.Create();

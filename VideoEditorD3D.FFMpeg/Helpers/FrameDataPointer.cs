@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using VideoEditorD3D.FFMpeg.Types;
 
-namespace VideoEditorD3D.Direct3D.Helpers;
+namespace VideoEditorD3D.FFMpeg.Helpers;
 
 public class FrameDataPointer : IDisposable
 {

@@ -1,4 +1,4 @@
-﻿using VideoEditorD3D.Direct3D.Forms.Helpers;
+﻿using VideoEditorD3D.Direct3D.Collections;
 using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Forms;
@@ -8,8 +8,8 @@ public class Control
     public IApplicationForm ApplicationForm { get; }
     public Form? ParentForm { get; }
     public Control? ParentControl { get; }
-    public Controls Controls { get; }
-    public CanvasLayers CanvasLayers { get; }
+    public ControlCollection Controls { get; }
+    public GraphicsLayerCollection CanvasLayers { get; }
 
     public bool Loaded { get; private set; }
     public bool Dirty { get; private set; }
@@ -23,8 +23,8 @@ public class Control
         ApplicationForm = applicationForm;
         ParentForm = parentForm;
         ParentControl = parentControl;
-        Controls = new Controls(this);
-        CanvasLayers = new CanvasLayers(this);
+        Controls = new ControlCollection(this);
+        CanvasLayers = new GraphicsLayerCollection(this);
     }
 
     public bool IsMouseEntered { get; private set; } = false;
