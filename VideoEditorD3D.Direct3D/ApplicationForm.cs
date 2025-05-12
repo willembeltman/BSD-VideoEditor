@@ -83,8 +83,8 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
     {
         CenterToScreen();
         Stopwatch.Start();
-        DrawerThread.StartThread();
         Application.Start(this);
+        DrawerThread.StartThread();
     }
     protected override void OnResize(EventArgs e)
     {

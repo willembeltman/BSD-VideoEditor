@@ -14,7 +14,7 @@ public class DbContextExtender
 
     internal DbContextExtender(DbContext dbContext, ILogger logger)
     {
-        var applicationDbContextType = dbContext.GetType(); // = ApplicationDbContext
+        var applicationDbContextType = dbContext.GetType(); 
         var extenderName = $"{applicationDbContextType.Name}DbContextExtender";
         var extenderMethodName = "ExtendDbContext";
 

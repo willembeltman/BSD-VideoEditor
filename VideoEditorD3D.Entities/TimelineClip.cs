@@ -42,11 +42,8 @@ public abstract class TimelineClip : IEntity
     }
     public int Layer { get; set; }
 
-    [ForeignKey("TimelineId")]
     public virtual Lazy<Timeline> Timeline { get; set; }
-    [ForeignKey("MediaStreamId")]
     public virtual Lazy<MediaStream> MediaStream { get; set; }
-    [ForeignKey("TimelineClipGroupId")]
     public virtual Lazy<TimelineClipGroup> TimelineClipGroup { get; set; }
 
     [NotMapped]

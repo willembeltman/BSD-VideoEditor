@@ -10,9 +10,6 @@ public class MediaStream : IEntity
     public int Index { get; set; }
     public string Type { get; set; }
 
-    [ForeignKey("MediaFileId")]
     public virtual Lazy<MediaFile> MediaFile { get; set; }
-
-    [ForeignKey("MediaStreamId")]
     public virtual ICollection<TimelineClipVideo> TimelineVideos { get; set; }
 }

@@ -5,16 +5,16 @@ namespace VideoEditorD3D.Entities;
 
 public class Project : IEntity
 {
+    public MyClass myClass { get; set; }
+
     public long Id { get; set; }
     public long CurrentTimelineId { get; set; }
 
-    [ForeignKey("ProjectId")]
     public virtual ICollection<MediaFile> Files { get; set; }
-
-    [ForeignKey("ProjectId")]
     public virtual ICollection<Timeline> Timelines { get; set; }
-
-    [ForeignKey("CurrentTimelineId")]
     public virtual Lazy<Timeline> CurrentTimeline { get; set; }
+}
 
+public struct MyClass
+{
 }

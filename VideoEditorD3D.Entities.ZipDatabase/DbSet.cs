@@ -18,12 +18,14 @@ public class DbSet<T> : ICollection<T>, IDbSet
     private long LastId;
 
     public DbContext DbContext { get; }
+    public ILogger Logger { get; }
     public string TypeName { get; }
 
     public DbSet(DbContext dbContext, ILogger logger)
     {
         DbContext = dbContext;
         DbContext.AddDbSet(this);
+        Logger = logger;
 
         TypeName = typeof(T).Name;
         Lock = new ReaderWriterLockSlim();
@@ -101,6 +103,9 @@ public class DbSet<T> : ICollection<T>, IDbSet
             Lock.ExitReadLock();
         }
     }
+    
+
+
 
     #region ICollection
     public int Count
@@ -124,7 +129,7 @@ public class DbSet<T> : ICollection<T>, IDbSet
         {
             item.Id = ++LastId;
             Cache[item.Id] = item;
-            EntityExtender.ExtendEntity(item, DbContext);
+            EntityExtender.ExtendEntity(item, DbContext, Logger);
         }
         finally
         {
@@ -222,7 +227,7 @@ public class DbSet<T> : ICollection<T>, IDbSet
         {
             foreach (var item in Cache.Values)
             {
-                EntityExtender.ExtendEntity(item, DbContext);
+                EntityExtender.ExtendEntity(item, DbContext, Logger);
                 yield return item;
             }
         }

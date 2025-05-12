@@ -41,107 +41,200 @@ public class EntitySerializer<T>
         var writeCode = string.Empty;
         var readCode = string.Empty;
         var newCode = string.Empty;
-        //var lazyCode = string.Empty;
-
-        var entityDbCollectionType = typeof(ForeignEntityCollection<,>);
-        var entityDbCollectionTypeFullName = entityDbCollectionType.FullName!.Split('`').First();
 
         var binarySerializerType = typeof(EntitySerializer<>);
         var binarySerializerTypeFullName = binarySerializerType.FullName!.Split('`').First();
 
-        var binarySerializerCollectionType = typeof(EntitySerializerCollection);
-        var binarySerializerCollectionTypeFullName = binarySerializerCollectionType.FullName;
-        var method = binarySerializerCollectionType.GetMethods().First().Name;
+        var entitySerializerCollectionType = typeof(EntitySerializerCollection);
+        var entitySerializerCollectionTypeFullName = entitySerializerCollectionType.FullName;
+        var entitySerializerCollectionTypeMethod = entitySerializerCollectionType.GetMethods().First().Name;
 
         var props = type.GetProperties();
         foreach (var prop in props)
         {
             if (!ReflectionHelper.HasPublicGetter(prop)) continue;
             if (!ReflectionHelper.HasPublicSetter(prop)) continue;
-            if (ReflectionHelper.HasNotMappedAttribute(prop)) continue;
-            if (ReflectionHelper.HasForeignKeyAttribute(prop)) continue;
-            if (ReflectionHelper.IsVirtual(prop)) continue;
 
             var propertyName = prop.Name;
 
-            var readMethod = GetBinaryReadMethod(prop.PropertyType);
-            if (readMethod != null)
+            if (ReflectionHelper.HasNotMappedAttribute(prop)) continue;
+            if (ReflectionHelper.IsExtendedProperty(prop)) continue;
+            if (ReflectionHelper.IsExtendedList(prop)) continue;
+
+
+
+            // Wat kan er allemaal?
+            //
+            // Primitive types
+            // DateTime
+            // ExtendedProperties en ExtendedLists, mits alle keys gevonden kunnen worden en de dbset's bestaan
+            // Non-generic Structs en classes (die zelfde types ondersteunen)
+            // Enums (checken nog)
+
+
+            //writeCode += $@"System.Windows.Forms.MessageBox.Show(""{propertyName}"");";
+            //readCode += $@"System.Windows.Forms.MessageBox.Show(""{propertyName}"");";
+
+            if (ReflectionHelper.IsPrimitiveType(prop.PropertyType))
             {
+                var readMethod = GetBinaryReadMethod(prop.PropertyType);
+                var writeMethod = GetBinaryWriteMethod(prop.PropertyType, propertyName);
+
                 if (ReflectionHelper.IsNulleble(prop))
                 {
                     writeCode += @$"
 
-        if (value.{propertyName} == null)
-            writer.Write(true);
-        else
-        {{
-            writer.Write(false);
-            writer.Write(value.{propertyName});
-        }}";
+                        if (value.{propertyName} == null)
+                            writer.Write(true);
+                        else
+                        {{
+                            writer.Write(false);
+                            {writeMethod};
+                        }}";
+
                     readCode += @$"
 
-        {prop.PropertyType.FullName} {propertyName} = null;
-        if (!reader.ReadBoolean())
-        {{
-            {propertyName} = reader.Read{readMethod}();
-        }}";
+                        {prop.PropertyType.FullName} {propertyName} = null;
+                        if (!reader.ReadBoolean())
+                        {{
+                            {propertyName} = {readMethod};
+                        }}";
+
                 }
                 else
                 {
                     writeCode += @$"
-        writer.Write(value.{propertyName});";
+                        {writeMethod};";
+
                     readCode += @$"
-        var {propertyName} = reader.Read{readMethod}();";
+                        var {propertyName} = {readMethod};";
                 }
             }
             else
             {
-                writeCode += @$"
+                if (ReflectionHelper.IsGenericType(prop.PropertyType))
+                    throw new Exception(
+                        $"ZipDatabase Exception: Property '{propertyName}' of entity type '{type.FullName}' is not marked as [NotMapped] and is a " +
+                        $"{prop.PropertyType} type, which is not a valid type to serialize. The ZipDatabase engine " +
+                        $"does not support generic types like Lists and Array, it only support:\r\n" +
+                        $"\r\n" +
+                        $"- Primative types.\r\n" +
+                        $"- DateTime's.\r\n" +
+                        $"- ExtendedProperties with 'virtual Lazy<>' (with optional ForeignKeyAttribute).\r\n" +
+                        $"- ExtendedLists with 'virtual ICollection<>' or 'virtual IEnumerable<>' (with optional ForeignKeyAttribute).\r\n" +
+                        $"- And non-generic struct's and classes(which in turn support the same kind of properties). \r\n" +
+                        $"\r\n" +
+                        $"You can ofcourse use generic types like Lists or Arrays but only marked as [NotMapped] " +
+                        $"to signal those properties are not serialized when the dbcontext is saved. Please mark " +
+                        $"those properties as [NotMapped] if this is intended.");
 
-        var {propertyName}Serializer = {binarySerializerCollectionTypeFullName}.{method}<{prop.PropertyType.FullName}>();
-        {propertyName}Serializer.Write(writer, value.{propertyName});";
-                readCode += @$"
+                if (!ReflectionHelper.IsValidChildEntity(prop.PropertyType))
+                    throw new Exception(
+                        $"ZipDatabase Exception: Child entity type '{prop.PropertyType}' of property '{propertyName}' of (child) entity type '{type.FullName}', " +
+                        $"contains non-primitive types or generic classes that aren't marked as [NotMapped]. The ZipDatabase engine " +
+                        $"does not support serialisation of non-primitive types or generic classes like Lists or Arrays. The ZipDatabase engine " +
+                        $"only supports child entity types containing:\r\n" +
+                        $"\r\n" +
+                        $"- Primative types.\r\n" +
+                        $"- DateTime's.\r\n" +
+                        $"- ExtendedProperties with 'virtual Lazy<>' (with optional ForeignKeyAttribute).\r\n" +
+                        $"- ExtendedLists with 'virtual ICollection<>' or 'virtual IEnumerable<>' (with optional ForeignKeyAttribute).\r\n" +
+                        $"- And non-generic struct's and classes(which in turn support the same). \r\n" +
+                        $"\r\n" +
+                        $"You can ofcourse use generic types like Lists or Arrays but only marked as [NotMapped] " +
+                        $"to signal those properties are not serialized when the dbcontext is saved. Please mark " +
+                        $"those properties as [NotMapped] if this is intended.");
 
-        var {propertyName}Serializer = {binarySerializerCollectionTypeFullName}.{method}<{prop.PropertyType.FullName}>();
-        var {propertyName} = {propertyName}Serializer.Read(reader);";
+                if (ReflectionHelper.IsNulleble(prop)) // || prop.PropertyType.IsValueType && 
+                {
+                    writeCode += @$"
+
+                        if (value.{propertyName} == null)
+                            writer.Write(true);
+                        else
+                        {{
+                            writer.Write(false);
+                            var {propertyName}Serializer = {entitySerializerCollectionTypeFullName}.{entitySerializerCollectionTypeMethod}<{prop.PropertyType.FullName}>();
+                            {propertyName}Serializer.Write(writer, value.{propertyName});
+                        }}";
+
+                    readCode += @$"
+
+                        {prop.PropertyType} {propertyName} = null;
+                        if (!reader.ReadBoolean())
+                        {{
+                            var {propertyName}Serializer = {entitySerializerCollectionTypeFullName}.{entitySerializerCollectionTypeMethod}<{prop.PropertyType.FullName}>();
+                            {propertyName} = {propertyName}Serializer.Read(reader);
+                        }}";
+
+                }
+                else
+                {
+                    writeCode += @$"
+
+                        var {propertyName}Serializer = {entitySerializerCollectionTypeFullName}.{entitySerializerCollectionTypeMethod}<{prop.PropertyType.FullName}>();
+                        {propertyName}Serializer.Write(writer, value.{propertyName});";
+
+                    readCode += @$"
+
+                        var {propertyName}Serializer = {entitySerializerCollectionTypeFullName}.{entitySerializerCollectionTypeMethod}<{prop.PropertyType.FullName}>();
+                        var {propertyName} = {propertyName}Serializer.Read(reader);";
+
+                }
             }
 
             newCode += @$"
-            {propertyName} = {propertyName},";
+                {propertyName} = {propertyName},";
         }
 
         return $@"
-using System;
-using System.IO;
-using System.Linq;
+            using System;
+            using System.IO;
+            using System.Linq;
 
-public static class {serializerName}
-{{
-    public static void {writeMethodName}(BinaryWriter writer, {fullClassName} value)
-    {{{writeCode}
-    }}
+            public static class {serializerName}
+            {{
+                public static void {writeMethodName}(BinaryWriter writer, {fullClassName} value)
+                {{{writeCode}
+                }}
 
-    public static {fullClassName} {readMethodName}(BinaryReader reader)
-    {{{readCode}
+                public static {fullClassName} {readMethodName}(BinaryReader reader)
+                {{{readCode}
 
-        var item = new {fullClassName}
-        {{{newCode}
-        }};
+                    var item = new {fullClassName}
+                    {{{newCode}
+                    }};
 
-        return item;
-    }}
-}}";
+                    return item;
+                }}
+            }}";
     }
-    private string? GetBinaryReadMethod(Type type)
+
+    private static string GetBinaryWriteMethod(Type type, string propertyName)
     {
-        if (type == typeof(int)) return "Int32";
-        if (type == typeof(long)) return "Int64";
-        if (type == typeof(string)) return "String";
-        if (type == typeof(bool)) return "Boolean";
-        if (type == typeof(float)) return "Single";
-        if (type == typeof(double)) return "Double";
-        return null;
+        if (type == typeof(DateTime)) return $"writer.Write(value.{propertyName}.ToBinary());";
+        return $"writer.Write(value.{propertyName})";
     }
+    private static string GetBinaryReadMethod(Type type)
+    {
+        if (type == typeof(bool)) return "reader.ReadBoolean()";
+        if (type == typeof(byte)) return "reader.ReadByte()";
+        if (type == typeof(sbyte)) return "reader.ReadSByte()";
+        if (type == typeof(char)) return "reader.ReadChar()";
+        if (type == typeof(decimal)) return "reader.ReadDecimal()";
+        if (type == typeof(double)) return "reader.ReadDouble()";
+        if (type == typeof(float)) return "reader.ReadSingle()";
+        if (type == typeof(short)) return "reader.ReadInt16()";
+        if (type == typeof(ushort)) return "reader.ReadUInt16()";
+        if (type == typeof(int)) return "reader.ReadInt32()";
+        if (type == typeof(uint)) return "reader.ReadUInt32()";
+        if (type == typeof(long)) return "reader.ReadInt64()";
+        if (type == typeof(ulong)) return "reader.ReadUInt64()";
+        if (type == typeof(string)) return "reader.ReadString()";
+        if (type == typeof(DateTime)) return "DateTime.FromBinary(reader.ReadInt64())";
+        throw new Exception($"Type {type.Name} not supported while its added to the ReflectionHelper.IsPrimitiveType list.");
+    }
+
     private Assembly Compile(string code)
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(code);

@@ -1,5 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.Collections.Concurrent;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
+using VideoEditorD3D.Entities.ZipDatabase.Interfaces;
 
 namespace VideoEditorD3D.Entities.ZipDatabase.Helpers
 {
@@ -25,6 +27,10 @@ namespace VideoEditorD3D.Entities.ZipDatabase.Helpers
         // Controleert of de eigenschap een ICollection<T> is (gebruikelijk voor navigatiecollecties)
         public static bool IsICollection(PropertyInfo prop)
         {
+            var type = prop.PropertyType;
+            return type.IsGenericType &&
+                   type.GetGenericTypeDefinition() == typeof(ICollection<>);
+
             if (prop.PropertyType == typeof(string)) return false;
             if (!prop.PropertyType.IsGenericType) return false;
 
@@ -32,6 +38,27 @@ namespace VideoEditorD3D.Entities.ZipDatabase.Helpers
             return typeof(ICollection<>).IsAssignableFrom(typeDef) ||
                    prop.PropertyType.GetInterfaces()
                        .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICollection<>));
+        }
+        public static bool IsIEnumerable(PropertyInfo prop)
+        {
+            var type = prop.PropertyType;
+            return type.IsGenericType &&
+                   type.GetGenericTypeDefinition() == typeof(IEnumerable<>);
+
+            if (prop.PropertyType == typeof(string)) return false;
+            if (!prop.PropertyType.IsGenericType) return false;
+
+            var typeDef = prop.PropertyType.GetGenericTypeDefinition();
+            return typeof(IEnumerable<>).IsAssignableFrom(typeDef) ||
+                   prop.PropertyType.GetInterfaces()
+                       .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICollection<>));
+        }
+
+        private static bool IsConcurrentQueue(PropertyInfo prop)
+        {
+            var type = prop.PropertyType;
+            return type.IsGenericType &&
+                   type.GetGenericTypeDefinition() == typeof(ConcurrentQueue<>);
         }
 
         // Controleert of de property publiek toegankelijk is (ten minste met een getter)
@@ -49,7 +76,6 @@ namespace VideoEditorD3D.Entities.ZipDatabase.Helpers
         public static bool IsLazy(PropertyInfo prop)
         {
             var type = prop.PropertyType;
-
             return type.IsGenericType &&
                    type.GetGenericTypeDefinition() == typeof(Lazy<>);
         }
@@ -59,7 +85,7 @@ namespace VideoEditorD3D.Entities.ZipDatabase.Helpers
         {
             return prop.PropertyType.GenericTypeArguments[0];
         }
-        public static Type GetICollectionType(PropertyInfo prop)
+        public static Type GetIEnumerableType(PropertyInfo prop)
         {
             return prop.PropertyType.GenericTypeArguments[0];
         }
@@ -97,5 +123,199 @@ namespace VideoEditorD3D.Entities.ZipDatabase.Helpers
             return typeDef == typeof(DbSet<>);
         }
 
+        private static readonly HashSet<Type> PrimitiveTypes = new()
+        {
+            typeof(bool),
+            typeof(byte),
+            typeof(sbyte),
+            typeof(char),
+            typeof(decimal),
+            typeof(double),
+            typeof(float),
+            typeof(short),
+            typeof(ushort),
+            typeof(int),
+            typeof(uint),
+            typeof(long),
+            typeof(ulong),
+            typeof(string),
+            typeof(DateTime),
+        };
+
+        public static bool HasExtendedPropertiesWithoutForeignKeyAttributeOrHasExtendedLists(Type type, HashSet<Type>? visitedTypes = null)
+        {
+            visitedTypes ??= new HashSet<Type>();
+            if (visitedTypes.Contains(type))
+                return true; // Avoid cycles
+
+            visitedTypes.Add(type);
+
+            foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                if (!ReflectionHelper.HasPublicGetter(prop)) continue;
+                if (!ReflectionHelper.HasPublicSetter(prop)) continue;
+
+                if (ReflectionHelper.IsExtendedProperty(prop) &&
+                    !ReflectionHelper.HasForeignKeyAttribute(prop)) return true;
+                if (ReflectionHelper.IsExtendedList(prop)) return true;
+            }
+
+            return false;
+        }
+        public static bool HasExtendedProperties(Type type, HashSet<Type>? visitedTypes = null)
+        {
+            visitedTypes ??= new HashSet<Type>();
+            if (visitedTypes.Contains(type))
+                return true; // Avoid cycles
+
+            visitedTypes.Add(type);
+
+            foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                if (!ReflectionHelper.HasPublicGetter(prop)) continue;
+                if (!ReflectionHelper.HasPublicSetter(prop)) continue;
+
+                if (ReflectionHelper.IsExtendedProperty(prop)) return true;
+            }
+
+            return false;
+        }
+        public static bool HasExtendedLists(Type type, HashSet<Type>? visitedTypes = null)
+        {
+            visitedTypes ??= new HashSet<Type>();
+            if (visitedTypes.Contains(type))
+                return true; // Avoid cycles
+
+            visitedTypes.Add(type);
+
+            foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                if (!ReflectionHelper.HasPublicGetter(prop)) continue;
+                if (!ReflectionHelper.HasPublicSetter(prop)) continue;
+
+                if (ReflectionHelper.IsExtendedList(prop)) return true;
+            }
+
+            return false;
+        }
+        public static bool HasExtendedPropertiesOrLists(Type type, HashSet<Type>? visitedTypes = null)
+        {
+            visitedTypes ??= new HashSet<Type>();
+            if (visitedTypes.Contains(type))
+                return true; // Avoid cycles
+
+            visitedTypes.Add(type);
+
+            foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                if (!ReflectionHelper.HasPublicGetter(prop)) continue;
+                if (!ReflectionHelper.HasPublicSetter(prop)) continue;
+
+                if (ReflectionHelper.IsExtendedProperty(prop)) return true;
+                if (ReflectionHelper.IsExtendedList(prop)) return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsExtendedProperty(PropertyInfo prop)
+        {
+            return
+                ReflectionHelper.IsVirtual(prop) &&
+                (ReflectionHelper.IsLazy(prop) || ReflectionHelper.IsIEnumerable(prop) || ReflectionHelper.IsICollection(prop));
+        }
+        public static bool IsExtendedList(PropertyInfo prop)
+        {
+            return
+                ReflectionHelper.IsVirtual(prop) &&
+                (ReflectionHelper.IsIEnumerable(prop) || ReflectionHelper.IsICollection(prop));
+        }
+
+        public static bool IsValidChildEntity(Type type, HashSet<Type>? visitedTypes = null)
+        {
+            visitedTypes ??= new HashSet<Type>();
+            if (visitedTypes.Contains(type))
+                return true; // Avoid cycles
+            visitedTypes.Add(type);
+
+            foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                if (!ReflectionHelper.HasPublicGetter(prop)) continue;
+                if (!ReflectionHelper.HasPublicSetter(prop)) continue;
+
+                var propType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
+
+                if (ReflectionHelper.HasNotMappedAttribute(prop)) continue;
+                if (ReflectionHelper.IsExtendedProperty(prop)) continue;
+                if (ReflectionHelper.IsExtendedList(prop)) continue;
+
+                if (ReflectionHelper.IsPrimitiveType(propType)) continue;
+                if (ReflectionHelper.IsEnum(propType)) continue; // Checken!
+
+                //if (ReflectionHelper.IsConcurrentQueue(prop)) return false;
+                //if (ReflectionHelper.HasForeignKeyAttribute(prop)) return false;
+                //if (ReflectionHelper.IsICollection(prop)) return false;
+                //if (ReflectionHelper.IsIEnumerable(prop)) return false;
+                //if (ReflectionHelper.IsVirtual(prop)) return false;
+                //if (ReflectionHelper.HasIEnumerableInterface(propType)) return false;
+                if (ReflectionHelper.IsGenericType(propType)) return false;
+                if (!ReflectionHelper.HasAnyProperties(propType)) return false;
+
+                if (propType.IsClass || propType.IsValueType)
+                {
+                    if (!IsValidChildEntity(propType, visitedTypes))
+                        return false;
+                }
+                else
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            return true;
+        }
+
+        public static bool IsGenericType(Type propType)
+        {
+            return propType.IsGenericType;
+        }
+
+        public static bool HasAnyProperties(Type propType)
+        {
+            return propType.GetProperties().Any();
+        }
+
+
+        public static bool IsEnum(Type propType)
+        {
+            return propType.IsEnum;
+        }
+        public static bool HasIEnumerableInterface(Type propType)
+        {
+            if (propType == typeof(string)) return false;
+
+            return propType.GetInterfaces()
+                .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+        }
+
+        public static bool IsArray(PropertyInfo prop) =>
+            prop.PropertyType.IsArray;
+
+        public static bool IsPrimitiveType(Type propertyType)
+        {
+            return (PrimitiveTypes.Contains(propertyType));
+        }
+
+        internal static bool HasIEntityInterface(Type type)
+        {
+            if (type == typeof(string)) return false;
+
+            return type.GetInterfaces()
+                .Any(i => i == typeof(IEntity));
+        }
     }
+
 }
+

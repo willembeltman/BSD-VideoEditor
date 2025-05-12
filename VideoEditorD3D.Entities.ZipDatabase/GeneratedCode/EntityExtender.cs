@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using System.Reflection;
+using System.Reflection.Metadata.Ecma335;
 using VideoEditorD3D.Entities.ZipDatabase.Collections;
 using VideoEditorD3D.Entities.ZipDatabase.Helpers;
 using VideoEditorD3D.Loggers;
@@ -9,7 +10,7 @@ namespace VideoEditorD3D.Entities.ZipDatabase.GeneratedCode;
 
 public class EntityExtender<T>
 {
-    private Action<T, DbContext> ExtendEntityDelegate;
+    private Action<T, DbContext, ILogger> ExtendEntityDelegate;
 
     public readonly string Code;
 
@@ -25,8 +26,8 @@ public class EntityExtender<T>
         var serializerType = asm.GetType(className)!;
         var createProxyMethod = serializerType.GetMethod(methodName)!;
 
-        ExtendEntityDelegate = (Action<T, DbContext>)Delegate.CreateDelegate(
-            typeof(Action<T, DbContext>), createProxyMethod)!;
+        ExtendEntityDelegate = (Action<T, DbContext, ILogger>)Delegate.CreateDelegate(
+            typeof(Action<T, DbContext, ILogger>), createProxyMethod)!;
     }
 
     private string GenerateSerializerCode(Type type, string proxyName, string methodName, DbContext dbContext)
@@ -45,8 +46,12 @@ public class EntityExtender<T>
         var dbContextType = typeof(DbContext);
         var dbContextTypeFullName = dbContextType.FullName;
 
-        var binarySerializerCollectionType = typeof(EntitySerializerCollection);
-        var binarySerializerCollectionTypeFullName = binarySerializerCollectionType.FullName;
+        var loggerType = typeof(ILogger);
+        var loggerTypeFullName = loggerType.FullName;
+
+        var entityExtenderCollectionType = typeof(EntityExtenderCollection);
+        var entityExtenderCollectionTypeFullName = entityExtenderCollectionType.FullName;
+        var entityExtenderCollectionTypeMethod = entityExtenderCollectionType.GetMethods().First().Name;
 
         var applicationDbContextType = dbContext.GetType();
         var applicationDbContextTypeFullName = applicationDbContextType.FullName;
@@ -54,61 +59,93 @@ public class EntityExtender<T>
         var props = type.GetProperties();
         foreach (var prop in props)
         {
-            if (!ReflectionHelper.HasPublicGetter(prop)) continue;
-            if (!ReflectionHelper.IsVirtual(prop)) continue;
-            if (!ReflectionHelper.HasForeignKeyAttribute(prop)) continue;
-
             var propertyName = prop.Name;
-            var foreignKeyName = ReflectionHelper.GetForeignKeyAttributeName(prop);
-
-            if (ReflectionHelper.IsICollection(prop))
+            if (!ReflectionHelper.HasPublicGetter(prop)) continue;
+            if (!ReflectionHelper.HasPublicSetter(prop)) continue;
+            if (ReflectionHelper.HasExtendedPropertiesOrLists(prop.PropertyType))
             {
-                var foreignType = ReflectionHelper.GetICollectionType(prop);
+                lazyCode += $@"
+                    var {propertyName}Extender = {entityExtenderCollectionTypeFullName}.{entityExtenderCollectionTypeMethod}<{prop.PropertyType.FullName}>(db, logger);
+                    {propertyName}Extender.ExtendEntity(item.{propertyName}, db, logger);";
+                continue;
+            }
+            if (!(ReflectionHelper.IsExtendedProperty(prop) || ReflectionHelper.IsExtendedList(prop))) continue;
+
+            if (ReflectionHelper.HasIEnumerableInterface(prop.PropertyType))
+            {
+                var foreignType = ReflectionHelper.GetIEnumerableType(prop);
+                var foreignKeyName = $"{className}Id";
+                if (ReflectionHelper.HasForeignKeyAttribute(prop))
+                {
+                    foreignKeyName = ReflectionHelper.GetForeignKeyAttributeName(prop);
+                }
+
+                var foreignProperty = foreignType.GetProperties()
+                    .FirstOrDefault(a => a.Name == foreignKeyName)
+                    ?? throw new Exception($"ZipDatabase Exception: Foreign key property {foreignKeyName} not found on {foreignType.FullName}.");
 
                 var foreignPropertyOnApplicationDbContext = applicationDbContextType.GetProperties()
                     .Where(a => ReflectionHelper.IsDbSet(a))
                     .FirstOrDefault(a => ReflectionHelper.GetDbSetType(a) == foreignType);
-                if (foreignPropertyOnApplicationDbContext == null) continue;
+
+                if (foreignPropertyOnApplicationDbContext == null) 
+                    throw new Exception($"ZipDatabase Exception: DbSet<{foreignType.Name}> not found on {applicationDbContextType.Name}.");
+
+                if (!ReflectionHelper.HasIEntityInterface(type))
+                    throw new Exception(
+                        $"ZipDatabase Exception: Type '{type.FullName}' does not implement IEntity interface, though is used to filter in the " +
+                        $"{foreignType.Name} entities with '{foreignKeyName}'. Type {type.Name} needs a primary key " +
+                        $"('public long Id {{ get; set; }}' property) to filter in Entities (you can copy it from the " +
+                        $"parent entity '{foreignType}').");
 
                 var foreignPropertyOnApplicationDbContextName = foreignPropertyOnApplicationDbContext.Name; 
 
                 lazyCode += $@"
-        item.{propertyName} = new {foreignEntityCollectionFullName}<{foreignType.FullName}, {fullClassName}>(
-            db.{foreignPropertyOnApplicationDbContextName},
-            item,
-            (foreign, primary) => foreign.{foreignKeyName} == primary.Id,
-            (foreign, primary) => foreign.{foreignKeyName} = primary.Id);";
+                    item.{propertyName} = new {foreignEntityCollectionFullName}<{foreignType.FullName}, {fullClassName}>(
+                        db.{foreignPropertyOnApplicationDbContextName},
+                        item,
+                        (foreign, primary) => foreign.{foreignKeyName} == primary.Id,
+                        (foreign, primary) => foreign.{foreignKeyName} = primary.Id);";
             }
             else if (ReflectionHelper.IsLazy(prop))
             {
-                var lazyType = ReflectionHelper.GetLazyType(prop);
+                var foreignType = ReflectionHelper.GetLazyType(prop);
+                var foreignKeyName = $"{propertyName}Id";
+                if (ReflectionHelper.HasForeignKeyAttribute(prop))
+                {
+                    foreignKeyName = ReflectionHelper.GetForeignKeyAttributeName(prop);
+                }
+
+                var foreignProperty = type.GetProperties()
+                    .FirstOrDefault(a => a.Name == foreignKeyName)
+                    ?? throw new Exception($"ZipDatabase Exception: Foreign key property {foreignKeyName} not found on {type.Name}.");
 
                 var lazyPropertyOnApplicationDbContext = applicationDbContextType.GetProperties()
                     .Where(a => ReflectionHelper.IsDbSet(a))
-                    .FirstOrDefault(a => ReflectionHelper.GetDbSetType(a) == lazyType);
+                    .FirstOrDefault(a => ReflectionHelper.GetDbSetType(a) == foreignType);
                 if (lazyPropertyOnApplicationDbContext == null) continue;
 
                 var lazyPropertyOnApplicationDbContextName = lazyPropertyOnApplicationDbContext.Name; 
 
                 lazyCode += @$"
-        item.{propertyName} = new Lazy<{lazyType.FullName}?>(
-            () => db.{lazyPropertyOnApplicationDbContextName}.FirstOrDefault(t => t.Id == item.{foreignKeyName}));";
+                    item.{propertyName} = new Lazy<{foreignType.FullName}?>(
+                        () => db.{lazyPropertyOnApplicationDbContextName}.FirstOrDefault(t => t.Id == item.{foreignKeyName}));";
             }
         }
 
         return $@"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+            using System;
+            using System.Linq;
+            using System.Collections.Generic;
 
-public static class {proxyName}
-{{
-    public static void {methodName}({fullClassName} item, {dbContextTypeFullName} objDb)
-    {{
-        var db = objDb as {applicationDbContextTypeFullName};
-{lazyCode}
-    }}
-}}";
+            public static class {proxyName}
+            {{
+                public static void {methodName}({fullClassName} item, {dbContextTypeFullName} objDb, {loggerTypeFullName} logger)
+                {{
+                    var db = objDb as {applicationDbContextTypeFullName};
+            {lazyCode}
+                }}
+            }}";
     }
 
     public static string? GetCSharpTypeName(Type type)
@@ -157,8 +194,8 @@ public static class {proxyName}
         return Assembly.Load(ms.ToArray());
     }
 
-    public void ExtendEntity(T entity, DbContext dbContext)
+    public void ExtendEntity(T entity, DbContext dbContext, ILogger logger)
     {
-        ExtendEntityDelegate(entity, dbContext);
+        ExtendEntityDelegate(entity, dbContext, logger);
     }
 }
