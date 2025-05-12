@@ -2,9 +2,8 @@
 
 namespace VideoEditorD3D.Loggers
 {
-    public interface ILogger : IDisposable
+    public interface ILogger : VideoEditorD3D.Entities.ZipDatabase.Interfaces.ILogger, IDisposable
     {
-        void WriteLine(string line);
         void WriteLine(string message, ConsoleColor color);
         void RewriteLine(string message);
         void RewriteLine(string message, ConsoleColor color);

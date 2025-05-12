@@ -2,7 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis;
 using VideoEditorD3D.Entities.ZipDatabase.Helpers;
-using VideoEditorD3D.Loggers;
+using VideoEditorD3D.Entities.ZipDatabase.Interfaces;
 
 namespace VideoEditorD3D.Entities.ZipDatabase.GeneratedCode;
 

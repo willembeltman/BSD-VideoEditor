@@ -1,7 +1,6 @@
 ﻿using System.IO.Compression;
 using VideoEditorD3D.Entities.ZipDatabase.Collections;
 using VideoEditorD3D.Entities.ZipDatabase.Interfaces;
-using VideoEditorD3D.Loggers;
 
 namespace VideoEditorD3D.Entities.ZipDatabase;
 

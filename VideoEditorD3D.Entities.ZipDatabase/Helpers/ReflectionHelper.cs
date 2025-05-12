@@ -252,12 +252,6 @@ namespace VideoEditorD3D.Entities.ZipDatabase.Helpers
                 if (ReflectionHelper.IsPrimitiveType(propType)) continue;
                 if (ReflectionHelper.IsEnum(propType)) continue; // Checken!
 
-                //if (ReflectionHelper.IsConcurrentQueue(prop)) return false;
-                //if (ReflectionHelper.HasForeignKeyAttribute(prop)) return false;
-                //if (ReflectionHelper.IsICollection(prop)) return false;
-                //if (ReflectionHelper.IsIEnumerable(prop)) return false;
-                //if (ReflectionHelper.IsVirtual(prop)) return false;
-                //if (ReflectionHelper.HasIEnumerableInterface(propType)) return false;
                 if (ReflectionHelper.IsGenericType(propType)) return false;
                 if (!ReflectionHelper.HasAnyProperties(propType)) return false;
 
@@ -286,7 +280,6 @@ namespace VideoEditorD3D.Entities.ZipDatabase.Helpers
         {
             return propType.GetProperties().Any();
         }
-
 
         public static bool IsEnum(Type propType)
         {

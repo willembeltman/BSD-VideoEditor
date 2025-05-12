@@ -1,5 +1,5 @@
 ﻿using VideoEditorD3D.Entities.ZipDatabase;
-using VideoEditorD3D.Loggers;
+using VideoEditorD3D.Entities.ZipDatabase.Interfaces;
 
 namespace VideoEditorD3D.Entities;
 
