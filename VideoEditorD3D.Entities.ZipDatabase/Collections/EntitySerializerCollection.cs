@@ -1,19 +1,19 @@
 ﻿using VideoEditorD3D.Entities.ZipDatabase.GeneratedCode;
 
-namespace VideoEditorD3D.Entities.ZipDatabase;
+namespace VideoEditorD3D.Entities.ZipDatabase.Collections;
 
 public static class EntitySerializerCollection
 {
-    private static readonly Dictionary<Type, object> Serializers = new();
+    private static readonly Dictionary<Type, object> EntitySerializers = new();
 
-    public static EntitySerializer<T> GetEntitySerializer<T>()
+    public static EntitySerializer<T> GetOrCreate<T>()
     {
         var type = typeof(T);
-        var serializer = Serializers.ContainsKey(type) ? Serializers[type] : null;
+        var serializer = EntitySerializers.ContainsKey(type) ? EntitySerializers[type] : null;
         if (serializer == null)
         {
             var newSerializer = new EntitySerializer<T>();
-            Serializers[type] = newSerializer;
+            EntitySerializers[type] = newSerializer;
             return newSerializer;
         }
         else

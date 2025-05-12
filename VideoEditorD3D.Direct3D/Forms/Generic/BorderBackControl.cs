@@ -3,12 +3,8 @@ using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Forms.Generic;
 
-public class BorderBackControl : BackControl
+public class BorderBackControl(IApplicationForm application) : BackControl(application)
 {
-    public BorderBackControl(IApplicationForm application, Form? parentForm, Control? parentControl) : base(application, parentForm, parentControl)
-    {
-    }
-
     private RawColor4 _BorderColor = new RawColor4(1, 1, 1, 1);
     private int _BorderSize = 0;
     public RawColor4 BorderColor

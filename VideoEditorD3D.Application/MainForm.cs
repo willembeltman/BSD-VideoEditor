@@ -26,52 +26,52 @@ public class MainForm : Form
 
         BackColor = new RawColor4(0.125f, 0.25f, 0.5f, 1);
 
-        MenuStrip = new MenuStrip(applicationForm, this, this);
+        MenuStrip = new MenuStrip(applicationForm);
         MenuStrip.BackColor = new RawColor4(0.5f, 0.5f, 0.5f, 1);
         Controls.Add(MenuStrip);
 
-        var fileMenu = new MenuStripItem(ApplicationForm, this, MenuStrip, "File");
+        var fileMenu = new MenuStripItem(ApplicationForm, "File");
         MenuStrip.Items.Add(fileMenu);
-        fileMenu.Items.Add(new MenuStripItem(ApplicationForm, this, fileMenu, "New"));
-        fileMenu.Items.Add(new MenuStripItem(ApplicationForm, this, fileMenu, "Open"));
-        fileMenu.Items.Add(new MenuStripItem(ApplicationForm, this, fileMenu, "Save"));
-        fileMenu.Items.Add(new MenuStripItem(ApplicationForm, this, fileMenu, "Save As"));
-        fileMenu.Items.Add(new MenuStripItem(ApplicationForm, this, fileMenu, "Exit"));
+        fileMenu.Items.Add(new MenuStripItem(ApplicationForm, "New"));
+        fileMenu.Items.Add(new MenuStripItem(ApplicationForm, "Open"));
+        fileMenu.Items.Add(new MenuStripItem(ApplicationForm, "Save"));
+        fileMenu.Items.Add(new MenuStripItem(ApplicationForm, "Save As"));
+        fileMenu.Items.Add(new MenuStripItem(ApplicationForm, "Exit"));
 
-        var editMenu = new MenuStripItem(ApplicationForm, this, MenuStrip, "Edit");
+        var editMenu = new MenuStripItem(ApplicationForm, "Edit");
         MenuStrip.Items.Add(editMenu);
-        editMenu.Items.Add(new MenuStripItem(ApplicationForm, this, editMenu, "Undo"));
-        editMenu.Items.Add(new MenuStripItem(ApplicationForm, this, editMenu, "Redo"));
-        editMenu.Items.Add(new MenuStripItem(ApplicationForm, this, editMenu, "Cut"));
-        editMenu.Items.Add(new MenuStripItem(ApplicationForm, this, editMenu, "Copy"));
-        editMenu.Items.Add(new MenuStripItem(ApplicationForm, this, editMenu, "Paste"));
-        editMenu.Items.Add(new MenuStripItem(ApplicationForm, this, editMenu, "Preferences"));
+        editMenu.Items.Add(new MenuStripItem(ApplicationForm, "Undo"));
+        editMenu.Items.Add(new MenuStripItem(ApplicationForm, "Redo"));
+        editMenu.Items.Add(new MenuStripItem(ApplicationForm, "Cut"));
+        editMenu.Items.Add(new MenuStripItem(ApplicationForm, "Copy"));
+        editMenu.Items.Add(new MenuStripItem(ApplicationForm, "Paste"));
+        editMenu.Items.Add(new MenuStripItem(ApplicationForm, "Preferences"));
 
-        var viewMenu = new MenuStripItem(ApplicationForm, this, MenuStrip, "View");
+        var viewMenu = new MenuStripItem(ApplicationForm, "View");
         MenuStrip.Items.Add(viewMenu);
-        viewMenu.Items.Add(new MenuStripItem(ApplicationForm, this, viewMenu, "Zoom In"));
-        viewMenu.Items.Add(new MenuStripItem(ApplicationForm, this, viewMenu, "Zoom Out"));
-        viewMenu.Items.Add(new MenuStripItem(ApplicationForm, this, viewMenu, "Reset Zoom"));
+        viewMenu.Items.Add(new MenuStripItem(ApplicationForm, "Zoom In"));
+        viewMenu.Items.Add(new MenuStripItem(ApplicationForm, "Zoom Out"));
+        viewMenu.Items.Add(new MenuStripItem(ApplicationForm, "Reset Zoom"));
 
-        var helpMenu = new MenuStripItem(ApplicationForm, this, MenuStrip, "Help");
+        var helpMenu = new MenuStripItem(ApplicationForm, "Help");
         MenuStrip.Items.Add(helpMenu);
-        helpMenu.Items.Add(new MenuStripItem(ApplicationForm, this, helpMenu, "About"));
-        helpMenu.Items.Add(new MenuStripItem(ApplicationForm, this, helpMenu, "Documentation"));
+        helpMenu.Items.Add(new MenuStripItem(ApplicationForm, "About"));
+        helpMenu.Items.Add(new MenuStripItem(ApplicationForm, "Documentation"));
 
 
-        DisplayControl = new DisplayControl(applicationContext, applicationForm, this, this);
+        DisplayControl = new DisplayControl(applicationContext, applicationForm);
         DisplayControl.BackColor = new RawColor4(0, 0, 0, 1);
         Controls.Add(DisplayControl);
 
-        PropertiesControl = new PropertiesControl(applicationContext, applicationForm, this, this);
+        PropertiesControl = new PropertiesControl(applicationContext, applicationForm);
         PropertiesControl.BackColor = new RawColor4(0, 0, 0, 1);
         Controls.Add(PropertiesControl);
 
-        TimelineControl = new TimelineControl(applicationContext, applicationForm, this, this);
+        TimelineControl = new TimelineControl(applicationContext, applicationForm);
         TimelineControl.BackColor = new RawColor4(0, 0, 0, 1);
         Controls.Add(TimelineControl);
 
-        FpsControl = new FpsControl(applicationForm, this, this);
+        FpsControl = new FpsControl(applicationForm);
         Controls.Add(FpsControl);
     }
      

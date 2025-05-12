@@ -4,6 +4,7 @@ using VideoEditorD3D.Entities.ZipDatabase.Interfaces;
 using VideoEditorD3D.Entities.ZipDatabase.Extentions;
 using VideoEditorD3D.Entities.ZipDatabase.GeneratedCode;
 using VideoEditorD3D.Loggers;
+using VideoEditorD3D.Entities.ZipDatabase.Collections;
 
 namespace VideoEditorD3D.Entities.ZipDatabase;
 
@@ -27,8 +28,8 @@ public class DbSet<T> : ICollection<T>, IDbSet
         TypeName = typeof(T).Name;
         Lock = new ReaderWriterLockSlim();
         Cache = new Dictionary<long, T>();
-        EntitySerializer = EntitySerializerCollection.GetEntitySerializer<T>();
-        EntityExtender = EntityExtenderCollection.GetEntityExtender<T>(DbContext, logger);
+        EntitySerializer = EntitySerializerCollection.GetOrCreate<T>();
+        EntityExtender = EntityExtenderCollection.GetOrCreate<T>(DbContext, logger);
 
         LoadCache(DbContext.ZipArchive);
     }

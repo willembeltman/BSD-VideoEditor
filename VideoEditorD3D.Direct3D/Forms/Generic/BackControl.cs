@@ -5,7 +5,7 @@ namespace VideoEditorD3D.Direct3D.Forms.Generic;
 
 public class BackControl : Control
 {
-    public BackControl(IApplicationForm application, Form? parentForm, Control? parentControl) : base(application, parentForm, parentControl)
+    public BackControl(IApplicationForm application) : base(application)
     {
     }
 

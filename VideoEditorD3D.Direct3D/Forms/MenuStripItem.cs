@@ -15,8 +15,7 @@ public class MenuStripItem : ForeBorderBackControl
 
     public ObservableArrayCollection<MenuStripItem> Items { get; }
 
-    public MenuStripItem(IApplicationForm applicationForm, Form? parentForm, Control? parentControl, string text)
-        : base(applicationForm, parentForm, parentControl)
+    public MenuStripItem(IApplicationForm applicationForm, string text) : base(applicationForm)
     {
         Text = text;
         Items = new ObservableArrayCollection<MenuStripItem>();
@@ -28,8 +27,8 @@ public class MenuStripItem : ForeBorderBackControl
             Controls.Remove(item);
         };
 
-        Background = CanvasLayers.Create();
-        Foreground = CanvasLayers.Create();
+        Background = CanvasLayers.CreateNewLayer();
+        Foreground = CanvasLayers.CreateNewLayer();
     }
 
     public override bool Visible { get => _Visible; set => _Visible = value; }

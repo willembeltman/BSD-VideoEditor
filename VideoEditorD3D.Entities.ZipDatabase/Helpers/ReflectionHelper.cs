@@ -55,6 +55,10 @@ namespace VideoEditorD3D.Entities.ZipDatabase.Helpers
         }
 
 
+        public static Type GetDbSetType(PropertyInfo prop)
+        {
+            return prop.PropertyType.GenericTypeArguments[0];
+        }
         public static Type GetICollectionType(PropertyInfo prop)
         {
             return prop.PropertyType.GenericTypeArguments[0];
@@ -93,10 +97,5 @@ namespace VideoEditorD3D.Entities.ZipDatabase.Helpers
             return typeDef == typeof(DbSet<>);
         }
 
-        public static Type GetDbSetType(PropertyInfo a)
-        {
-            var res = a.PropertyType.GenericTypeArguments[0];
-            return res;
-        }
     }
 }

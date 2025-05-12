@@ -12,11 +12,13 @@ public class ApplicationContext : IApplicationContext
     public bool KillSwitch { get; set; }
     public ApplicationConfig Config { get; }
     public ApplicationDbContext Db { get; }
+
+    public Project Project { get; private set; } = new Project(); // Initialisatie om nullability te vermijden, wordt netjes ingeladen bij de load
+    public Timeline Timeline { get; private set; } = new Timeline(); // Initialisatie om nullability te vermijden, wordt netjes ingeladen bij de load
+
     public IApplicationForm? ApplicationForm { get; private set; }
     public MainForm? MainForm { get; private set; }
     public VideoDrawerThread? DrawerThread { get; private set; }
-    public Project CurrentProject { get; private set; } = new Project();
-    public Timeline Timeline { get; private set; } = new Timeline();
 
     public ApplicationContext()
     {
@@ -49,36 +51,38 @@ public class ApplicationContext : IApplicationContext
     public void Start(IApplicationForm applicationForm)
     {
         ApplicationForm = applicationForm;
-
         Logger.StartThread();
+        LoadCurrentProjectAndTimeline();
+    }
 
-        // Load current project and timeline
+    private void LoadCurrentProjectAndTimeline()
+    {
         if (Db.Projects.Any())
         {
-            CurrentProject = Db.Projects.First();
+            Project = Db.Projects.First();
         }
         else
         {
-            CurrentProject = new Project();
-            Db.Projects.Add(CurrentProject);
+            Project = new Project();
+            Db.Projects.Add(Project);
             Db.SaveChanges();
         }
-        if (!CurrentProject.Timelines.Any())
+        if (!Project.Timelines.Any())
         {
             Timeline = new Timeline();
-            CurrentProject.Timelines.Add(Timeline);
-            CurrentProject.CurrentTimelineId = Timeline.Id;
+            Project.Timelines.Add(Timeline);
+            Project.CurrentTimelineId = Timeline.Id;
             Db.SaveChanges();
             return;
         }
-        if (CurrentProject.CurrentTimeline.Value == null)
+        if (Project.CurrentTimeline.Value == null)
         {
-            Timeline = CurrentProject.Timelines.First();
-            CurrentProject.CurrentTimelineId = Timeline.Id;
+            Timeline = Project.Timelines.First();
+            Project.CurrentTimelineId = Timeline.Id;
             Db.SaveChanges();
             return;
         }
-        Timeline = CurrentProject.CurrentTimeline.Value;
+        Timeline = Project.CurrentTimeline.Value;
     }
 
     public void Dispose()

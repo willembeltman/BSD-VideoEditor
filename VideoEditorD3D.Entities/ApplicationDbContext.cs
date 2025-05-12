@@ -5,20 +5,14 @@ namespace VideoEditorD3D.Entities;
 
 public class ApplicationDbContext : DbContext
 {
-    public ApplicationDbContext(string fullName, ILogger logger) : base(fullName)
+    public ApplicationDbContext(string fullName, ILogger logger) : base(fullName, logger)
     {
-        Projects = new DbSet<Project>(this, logger);
-        TimelineAudios = new DbSet<TimelineClipAudio>(this, logger);
-        MediaFiles = new DbSet<MediaFile>(this, logger);
-        MediaStreams = new DbSet<MediaStream>(this, logger);
-        Timelines = new DbSet<Timeline>(this, logger);
-        TimelineVideos = new DbSet<TimelineClipVideo>(this, logger);
     }
 
-    public DbSet<Project> Projects { get; }
-    public DbSet<TimelineClipAudio> TimelineAudios { get; }
-    public DbSet<MediaFile> MediaFiles { get; }
-    public DbSet<MediaStream> MediaStreams { get; }
-    public DbSet<Timeline> Timelines { get; }
-    public DbSet<TimelineClipVideo> TimelineVideos { get; }
+    public virtual DbSet<Project> Projects { get; set; }
+    public virtual DbSet<TimelineClipAudio> TimelineAudios { get; set; }
+    public virtual DbSet<MediaFile> MediaFiles { get; set; }
+    public virtual DbSet<MediaStream> MediaStreams { get; set; }
+    public virtual DbSet<Timeline> Timelines { get; set; }
+    public virtual DbSet<TimelineClipVideo> TimelineVideos { get; set; }
 }

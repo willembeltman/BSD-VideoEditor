@@ -1,46 +1,38 @@
 ﻿using System.IO.Compression;
+using VideoEditorD3D.Entities.ZipDatabase.Collections;
 using VideoEditorD3D.Entities.ZipDatabase.Interfaces;
+using VideoEditorD3D.Loggers;
 
 namespace VideoEditorD3D.Entities.ZipDatabase;
 
 public class DbContext : IDisposable
 {
-    public DbContext(string fullName)
+    public DbContext(string fullName, ILogger logger)
     {
         FullName = fullName;
-        ParentType = GetType();
 
+        // Hou de zip open, zodat hij gelocked is
         ZipStream = File.Open(FullName!, FileMode.OpenOrCreate);
         ZipArchive = new ZipArchive(ZipStream, ZipArchiveMode.Update);
-        // Hou de zip open, zodat hij gelocked is
+
         DbSets = new List<IDbSet>();
-        DbObjects = new List<IDbObject>();
+
+        var extender = DbContextExtenderCollection.GetOrCreate(this, logger);
+        extender.ExtendDbContext(this, logger);
     }
 
     public string FullName { get; }
-    public Type ParentType { get; }
+
     internal Stream ZipStream { get; private set; }
     internal ZipArchive ZipArchive { get; private set; }
 
     internal List<IDbSet> DbSets;
-    internal List<IDbObject> DbObjects;
-
-    public void InitializeCache()
-    {
-        foreach (var dbSet in DbSets)
-            dbSet.LoadCache(ZipArchive);
-        foreach (var dbObject in DbObjects)
-            dbObject.LoadCache(ZipArchive);
-    }
 
     internal void AddDbSet(IDbSet dbSet)
     {
         DbSets.Add(dbSet);
     }
-    internal void AddDbObject(IDbObject dbObject)
-    {
-        DbObjects.Add(dbObject);
-    }
+
     public void SaveChanges()
     {
         ZipArchive.Dispose();
@@ -54,20 +46,11 @@ public class DbContext : IDisposable
 
         foreach (var dbSet in DbSets)
             dbSet.WriteCache(ZipArchive);
-
-        foreach (var dbObject in DbObjects)
-            dbObject.WriteCache(ZipArchive);
     }
     public void Dispose()
     {
         ZipArchive.Dispose();
         ZipStream.Dispose();
         GC.SuppressFinalize(this);
-    }
-
-    public IDbSet GetDbSet(string typeName)
-    {
-        return DbSets.FirstOrDefault(x => x.TypeName == typeName) ??
-               throw new Exception($"DbSet for {typeName} not found");
     }
 }

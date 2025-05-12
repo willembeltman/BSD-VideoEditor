@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using VideoEditorD3D.Entities.ZipDatabase.Interfaces;
 
-namespace VideoEditorD3D.Entities.ZipDatabase;
+namespace VideoEditorD3D.Entities.ZipDatabase.Collections;
 
 public class ForeignEntityCollection<TForeign, TPrimary> : ICollection<TForeign>
     where TForeign : IEntity
@@ -65,7 +65,6 @@ public class ForeignEntityCollection<TForeign, TPrimary> : ICollection<TForeign>
             yield return item;
         }
     }
-
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();

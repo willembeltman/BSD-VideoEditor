@@ -6,12 +6,12 @@ namespace VideoEditorD3D.Direct3D.Forms;
 
 public class HScrollBar : ForeBorderBackControl
 {
-    public HScrollBar(IApplicationForm application, Form? parentForm, Control? parentControl)
-        : base(application, parentForm, parentControl)
+    public HScrollBar(IApplicationForm application)
+        : base(application)
     {
-        Background = CanvasLayers.Create();
-        Thumb = CanvasLayers.Create();
-        Border = CanvasLayers.Create();
+        Background = CanvasLayers.CreateNewLayer();
+        Thumb = CanvasLayers.CreateNewLayer();
+        Border = CanvasLayers.CreateNewLayer();
 
         BackColor = new RawColor4(0.2f, 0.2f, 0.2f, 1);
         ForeColor = new RawColor4(0.6f, 0.6f, 0.6f, 1);

@@ -8,11 +8,11 @@ public class MediaStream : IEntity
     public long Id { get; set; }
     public long MediaFileId { get; set; }
     public int Index { get; set; }
-    public string? Type { get; set; }
+    public string Type { get; set; }
 
     [ForeignKey("MediaFileId")]
-    public Lazy<MediaFile?> MediaFile { get; set; } = new Lazy<MediaFile?>(() => null, true);
+    public virtual Lazy<MediaFile> MediaFile { get; set; }
 
     [ForeignKey("MediaStreamId")]
-    public ICollection<TimelineClipVideo> TimelineVideos { get; set; } = [];
+    public virtual ICollection<TimelineClipVideo> TimelineVideos { get; set; }
 }

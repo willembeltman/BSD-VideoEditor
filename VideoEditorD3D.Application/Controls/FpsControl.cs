@@ -6,7 +6,7 @@ namespace VideoEditorD3D.Application.Controls;
 
 public class FpsControl : Label
 {
-    public FpsControl(IApplicationForm application, Form? parentForm, Control? parentControl) : base(application, parentForm, parentControl)
+    public FpsControl(IApplicationForm application) : base(application)
     {
         BackColor = new RawColor4(0, 0, 0, 0.5f);
         BorderColor = new RawColor4(1, 1, 1, 1);

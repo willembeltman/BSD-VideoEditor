@@ -9,12 +9,12 @@ public class TimelineClipGroup : IEntity
     public long TimelineId { get; set; }
 
     [ForeignKey("TimelineId")]
-    public Lazy<Timeline?> Timeline { get; set; } = new Lazy<Timeline?>(() => null, true);
+    public virtual Lazy<Timeline> Timeline { get; set; }
 
     [ForeignKey("TimelineClipGroupId")]
-    public ICollection<TimelineClipVideo?> TimelineVideos { get; set; } = [];
+    public virtual ICollection<TimelineClipVideo> TimelineVideos { get; set; }
     [ForeignKey("TimelineClipGroupId")]
-    public ICollection<TimelineClipAudio?> TimelineAudios { get; set; } = [];
+    public virtual ICollection<TimelineClipAudio> TimelineAudios { get; set; }
 
     public bool IsEqualTo(TimelineClipGroup group)
     {

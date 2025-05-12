@@ -5,7 +5,7 @@ namespace VideoEditorD3D.Direct3D.Forms;
 
 public class Button : Label
 {
-    public Button(IApplicationForm application, Form? parentForm, Control? parentControl) : base(application, parentForm, parentControl)
+    public Button(IApplicationForm application) : base(application)
     {
         BorderSize = 2;
     }

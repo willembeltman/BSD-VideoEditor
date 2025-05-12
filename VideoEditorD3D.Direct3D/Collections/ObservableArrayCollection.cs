@@ -77,7 +77,7 @@ public class ObservableArrayCollection<T> : ICollection<T>
                 {
                     _items[j] = _items[j + 1];
                 }
-                _items[--_count] = default; // Reset het verwijderde item
+                _items[--_count] = default!; // Reset het verwijderde item
 
                 Removed?.Invoke(this, item); // Trigger de Removed event
                 Changed?.Invoke(this, item); // Trigger de Changed event

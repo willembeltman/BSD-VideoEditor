@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using VideoEditorD3D.Entities.Interfaces;
 using VideoEditorD3D.Entities.ZipDatabase.Interfaces;
 using VideoEditorD3D.FFMpeg.Types;
 
@@ -24,15 +23,15 @@ public class Timeline : IEntity
     public double CurrentTime { get; set; }
 
     [NotMapped]
-    public IEnumerable<ITimelineClip> AllClips => VideoClips.Select(a => a as ITimelineClip).Concat(AudioClips);
+    public IEnumerable<TimelineClip> AllClips => VideoClips.Select(a => a as TimelineClip).Concat(AudioClips);
     [NotMapped]
-    public List<ITimelineClip> SelectedClips { get; } = new List<ITimelineClip>();
+    public List<TimelineClip> SelectedClips { get; } = new List<TimelineClip>();
 
     [ForeignKey("ProjectId")]
-    public Lazy<Project?> Project { get; set; } = new Lazy<Project?>(() => null, true);
+    public virtual Lazy<Project> Project { get; set; }
 
     [ForeignKey("TimelineId")]
-    public virtual ICollection<TimelineClipVideo> VideoClips { get; set; } = [];
+    public virtual ICollection<TimelineClipVideo> VideoClips { get; set; }
     [ForeignKey("TimelineId")]
-    public virtual ICollection<TimelineClipAudio> AudioClips { get; set; } = [];
+    public virtual ICollection<TimelineClipAudio> AudioClips { get; set; }
 }

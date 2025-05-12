@@ -1,8 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using System.Diagnostics;
 using System.Reflection;
-using System.Text.Json.Serialization;
+using VideoEditorD3D.Entities.ZipDatabase.Collections;
 using VideoEditorD3D.Entities.ZipDatabase.Helpers;
 using VideoEditorD3D.Loggers;
 
@@ -37,11 +36,11 @@ public class EntityExtender<T>
 
         var lazyCode = string.Empty;
 
-        var entityDbCollectionType = typeof(ForeignEntityCollection<,>);
-        var entityDbCollectionTypeFullName = entityDbCollectionType.FullName!.Split('`').First();
+        var foreignEntityCollectionType = typeof(ForeignEntityCollection<,>);
+        var foreignEntityCollectionFullName = foreignEntityCollectionType.FullName!.Split('`').First();
 
-        var binarySerializerType = typeof(EntitySerializer<>);
-        var binarySerializerTypeFullName = binarySerializerType.FullName!.Split('`').First();
+        var entitySerializerType = typeof(EntitySerializer<>);
+        var entitySerializerFullName = entitySerializerType.FullName!.Split('`').First();
 
         var dbContextType = typeof(DbContext);
         var dbContextTypeFullName = dbContextType.FullName;
@@ -49,19 +48,17 @@ public class EntityExtender<T>
         var binarySerializerCollectionType = typeof(EntitySerializerCollection);
         var binarySerializerCollectionTypeFullName = binarySerializerCollectionType.FullName;
 
-        var applicationDbContextType = dbContext.ParentType;
-        var applicationDbContextTypeFullName = dbContext.ParentType.FullName;
+        var applicationDbContextType = dbContext.GetType();
+        var applicationDbContextTypeFullName = applicationDbContextType.FullName;
 
         var props = type.GetProperties();
         foreach (var prop in props)
         {
             if (!ReflectionHelper.HasPublicGetter(prop)) continue;
-
-            var propertyName = prop.Name;
-            var isNulleble = ReflectionHelper.IsNulleble(prop);
-
+            if (!ReflectionHelper.IsVirtual(prop)) continue;
             if (!ReflectionHelper.HasForeignKeyAttribute(prop)) continue;
 
+            var propertyName = prop.Name;
             var foreignKeyName = ReflectionHelper.GetForeignKeyAttributeName(prop);
 
             if (ReflectionHelper.IsICollection(prop))
@@ -76,7 +73,7 @@ public class EntityExtender<T>
                 var foreignPropertyOnApplicationDbContextName = foreignPropertyOnApplicationDbContext.Name; 
 
                 lazyCode += $@"
-        item.{propertyName} = new {entityDbCollectionTypeFullName}<{foreignType.FullName}, {fullClassName}>(
+        item.{propertyName} = new {foreignEntityCollectionFullName}<{foreignType.FullName}, {fullClassName}>(
             db.{foreignPropertyOnApplicationDbContextName},
             item,
             (foreign, primary) => foreign.{foreignKeyName} == primary.Id,
@@ -103,7 +100,6 @@ public class EntityExtender<T>
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using Newtonsoft.Json;
 
 public static class {proxyName}
 {{
@@ -112,8 +108,7 @@ public static class {proxyName}
         var db = objDb as {applicationDbContextTypeFullName};
 {lazyCode}
     }}
-}}
-";
+}}";
     }
 
     public static string? GetCSharpTypeName(Type type)
@@ -144,7 +139,7 @@ public static class {proxyName}
             .Cast<MetadataReference>();
 
         var compilation = CSharpCompilation.Create(
-            "GeneratedExtenders",
+            "GeneratedEntityExtenders",
             new[] { syntaxTree },
             refs,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)

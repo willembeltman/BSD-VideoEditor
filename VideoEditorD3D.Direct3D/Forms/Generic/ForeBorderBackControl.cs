@@ -3,11 +3,8 @@ using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Forms.Generic;
 
-public class ForeBorderBackControl : BorderBackControl
+public class ForeBorderBackControl(IApplicationForm application) : BorderBackControl(application)
 {
-    public ForeBorderBackControl(IApplicationForm application, Form? parentForm, Control? parentControl) : base(application, parentForm, parentControl)
-    {
-    }
     private string _Font = "Ebrima";
     private float _FontSize = 10;
     private int _FontLetterSpacing = -2;

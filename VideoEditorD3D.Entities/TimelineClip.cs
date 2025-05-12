@@ -1,10 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using VideoEditorD3D.Entities.Interfaces;
+using VideoEditorD3D.Entities.ZipDatabase.Interfaces;
 using VideoEditorD3D.FFMpeg;
 
 namespace VideoEditorD3D.Entities;
 
-public abstract class TimelineClip : ITimelineClip
+public abstract class TimelineClip : IEntity
 {
     public long Id { get; set; }
     public long TimelineId { get; set; }
@@ -43,26 +43,20 @@ public abstract class TimelineClip : ITimelineClip
     public int Layer { get; set; }
 
     [ForeignKey("TimelineId")]
-    public Lazy<Timeline?> Timeline { get; set; } = new Lazy<Timeline?>(() => null, true);
+    public virtual Lazy<Timeline> Timeline { get; set; }
     [ForeignKey("MediaStreamId")]
-    public Lazy<MediaStream?> MediaStream { get; set; } = new Lazy<MediaStream?>(() => null, true);
+    public virtual Lazy<MediaStream> MediaStream { get; set; }
     [ForeignKey("TimelineClipGroupId")]
-    public Lazy<TimelineClipGroup?> TimelineClipGroup { get; set; } = new Lazy<TimelineClipGroup?>(() => null, true);
+    public virtual Lazy<TimelineClipGroup> TimelineClipGroup { get; set; }
 
-    [NotMapped]
-    public StreamInfo StreamInfo { get; set; }
     [NotMapped]
     public abstract bool IsVideoClip { get; }
     [NotMapped]
     public abstract bool IsAudioClip { get; }
     [NotMapped]
+    public StreamInfo StreamInfo { get; set; }
+    [NotMapped]
     public int OldLayer { get; set; }
     [NotMapped]
     public double OldTimelineStartTime { get; set; }
-
-    Timeline? ITimelineClip.Timeline => Timeline.Value;
-    MediaStream? ITimelineClip.MediaStream => MediaStream.Value;
-    TimelineClipGroup? ITimelineClip.TimelineClipGroup => TimelineClipGroup.Value;
-
-
 }

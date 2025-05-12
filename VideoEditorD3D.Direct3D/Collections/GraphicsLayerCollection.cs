@@ -1,25 +1,35 @@
-﻿using System.Collections;
-using Control = VideoEditorD3D.Direct3D.Forms.Control;
+﻿using Control = VideoEditorD3D.Direct3D.Forms.Control;
 
 namespace VideoEditorD3D.Direct3D.Collections
 {
-    public class GraphicsLayerCollection : ObservableArrayCollection<GraphicsLayer>
+    public class GraphicsLayerCollection : ObservableArrayCollection<GraphicsLayer>, IDisposable
     {
-        private Control Control;
+        private readonly Control Control;
 
         public GraphicsLayerCollection(Control control)
         {
             Control = control;
-            Changed += (sender, args) =>
-            {
-                Control.Invalidate();
-            };
+            Changed += OnChanged;
         }
-        public GraphicsLayer Create()
+
+        private void OnChanged(object? sender, GraphicsLayer? e)
+        {
+            Control.Invalidate();
+        }
+
+        public GraphicsLayer CreateNewLayer()
         {
             var layer = new GraphicsLayer(Control.ApplicationForm, Control);
             Add(layer);
             return layer;
+        }
+
+        public void Dispose()
+        {
+            foreach (var layer in this)
+            {
+                layer.Dispose();
+            }
         }
     }
 }

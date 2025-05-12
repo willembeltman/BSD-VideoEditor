@@ -5,30 +5,28 @@ namespace VideoEditorD3D.Direct3D.Forms;
 
 public class Control : IDisposable
 {
-    public IApplicationForm ApplicationForm { get; }
-    public Form? ParentForm { get; }
-    public Control? ParentControl { get; }
-    public ControlCollection Controls { get; }
-    public GraphicsLayerCollection CanvasLayers { get; }
-
-    public bool Loaded { get; private set; }
-    public bool Dirty { get; private set; }
-
     private int _Left = 0;
     private int _Top = 0;
     private int _Width = 480;
     private int _Height = 640;
 
-    public Control(IApplicationForm applicationForm, Form? parentForm, Control? parentControl)
+    public IApplicationForm ApplicationForm { get; }
+    public Form? ParentForm { get; internal set; }
+    public Control? ParentControl { get; internal set; }
+    public ControlCollection Controls { get; internal set; }
+    public GraphicsLayerCollection CanvasLayers { get; }
+
+    public bool Loaded { get; private set; } = false;
+    public bool Dirty { get; private set; } = true;
+    public bool MouseEntered { get; private set; } = false;
+    public virtual bool Visible { get; set; } = true;
+
+    public Control(IApplicationForm applicationForm)
     {
         ApplicationForm = applicationForm;
-        ParentForm = parentForm;
-        ParentControl = parentControl;
         Controls = new ControlCollection(this);
         CanvasLayers = new GraphicsLayerCollection(this);
     }
-
-    public bool IsMouseEntered { get; private set; } = false;
 
     public event EventHandler<KeyPressEventArgs>? KeyPress;
     public event EventHandler<KeyEventArgs>? KeyUp;
@@ -46,7 +44,6 @@ public class Control : IDisposable
     public event EventHandler<EventArgs>? DragLeave;
     public event EventHandler<DragEventArgs>? DragDrop;
 
-    public virtual bool Visible { get; set; } = true;
     public int Left
     {
         get => _Left;
@@ -96,34 +93,8 @@ public class Control : IDisposable
     public int Right => Left + Width;
     public int Bottom => Top + Height;
 
-    public int AbsoluteLeft
-    {
-        get
-        {
-            var control = ParentControl;
-            var left = Left;
-            while (control != null)
-            {
-                left += control.Left;
-                control = control.ParentControl;
-            }
-            return left;
-        } 
-    }
-    public int AbsoluteTop
-    {
-        get
-        {
-            var control = ParentControl;
-            var top = Top;
-            while (control != null)
-            {
-                top += control.Top;
-                control = control.ParentControl;
-            }
-            return top;
-        }
-    }
+    public int AbsoluteLeft => (ParentControl?.AbsoluteLeft ?? 0) + Left;
+    public int AbsoluteTop => (ParentControl?.AbsoluteTop ?? 0) + Top;
     public int AbsoluteRight => AbsoluteLeft + Width;
     public int AbsoluteBottom => AbsoluteTop + Height;
 
@@ -231,7 +202,7 @@ public class Control : IDisposable
     }
     public virtual void OnMouseMove(MouseEventArgs e)
     {
-        IsMouseEntered = true;
+        MouseEntered = true;
         foreach (var control in Controls)
         {
             var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
@@ -239,7 +210,7 @@ public class Control : IDisposable
             if (control.Left < e.X && e.X < control.Right &&
                 control.Top < e.Y && e.Y < control.Bottom)
             {
-                if (!control.IsMouseEntered)
+                if (!control.MouseEntered)
                 {
                     control.OnMouseEnter(newE);
                 }
@@ -248,7 +219,7 @@ public class Control : IDisposable
             }
             else
             {
-                if (control.IsMouseEntered)
+                if (control.MouseEntered)
                 {
                     control.OnMouseLeave(newE);
                 }
@@ -271,15 +242,15 @@ public class Control : IDisposable
     }
     public virtual void OnMouseEnter(EventArgs e)
     {
-        IsMouseEntered = true;
+        MouseEntered = true;
         MouseEnter?.Invoke(this, e);
     }
     public virtual void OnMouseLeave(EventArgs e)
     {
-        IsMouseEntered = false;
+        MouseEntered = false;
         foreach (var control in Controls)
         {
-            if (control.IsMouseEntered)
+            if (control.MouseEntered)
             {
                 control.OnMouseLeave(e);
             }
@@ -343,7 +314,6 @@ public class Control : IDisposable
     {
     }
 
-
     public IEnumerable<GraphicsLayer> GetAllCanvasLayers()
     {
         if (!Visible) yield break;
@@ -370,13 +340,7 @@ public class Control : IDisposable
     public void Dispose()
     {
         OnDispose();
-        foreach (var layer in CanvasLayers)
-        {
-            layer.Dispose();
-        }
-        foreach (var control in Controls)
-        {
-            control.Dispose();
-        }
+        CanvasLayers.Dispose();
+        Controls.Dispose();
     }
 }

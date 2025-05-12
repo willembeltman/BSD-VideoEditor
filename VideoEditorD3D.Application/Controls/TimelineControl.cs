@@ -9,7 +9,6 @@ using VideoEditorD3D.Direct3D.Interfaces;
 using Rectangle = SharpDX.Rectangle;
 using Point = System.Drawing.Point;
 using VideoEditorD3D.Entities;
-using VideoEditorD3D.Entities.Interfaces;
 using VideoEditorD3D.Application.Types;
 
 namespace VideoEditorD3D.Application.Controls;
@@ -37,17 +36,17 @@ public class TimelineControl : BackControl
     private Rectangle TimelineRectangle => new Rectangle(0, 0, Width, Height - HScrollBarControl.Height);
     private int MiddleOffset => HScrollBarControl.Height / 2;
 
-    public TimelineControl(ApplicationContext applicationContext, IApplicationForm applicationForm, Form? parentForm, Control? parentControl) : base(applicationForm, parentForm, parentControl)
+    public TimelineControl(ApplicationContext applicationContext, IApplicationForm applicationForm) : base(applicationForm)
     {
         Application = applicationContext;
 
-        BackgroundLayer = CanvasLayers.Create();
-        TimeMarkersBackLayer = CanvasLayers.Create();
-        TimeMarkersForeLayer = CanvasLayers.Create();
-        VideoClipsLayer = CanvasLayers.Create();
-        PlayerPositionLayer = CanvasLayers.Create();
+        BackgroundLayer = CanvasLayers.CreateNewLayer();
+        TimeMarkersBackLayer = CanvasLayers.CreateNewLayer();
+        TimeMarkersForeLayer = CanvasLayers.CreateNewLayer();
+        VideoClipsLayer = CanvasLayers.CreateNewLayer();
+        PlayerPositionLayer = CanvasLayers.CreateNewLayer();
 
-        HScrollBarControl = new HScrollBar(applicationForm, parentForm, this);
+        HScrollBarControl = new HScrollBar(applicationForm);
         HScrollBarControl.Scroll += ScrollBarControl_Scroll;
         Controls.Add(HScrollBarControl);
 
@@ -478,7 +477,7 @@ public class TimelineControl : BackControl
         }
 
         var selectedClips = GetSelectedClips(e);
-        if (Enumerable.Any<ITimelineClip>(selectedClips, a => Timeline.SelectedClips.Any((object b) => b.Equals(a))))
+        if (Enumerable.Any<TimelineClip>(selectedClips, a => Timeline.SelectedClips.Any((object b) => b.Equals(a))))
         {
             SelectedClipsDragging.Set(startpoint, startposition);
             foreach (var clip in selectedClips)
@@ -527,9 +526,9 @@ public class TimelineControl : BackControl
         SelectedClipsDragging.IsDragging = false;
     }
 
-    private ITimelineClip[] GetSelectedClips(System.Windows.Forms.MouseEventArgs e)
+    private TimelineClip[] GetSelectedClips(System.Windows.Forms.MouseEventArgs e)
     {
-        var selectedClips = new List<ITimelineClip>();
+        var selectedClips = new List<TimelineClip>();
         foreach (var clip in Timeline.AllClips)
         {
             var rect = CalculateRectangle(clip);
@@ -541,7 +540,7 @@ public class TimelineControl : BackControl
 
                 foreach (var clip2 in Timeline.AllClips)
                 {
-                    if (clip2.TimelineClipGroup?.Id == clip.TimelineClipGroup?.Id &&
+                    if (clip2.TimelineClipGroup.Value?.Id == clip.TimelineClipGroup.Value?.Id &&
                         !selectedClips.Contains(clip2))
                     {
                         selectedClips.Add(clip2);
@@ -581,7 +580,7 @@ public class TimelineControl : BackControl
         }
         return null;
     }
-    private RawRectangleF CalculateRectangle(ITimelineClip clip)
+    private RawRectangleF CalculateRectangle(TimelineClip clip)
     {
         int middle = TimelineRectangle.Height / 2;
         int videoBlockHeight = (middle - HScrollBarControl.Height / 2) / Timeline.VisibleVideoLayers;

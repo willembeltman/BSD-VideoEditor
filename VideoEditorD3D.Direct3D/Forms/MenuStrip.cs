@@ -6,8 +6,8 @@ namespace VideoEditorD3D.Direct3D.Forms;
 
 public class MenuStrip : ForeBorderBackControl
 {
-    public MenuStrip(IApplicationForm applicationForm, Form? parentForm, Control? parentControl)
-        : base(applicationForm, parentForm, parentControl)
+    public MenuStrip(IApplicationForm applicationForm)
+        : base(applicationForm)
     {
         Items = new ObservableArrayCollection<MenuStripItem>();
         Items.Added += (sender, item) => {

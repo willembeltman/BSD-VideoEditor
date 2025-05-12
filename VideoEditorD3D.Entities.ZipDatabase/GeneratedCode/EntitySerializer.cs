@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using System.Diagnostics;
 using System.Reflection;
+using VideoEditorD3D.Entities.ZipDatabase.Collections;
 using VideoEditorD3D.Entities.ZipDatabase.Helpers;
 
 namespace VideoEditorD3D.Entities.ZipDatabase.GeneratedCode;
@@ -57,9 +58,9 @@ public class EntitySerializer<T>
         {
             if (!ReflectionHelper.HasPublicGetter(prop)) continue;
             if (!ReflectionHelper.HasPublicSetter(prop)) continue;
-            //if (ReflectionHelper.IsVirtual(prop)) continue;
             if (ReflectionHelper.HasNotMappedAttribute(prop)) continue;
             if (ReflectionHelper.HasForeignKeyAttribute(prop)) continue;
+            if (ReflectionHelper.IsVirtual(prop)) continue;
 
             var propertyName = prop.Name;
 
@@ -77,7 +78,6 @@ public class EntitySerializer<T>
             writer.Write(false);
             writer.Write(value.{propertyName});
         }}";
-
                     readCode += @$"
 
         {prop.PropertyType.FullName} {propertyName} = null;
@@ -90,7 +90,6 @@ public class EntitySerializer<T>
                 {
                     writeCode += @$"
         writer.Write(value.{propertyName});";
-
                     readCode += @$"
         var {propertyName} = reader.Read{readMethod}();";
                 }
@@ -101,12 +100,10 @@ public class EntitySerializer<T>
 
         var {propertyName}Serializer = {binarySerializerCollectionTypeFullName}.{method}<{prop.PropertyType.FullName}>();
         {propertyName}Serializer.Write(writer, value.{propertyName});";
-
                 readCode += @$"
 
         var {propertyName}Serializer = {binarySerializerCollectionTypeFullName}.{method}<{prop.PropertyType.FullName}>();
         var {propertyName} = {propertyName}Serializer.Read(reader);";
-
             }
 
             newCode += @$"
@@ -154,7 +151,7 @@ public static class {serializerName}
             .Cast<MetadataReference>();
 
         var compilation = CSharpCompilation.Create(
-            "GeneratedSerializers",
+            "GeneratedEntitySerializers",
             new[] { syntaxTree },
             refs,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)

@@ -6,15 +6,15 @@ namespace VideoEditorD3D.Entities;
 public class Project : IEntity
 {
     public long Id { get; set; }
-
-    [ForeignKey("ProjectId")]
-    public ICollection<MediaFile> Files { get; set; } = [];
-    [ForeignKey("ProjectId")]
-    public ICollection<Timeline> Timelines { get; set; } = [];
-
     public long CurrentTimelineId { get; set; }
 
+    [ForeignKey("ProjectId")]
+    public virtual ICollection<MediaFile> Files { get; set; }
+
+    [ForeignKey("ProjectId")]
+    public virtual ICollection<Timeline> Timelines { get; set; }
+
     [ForeignKey("CurrentTimelineId")]
-    public Lazy<Timeline?> CurrentTimeline { get; set; } = new Lazy<Timeline?>(() => null, true);
+    public virtual Lazy<Timeline> CurrentTimeline { get; set; }
 
 }

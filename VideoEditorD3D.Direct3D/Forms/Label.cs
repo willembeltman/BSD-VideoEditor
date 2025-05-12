@@ -6,11 +6,11 @@ namespace VideoEditorD3D.Direct3D.Forms;
 
 public class Label : ForeBorderBackControl
 {
-    public Label(IApplicationForm application, Form? parentForm, Control? parentControl) : base(application, parentForm, parentControl)
+    public Label(IApplicationForm application) : base(application)
     {
-        Background = CanvasLayers.Create();
-        Foreground = CanvasLayers.Create();
-        Border = CanvasLayers.Create();
+        Background = CanvasLayers.CreateNewLayer();
+        Foreground = CanvasLayers.CreateNewLayer();
+        Border = CanvasLayers.CreateNewLayer();
     }
 
     private readonly GraphicsLayer Background;
