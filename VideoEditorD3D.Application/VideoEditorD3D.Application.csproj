@@ -12,7 +12,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\VideoEditorD3D.Entities\VideoEditorD3D.Entities.csproj" />
-    <ProjectReference Include="..\VideoEditorD3D.Entities.ZipDatabase\VideoEditorD3D.Entities.ZipDatabase.csproj" />
     <ProjectReference Include="..\VideoEditorD3D.Direct3D\VideoEditorD3D.Direct3D.csproj" />
     <ProjectReference Include="..\VideoEditorD3D.Loggers\VideoEditorD3D.Loggers.csproj" />
     <ProjectReference Include="..\VideoEditorD3D.Timers\VideoEditorD3D.Timers.csproj" />
