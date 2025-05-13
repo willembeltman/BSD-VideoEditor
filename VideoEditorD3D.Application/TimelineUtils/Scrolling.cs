@@ -1,4 +1,4 @@
-﻿namespace VideoEditorD3D.Application.Timeline;
+﻿namespace VideoEditorD3D.Application.TimelineUtils;
 
 public class Scrolling
 {
