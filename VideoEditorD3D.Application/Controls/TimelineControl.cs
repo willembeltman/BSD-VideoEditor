@@ -1,15 +1,14 @@
 ﻿using SharpDX.Mathematics.Interop;
-using SharpDX;
 using System.Diagnostics;
 using System.Drawing;
-using VideoEditorD3D.Direct3D;
 using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Direct3D.Forms.Generic;
 using VideoEditorD3D.Direct3D.Interfaces;
-using Rectangle = SharpDX.Rectangle;
-using Point = System.Drawing.Point;
 using VideoEditorD3D.Entities;
 using VideoEditorD3D.Application.Types;
+using VideoEditorD3D.Direct3D.Drawing;
+using Rectangle = SharpDX.Rectangle;
+using Point = System.Drawing.Point;
 
 namespace VideoEditorD3D.Application.Controls;
 

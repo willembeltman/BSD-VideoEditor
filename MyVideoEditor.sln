@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorD3D.Direct3D", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorD3D.Entities", "VideoEditorD3D.Entities\VideoEditorD3D.Entities.csproj", "{44A22398-70EF-4FE6-AFAB-895D92D97064}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorD3D.Timers", "VideoEditorD3D.Timers\VideoEditorD3D.Timers.csproj", "{6494A687-701E-4284-9953-CA6923DE0AF6}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorD3D.Loggers", "VideoEditorD3D.Loggers\VideoEditorD3D.Loggers.csproj", "{040161D8-12AF-4635-88A4-585BE4AA7012}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorD3D.Application", "VideoEditorD3D.Application\VideoEditorD3D.Application.csproj", "{F22CDE05-C33C-40DE-B8B7-D0E158FE31CC}"
@@ -35,10 +33,6 @@ Global
 		{44A22398-70EF-4FE6-AFAB-895D92D97064}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{44A22398-70EF-4FE6-AFAB-895D92D97064}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{44A22398-70EF-4FE6-AFAB-895D92D97064}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6494A687-701E-4284-9953-CA6923DE0AF6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6494A687-701E-4284-9953-CA6923DE0AF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6494A687-701E-4284-9953-CA6923DE0AF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6494A687-701E-4284-9953-CA6923DE0AF6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{040161D8-12AF-4635-88A4-585BE4AA7012}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{040161D8-12AF-4635-88A4-585BE4AA7012}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{040161D8-12AF-4635-88A4-585BE4AA7012}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -1,6 +1,6 @@
 using SharpDX.Direct3D11;
 using SharpDX.Mathematics.Interop;
-using VideoEditorD3D.Direct3D.Extentions;
+using VideoEditorD3D.Direct3D.SharpDXExtentions;
 using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Textures;

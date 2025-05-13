@@ -13,7 +13,7 @@ public interface IApplicationContext : IDisposable
     /// This is the global switch for controlling when the application has to stop.
     /// All threads will exit their loops when this property is set to true. The DrawerThread
     /// will do the same, causing it to close the Direct3D ApplicationForm, which will in turn 
-    /// dispose everything(including this application) making the frontend thread exit and 
+    /// dispose everything(including this application context) making the frontend thread exit and 
     /// the application exit entirely.
     /// </summary>
     bool KillSwitch { get; set; }
@@ -23,12 +23,12 @@ public interface IApplicationContext : IDisposable
     /// want to manage their own drawing calls, like a video player that wants to refresh
     /// according to the video frame rate. In this case the application can return it's own
     /// DrawerThread here. This function is also used to signal the ApplicationForm instance
-    /// to the application.
+    /// to the application context.
     /// 
     /// If you return null, the default 60fps DrawerThread will be created and used.
     /// </summary>
     /// <param name="applicationForm">
-    /// The applicationForm which holds the Draw method.
+    /// The ApplicationForm which holds the TryDraw method.
     /// </param>
     /// <returns>
     /// The custom application's drawer thread. 
@@ -41,10 +41,11 @@ public interface IApplicationContext : IDisposable
     /// engine has no knowledge of the application and it's forms. The application can create
     /// it's own forms and pass them to the engine. The engine will then use this form to
     /// draw the Direct3D context and pass load, resize, keyboard and mouse events to the form.
-    /// This function is also used to signal the ApplicationForm instance to the application.
+    /// This function is also used to signal the ApplicationForm instance to the application
+    /// context.
     /// </summary>
     /// <param name="applicationForm">
-    /// The applicationForm which holds the CurrentForm property.
+    /// The ApplicationForm which holds the CurrentForm property.
     /// </param>
     /// <returns>
     /// The default / start form of the application.

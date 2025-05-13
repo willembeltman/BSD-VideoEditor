@@ -1,7 +1,6 @@
-﻿using VideoEditorD3D.Direct3D;
-using VideoEditorD3D.Direct3D.Forms;
-using VideoEditorD3D.Direct3D.Forms.Generic;
+﻿using VideoEditorD3D.Direct3D.Forms.Generic;
 using VideoEditorD3D.Direct3D.Interfaces;
+using VideoEditorD3D.Direct3D.Drawing;
 using VideoEditorD3D.FFMpeg.Types;
 
 namespace VideoEditorD3D.Application.Controls;
@@ -39,7 +38,7 @@ public class DisplayControl : BackControl
         Background.EndDrawing();
 
         Foreground.StartDrawing();
-        if (_Frame != null) Foreground.DrawFrame(0, 0, Width, Height, _Frame);
+        if (_Frame != null) Foreground.DrawByteArrayImage(0, 0, Width, Height, _Frame.Buffer, _Frame.Resolution.Width, _Frame.Resolution.Height);
         Foreground.EndDrawing();
 
         base.OnDraw();

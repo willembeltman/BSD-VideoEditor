@@ -6,19 +6,20 @@ using System.Diagnostics;
 using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Direct3D.Vertices;
 using VideoEditorD3D.Direct3D.Collections;
-using VideoEditorD3D.Timers;
+using VideoEditorD3D.Direct3D.Timers;
 using Device = SharpDX.Direct3D11.Device;
+using VideoEditorD3D.Direct3D.Drawing;
 
 namespace VideoEditorD3D.Direct3D;
 
 public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
 {
     #region Initilized at Constructor
-    private readonly IApplicationContext Application;
+    private readonly IApplicationContext ApplicationContext;
+    private readonly ApplicationFormEvents ApplicationFormEvents;
     private readonly Lock UILock;
     private readonly Stopwatch Stopwatch;
     private readonly AllTimers Timers;
-    private readonly ApplicationFormEvents EventHandler;
     private readonly IDrawerThread DrawerThread;
     private bool ReInitialize;
     private bool Initialized;
@@ -44,14 +45,24 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
     private int? _PhysicalHeight;
     #endregion
 
-    public ApplicationForm(IApplicationContext application)
+    #region (Private) IApplicationForm interface
+    Device IApplicationForm.Device => _Device!;
+    CharacterCollection IApplicationForm.Characters => _Characters!;
+    int IApplicationForm.Width => _PhysicalWidth!.Value;
+    int IApplicationForm.Height => _PhysicalHeight!.Value;
+    Forms.Form IApplicationForm.CurrentForm { get => _CurrentForm!; set => _CurrentForm = value; }
+    Stopwatch IApplicationForm.Stopwatch => Stopwatch;
+    AllTimers IApplicationForm.Timers => Timers;
+    #endregion
+
+    public ApplicationForm(IApplicationContext applicationContext)
     {
-        Application = application;
+        ApplicationContext = applicationContext;
         UILock = new Lock();
         Stopwatch = new Stopwatch();
         Timers = new AllTimers(Stopwatch);
-        DrawerThread = application.OnCreateDrawerThread(this) ?? new Default60FpsDrawerThread(this, application);
-        EventHandler = new ApplicationFormEvents(this, application);
+        DrawerThread = applicationContext.OnCreateDrawerThread(this) ?? new Default60FpsDrawerThread(this, applicationContext);
+        ApplicationFormEvents = new ApplicationFormEvents(this, applicationContext);
 
         InitializeComponents();
     }
@@ -67,12 +78,12 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
             }
             catch (Exception ex)
             {
-                Application.Logger?.WriteException(ex);
+                ApplicationContext.Logger?.WriteException(ex);
             }
             return res;
         }
     }
-    private bool IsNotReadyToDraw => !Initialized || IsClosed || Application.KillSwitch || Width == 0 || Height == 0;
+    private bool IsNotReadyToDraw => !Initialized || IsClosed || ApplicationContext.KillSwitch || Width == 0 || Height == 0;
 
     protected override void OnHandleCreated(EventArgs e)
     {
@@ -83,7 +94,7 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
     {
         CenterToScreen();
         Stopwatch.Start();
-        Application.Start(this);
+        ApplicationContext.Start(this);
         DrawerThread.StartThread();
     }
     protected override void OnResize(EventArgs e)
@@ -96,7 +107,7 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
         lock (UILock)
         {
             IsClosed = true;
-            Application.KillSwitch = true;
+            ApplicationContext.KillSwitch = true;
             DrawerThread.Dispose();
             base.OnFormClosing(e);
         }
@@ -115,7 +126,7 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
         _Device?.Dispose();
 
         DrawerThread.Dispose(); // Zou al disposed moeten zijn, maar goed
-        Application.Dispose();
+        ApplicationContext.Dispose();
     }
 
     private void InitializeComponents()
@@ -125,22 +136,24 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
         this.Text = "Video editor";
         this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.Opaque, true);
         this.AllowDrop = true;
-        this.MouseMove += EventHandler.OnMouseMove;
-        this.MouseDown += EventHandler.OnMouseDown;
-        this.MouseUp += EventHandler.OnMouseUp;
-        this.MouseClick += EventHandler.OnMouseClick;
-        this.MouseDoubleClick += EventHandler.OnMouseDoubleClick;
-        this.MouseWheel += EventHandler.OnMouseWheel;
-        this.MouseEnter += EventHandler.OnMouseEnter;
-        this.MouseLeave += EventHandler.OnMouseLeave;
-        this.KeyDown += EventHandler.OnKeyDown;
-        this.KeyUp += EventHandler.OnKeyUp;
-        this.KeyPress += EventHandler.OnKeyPress;
-        this.DragDrop += EventHandler.OnDragDrop;
-        this.DragEnter += EventHandler.OnDragEnter;
-        this.DragOver += EventHandler.OnDragOver;
-        this.DragLeave += EventHandler.OnDragLeave;
+        this.MouseMove += ApplicationFormEvents.OnMouseMove;
+        this.MouseDown += ApplicationFormEvents.OnMouseDown;
+        this.MouseUp += ApplicationFormEvents.OnMouseUp;
+        this.MouseClick += ApplicationFormEvents.OnMouseClick;
+        this.MouseDoubleClick += ApplicationFormEvents.OnMouseDoubleClick;
+        this.MouseWheel += ApplicationFormEvents.OnMouseWheel;
+        this.MouseEnter += ApplicationFormEvents.OnMouseEnter;
+        this.MouseLeave += ApplicationFormEvents.OnMouseLeave;
+        this.KeyDown += ApplicationFormEvents.OnKeyDown;
+        this.KeyUp += ApplicationFormEvents.OnKeyUp;
+        this.KeyPress += ApplicationFormEvents.OnKeyPress;
+        this.DragDrop += ApplicationFormEvents.OnDragDrop;
+        this.DragEnter += ApplicationFormEvents.OnDragEnter;
+        this.DragOver += ApplicationFormEvents.OnDragOver;
+        this.DragLeave += ApplicationFormEvents.OnDragLeave;
         this.ResumeLayout(false);
+
+        Thread.CurrentThread.Name = "Form Kernel";
     }
     private void RecreateSwapChain()
     {
@@ -244,7 +257,7 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
                 _Characters = new CharacterCollection(this);
 
                 // Ask the application to create the start form
-                _CurrentForm = Application.OnCreateStartForm(this);
+                _CurrentForm = ApplicationContext.OnCreateStartForm(this);
                 _CurrentForm.Width = realWidth;
                 _CurrentForm.Height = realHeight;
 
@@ -254,7 +267,7 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
             }
             catch (Exception ex)
             {
-                Application.Logger?.WriteException(ex);
+                ApplicationContext.Logger?.WriteException(ex);
             }
         }
     }
@@ -310,7 +323,7 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
             }
             catch (SharpDXException ex)
             {
-                Application.Logger?.WriteException(ex);
+                ApplicationContext.Logger?.WriteException(ex);
                 return;
             }
 
@@ -429,7 +442,7 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
         catch (Exception ex)
         {
             // Dit zou niet meer voor kunnen komen nu
-            Application.Logger?.WriteException(ex);
+            ApplicationContext.Logger?.WriteException(ex);
 
             // Checken omdat de KillSwitch inmiddels ook aangezet kan zijn
             if (!IsNotReadyToDraw)
@@ -539,16 +552,6 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
 
         Close();
     }
-
-    #region IApplicationForm interface
-    Device IApplicationForm.Device => _Device!;
-    CharacterCollection IApplicationForm.Characters => _Characters!;
-    int IApplicationForm.Width => _PhysicalWidth!.Value;
-    int IApplicationForm.Height => _PhysicalHeight!.Value;
-    Forms.Form IApplicationForm.CurrentForm { get => _CurrentForm!; set => _CurrentForm = value; }
-    Stopwatch IApplicationForm.Stopwatch => Stopwatch;
-    AllTimers IApplicationForm.Timers => Timers;
-    #endregion
 }
 // 553 lines isn't that bad, right? ¯\_(ツ)_/¯
 //

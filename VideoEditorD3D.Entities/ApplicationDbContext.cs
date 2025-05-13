@@ -4,7 +4,7 @@ namespace VideoEditorD3D.Entities;
 
 public class ApplicationDbContext : DbContext
 {
-    public ApplicationDbContext(string fullName) : base(fullName) { }
+    public ApplicationDbContext(string zipFullName) : base(zipFullName) { }
 
     public virtual DbSet<Project> Projects { get; set; }
     public virtual DbSet<TimelineClipAudio> TimelineAudios { get; set; }

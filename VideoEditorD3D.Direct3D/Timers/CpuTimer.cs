@@ -1,8 +1,6 @@
-﻿using System.Collections.ObjectModel;
-using System.Diagnostics;
-using static VideoEditorD3D.Timers.CpuTimer;
+﻿using System.Diagnostics;
 
-namespace VideoEditorD3D.Timers;
+namespace VideoEditorD3D.Direct3D.Timers;
 
 public class CpuTimer
 {

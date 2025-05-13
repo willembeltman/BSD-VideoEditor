@@ -1,4 +1,5 @@
-﻿using Control = VideoEditorD3D.Direct3D.Forms.Control;
+﻿using VideoEditorD3D.Direct3D.Drawing;
+using Control = VideoEditorD3D.Direct3D.Forms.Control;
 
 namespace VideoEditorD3D.Direct3D.Collections
 {

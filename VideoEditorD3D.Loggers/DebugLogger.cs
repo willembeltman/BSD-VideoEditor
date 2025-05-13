@@ -48,8 +48,8 @@ public class DebugLogger : ILogger
         Lines.Enqueue(new DebugLoggerMessage(DateTime.Now, message));
         NewMessageReceived.Set();
     }
-    public void RewriteLine(string message, ConsoleColor color) => RewriteLine(message);
-    public void RewriteLine(string message)
+    public void ReWriteLine(string message, ConsoleColor color) => ReWriteLine(message);
+    public void ReWriteLine(string message)
     {
         var interval = 1d / 60;
         var currentTime = Stopwatch.Elapsed.TotalSeconds;

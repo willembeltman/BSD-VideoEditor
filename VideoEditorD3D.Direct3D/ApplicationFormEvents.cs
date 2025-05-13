@@ -2,17 +2,9 @@
 
 namespace VideoEditorD3D.Direct3D;
 
-public class ApplicationFormEvents
+public class ApplicationFormEvents(IApplicationForm applicationForm, IApplicationContext application)
 {
-    private IApplicationForm ApplicationForm;
-    private IApplicationContext Application;
-    private Forms.Form CurrentForm => ApplicationForm.CurrentForm;
-
-    public ApplicationFormEvents(IApplicationForm applicationForm, IApplicationContext application)
-    {
-        this.ApplicationForm = applicationForm;
-        this.Application = application;
-    }
+    private Forms.Form CurrentForm => applicationForm.CurrentForm;
 
     public void OnKeyPress(object? sender, KeyPressEventArgs e)
     {
@@ -63,7 +55,7 @@ public class ApplicationFormEvents
     {
         if (CurrentForm == null) return;
         var formPoint = new Point(e.X, e.Y);
-        var ucPoint = ApplicationForm.PointToClient(formPoint);
+        var ucPoint = applicationForm.PointToClient(formPoint);
         var newE = new DragEventArgs(e.Data, e.KeyState, ucPoint.X, ucPoint.Y, e.AllowedEffect, e.Effect);
         CurrentForm.OnDragDrop(newE);
     }
@@ -71,7 +63,7 @@ public class ApplicationFormEvents
     {
         if (CurrentForm == null) return;
         var formPoint = new Point(e.X, e.Y);
-        var ucPoint = ApplicationForm.PointToClient(formPoint);
+        var ucPoint = applicationForm.PointToClient(formPoint);
         var newE = new DragEventArgs(e.Data, e.KeyState, ucPoint.X, ucPoint.Y, e.AllowedEffect, e.Effect);
         CurrentForm.OnDragEnter(newE);
     }
@@ -79,7 +71,7 @@ public class ApplicationFormEvents
     {
         if (CurrentForm == null) return;
         var formPoint = new Point(e.X, e.Y);
-        var ucPoint = ApplicationForm.PointToClient(formPoint);
+        var ucPoint = applicationForm.PointToClient(formPoint);
         var newE = new DragEventArgs(e.Data, e.KeyState, ucPoint.X, ucPoint.Y, e.AllowedEffect, e.Effect);
         CurrentForm.OnDragOver(newE);
     }

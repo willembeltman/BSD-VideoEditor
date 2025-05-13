@@ -6,7 +6,6 @@ public static class Program
     static void Main()
     {
         ApplicationConfiguration.Initialize();
-        Thread.CurrentThread.Name = "Forms thread";
-        System.Windows.Forms.Application.Run(new Direct3D.ApplicationForm(new Application.ApplicationContext()));
+        System.Windows.Forms.Application.Run(new Direct3D.ApplicationForm(new Application.ApplicationContext())); // Yes this is a flex
     }
 }

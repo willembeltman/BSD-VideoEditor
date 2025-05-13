@@ -1,6 +1,6 @@
 ﻿using SharpDX.Mathematics.Interop;
 
-namespace VideoEditorD3D.Direct3D.Extentions;
+namespace VideoEditorD3D.Direct3D.SharpDXExtentions;
 
 public static class RawColor4Extention
 {

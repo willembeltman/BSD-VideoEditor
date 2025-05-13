@@ -44,10 +44,17 @@ public class ConsoleLogger : ILogger
                 Console.ForegroundColor = message.Color;
             if (message.Replace)
             {
-                Console.CursorLeft = 0;
-                Console.Write(new string(' ', LastMessage.Length));
-                Console.CursorLeft = 0;
-                Console.Write(message.Message);
+                if (NeedNewLine)
+                {
+                    Console.CursorLeft = 0;
+                    Console.Write(new string(' ', LastMessage.Length));
+                    Console.CursorLeft = 0;
+                    Console.Write(message.Message);
+                }
+                else
+                {
+                    Console.WriteLine(message.Message);
+                }
                 NeedNewLine = true;
             }
             else
@@ -72,8 +79,8 @@ public class ConsoleLogger : ILogger
         Lines.Enqueue(new ConsoleLoggerMessage(DateTime.Now, color, message, false));
         NewMessageReceived.Set();
     }
-    public void RewriteLine(string message) => RewriteLine(message, ConsoleColor.White);
-    public void RewriteLine(string message, ConsoleColor color)
+    public void ReWriteLine(string message) => ReWriteLine(message, ConsoleColor.White);
+    public void ReWriteLine(string message, ConsoleColor color)
     {
         var interval = 1d / 60;
         var currentTime = Stopwatch.Elapsed.TotalSeconds;

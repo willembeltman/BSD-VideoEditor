@@ -1,4 +1,5 @@
 ﻿using VideoEditorD3D.Direct3D.Collections;
+using VideoEditorD3D.Direct3D.Drawing;
 using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Forms;

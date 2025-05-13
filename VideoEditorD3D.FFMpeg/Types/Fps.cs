@@ -17,7 +17,7 @@ public struct Fps
     public long Base { get; set; }
     public long Divider { get; set; }
 
-    public double Value
+    public double FrameTime
     {
         get
         {
@@ -59,7 +59,7 @@ public struct Fps
     }
     public override string ToString()
     {
-        return $"{Value}";
+        return $"{FrameTime}";
     }
     public static bool TryParse(string? value, out Fps result)
     {
@@ -79,7 +79,7 @@ public struct Fps
 
     public static implicit operator double(Fps fps)
     {
-        return fps.Value;
+        return fps.FrameTime;
     }
 }
 

@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace VideoEditorD3D.Timers;
+namespace VideoEditorD3D.Direct3D.Timers;
 
 public class FpsTimer
 {

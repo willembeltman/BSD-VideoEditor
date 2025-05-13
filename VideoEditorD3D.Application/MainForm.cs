@@ -1,8 +1,8 @@
 ﻿using SharpDX.Mathematics.Interop;
 using VideoEditorD3D.Application.Controls;
 using VideoEditorD3D.Application.Types;
-using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Direct3D.Interfaces;
+using VideoEditorD3D.Direct3D.Forms;
 
 namespace VideoEditorD3D.Application;
 
