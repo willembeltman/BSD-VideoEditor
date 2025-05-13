@@ -9,6 +9,7 @@ using VideoEditorD3D.Application.Types;
 using VideoEditorD3D.Direct3D.Drawing;
 using Rectangle = SharpDX.Rectangle;
 using Point = System.Drawing.Point;
+using VideoEditorD3D.Application.Timeline;
 
 namespace VideoEditorD3D.Application.Controls;
 

@@ -8,7 +8,7 @@ namespace VideoEditorD3D.Application;
 
 public class ApplicationContext : IApplicationContext
 {
-    public ILogger Logger { get; }
+    public ILogger? Logger { get; }
     public bool KillSwitch { get; set; }
     public ApplicationConfig Config { get; }
     public ApplicationDbContext Db { get; }
@@ -51,7 +51,7 @@ public class ApplicationContext : IApplicationContext
     public void Start(IApplicationForm applicationForm)
     {
         ApplicationForm = applicationForm;
-        Logger.StartThread();
+        Logger?.StartThread();
         LoadCurrentProjectAndTimeline();
     }
 
@@ -89,7 +89,7 @@ public class ApplicationContext : IApplicationContext
     {
         KillSwitch = true;
         Db.Dispose();
-        Logger.Dispose();
+        Logger?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

@@ -1,7 +1,7 @@
 ﻿
 using System.Drawing;
 
-namespace VideoEditorD3D.Application.Types;
+namespace VideoEditorD3D.Application.Timeline;
 
 public class Dragging
 {

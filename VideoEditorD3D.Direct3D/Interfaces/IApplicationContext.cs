@@ -1,11 +1,9 @@
-﻿using VideoEditorD3D.Loggers;
-
-namespace VideoEditorD3D.Direct3D.Interfaces;
+﻿namespace VideoEditorD3D.Direct3D.Interfaces;
 
 public interface IApplicationContext : IDisposable
 {
     /// <summary>
-    /// The main logger for the application.
+    /// The main logger for the application. Does not need to be set for application to work.
     /// </summary>
     ILogger? Logger { get; }
 

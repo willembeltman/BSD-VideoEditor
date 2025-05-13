@@ -1,7 +1,7 @@
 ﻿using VideoEditorD3D.Entities;
 using VideoEditorD3D.FFMpeg;
 
-namespace VideoEditorD3D.Application.Types;
+namespace VideoEditorD3D.Application.Timeline;
 
 public class DragAndDrop
 {

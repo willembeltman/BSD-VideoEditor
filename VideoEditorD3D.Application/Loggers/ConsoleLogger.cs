@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
+using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Loggers;
 

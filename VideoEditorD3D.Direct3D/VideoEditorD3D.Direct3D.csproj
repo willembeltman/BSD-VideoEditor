@@ -18,10 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\VideoEditorD3D.Loggers\VideoEditorD3D.Loggers.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="ApplicationForm.cs">
       <SubType>Form</SubType>
     </Compile>
