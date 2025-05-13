@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using VideoEditorD3D.Entities.ZipDatabase.Interfaces;
+﻿using EntityFrameworkZip.Interfaces;
 
 namespace VideoEditorD3D.Entities;
 

@@ -26,13 +26,13 @@ public class ApplicationContext : IApplicationContext
         Config = ApplicationConfig.Load();
         if (Config.LastDatabaseFullName == null)
         {
-            Db = new ApplicationDbContext($"NewProject_{DateTime.Now:yyyy-MM-dd HH-mm}.zip", Logger);
+            Db = new ApplicationDbContext($"NewProject_{DateTime.Now:yyyy-MM-dd HH-mm}.zip");
             Config.LastDatabaseFullName = Db.FullName;
             Config.Save();
         }
         else
         {
-            Db = new ApplicationDbContext(Config.LastDatabaseFullName, Logger);
+            Db = new ApplicationDbContext(Config.LastDatabaseFullName);
         }
     }
 

@@ -1,6 +1,5 @@
-﻿using System.Collections.Concurrent;
-using System.ComponentModel.DataAnnotations.Schema;
-using VideoEditorD3D.Entities.ZipDatabase.Interfaces;
+﻿using EntityFrameworkZip.Attributes;
+using EntityFrameworkZip.Interfaces;
 using VideoEditorD3D.FFMpeg.Types;
 
 namespace VideoEditorD3D.Entities;

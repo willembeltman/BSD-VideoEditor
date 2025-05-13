@@ -7,12 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="EntityFrameworkZip" Version="1.0.0" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\VideoEditorD3D.Entities.ZipDatabase\VideoEditorD3D.Entities.ZipDatabase.csproj" />
     <ProjectReference Include="..\VideoEditorD3D.FFMpeg\VideoEditorD3D.FFMpeg.csproj" />
   </ItemGroup>
 

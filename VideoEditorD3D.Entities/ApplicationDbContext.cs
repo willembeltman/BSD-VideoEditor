@@ -1,13 +1,10 @@
-﻿using VideoEditorD3D.Entities.ZipDatabase;
-using VideoEditorD3D.Entities.ZipDatabase.Interfaces;
+﻿using EntityFrameworkZip;
 
 namespace VideoEditorD3D.Entities;
 
 public class ApplicationDbContext : DbContext
 {
-    public ApplicationDbContext(string fullName, ILogger logger) : base(fullName, logger)
-    {
-    }
+    public ApplicationDbContext(string fullName) : base(fullName) { }
 
     public virtual DbSet<Project> Projects { get; set; }
     public virtual DbSet<TimelineClipAudio> TimelineAudios { get; set; }
