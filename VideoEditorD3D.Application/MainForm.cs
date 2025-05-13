@@ -58,7 +58,6 @@ public class MainForm : Form
         helpMenu.Items.Add(new MenuStripItem(ApplicationForm, "About"));
         helpMenu.Items.Add(new MenuStripItem(ApplicationForm, "Documentation"));
 
-
         DisplayControl = new DisplayControl(applicationContext, applicationForm);
         DisplayControl.BackColor = new RawColor4(0, 0, 0, 1);
         Controls.Add(DisplayControl);

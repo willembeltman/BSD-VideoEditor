@@ -1,17 +1,17 @@
-using SharpDX.Direct3D;
+﻿using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using SharpDX;
 using System.Diagnostics;
 using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Direct3D.Vertices;
+using VideoEditorD3D.Direct3D.Collections;
 using VideoEditorD3D.Timers;
 using Device = SharpDX.Direct3D11.Device;
-using VideoEditorD3D.Direct3D.Collections;
 
 namespace VideoEditorD3D.Direct3D;
 
-public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
+public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
 {
     #region Initilized at Constructor
     private readonly IApplicationContext Application;
@@ -550,3 +550,10 @@ public partial class ApplicationForm : System.Windows.Forms.Form, IApplicationFo
     AllTimers IApplicationForm.Timers => Timers;
     #endregion
 }
+// 553 lines isn't that bad, right? ¯\_(ツ)_/¯
+//
+// (•_•)
+//
+// ( •_•)>⌐■-■
+//
+// (⌐■_■)

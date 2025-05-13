@@ -1,13 +1,10 @@
-﻿
-using System.Windows.Forms;
-
-namespace VideoEditorD3D.Application.Types;
+﻿namespace VideoEditorD3D.Application.Types;
 
 public class Scrolling
 {
     public int OldSmallScrollDelta { get; set; } = 0;
     public int TotalBigScrollDelta { get; set; } = 0;
-    public int GetScrollDelta(MouseEventArgs e)
+    public int GetScrollDelta(System.Windows.Forms.MouseEventArgs e)
     {
         TotalBigScrollDelta += e.Delta;
 
