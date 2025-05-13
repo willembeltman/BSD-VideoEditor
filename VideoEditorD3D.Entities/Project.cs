@@ -10,4 +10,6 @@ public class Project : IEntity
     public virtual ICollection<MediaFile> Files { get; set; }
     public virtual ICollection<Timeline> Timelines { get; set; }
     public virtual Lazy<Timeline> CurrentTimeline { get; set; }
+
+    //public Lazy<Timeline> CurrentTimeline2 { get; set; }
 }
