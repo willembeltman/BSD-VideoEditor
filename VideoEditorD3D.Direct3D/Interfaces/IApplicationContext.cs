@@ -1,4 +1,6 @@
-﻿namespace VideoEditorD3D.Direct3D.Interfaces;
+﻿using Bsd.Logger;
+
+namespace VideoEditorD3D.Direct3D.Interfaces;
 
 public interface IApplicationContext : IDisposable
 {

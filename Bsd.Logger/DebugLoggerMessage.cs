@@ -1,6 +1,6 @@
 ﻿
 
-namespace VideoEditorD3D.Loggers
+namespace Bsd.Logger
 {
     public class DebugLoggerMessage
     {

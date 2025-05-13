@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorD3D.Application"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorD3D.FFMpeg", "VideoEditorD3D.FFMpeg\VideoEditorD3D.FFMpeg.csproj", "{9C4610EE-09D8-4F8E-84B8-50A98686CF90}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bsd.Logger", "Bsd.Logger\Bsd.Logger.csproj", "{E17FF2C6-C7C3-4182-B3C5-F4FF9DE7D890}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{9C4610EE-09D8-4F8E-84B8-50A98686CF90}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9C4610EE-09D8-4F8E-84B8-50A98686CF90}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9C4610EE-09D8-4F8E-84B8-50A98686CF90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E17FF2C6-C7C3-4182-B3C5-F4FF9DE7D890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E17FF2C6-C7C3-4182-B3C5-F4FF9DE7D890}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E17FF2C6-C7C3-4182-B3C5-F4FF9DE7D890}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E17FF2C6-C7C3-4182-B3C5-F4FF9DE7D890}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

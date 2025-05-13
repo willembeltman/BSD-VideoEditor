@@ -18,6 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Bsd.Logger\Bsd.Logger.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="ApplicationForm.cs">
       <SubType>Form</SubType>
     </Compile>

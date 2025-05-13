@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Bsd.Logger\Bsd.Logger.csproj" />
     <ProjectReference Include="..\VideoEditorD3D.Application\VideoEditorD3D.Application.csproj" />
     <ProjectReference Include="..\VideoEditorD3D.Direct3D\VideoEditorD3D.Direct3D.csproj" />
   </ItemGroup>
