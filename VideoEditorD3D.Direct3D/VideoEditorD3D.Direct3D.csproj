@@ -22,10 +22,10 @@
     <Compile Update="ApplicationForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="Forms\Generic\BorderBackControl.cs">
+    <Compile Update="Controls\Generic\BorderBackControl.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Update="Forms\Generic\ForeBorderBackControl.cs">
+    <Compile Update="Controls\Generic\ForeBorderBackControl.cs">
       <SubType>Component</SubType>
     </Compile>
   </ItemGroup>

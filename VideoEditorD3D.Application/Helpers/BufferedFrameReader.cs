@@ -1,4 +1,4 @@
-﻿using VideoEditorD3D.Application.TimelineUtils;
+﻿using VideoEditorD3D.Application.Controls.TimelineHelpers;
 
 namespace VideoEditorD3D.Application.Types;
 

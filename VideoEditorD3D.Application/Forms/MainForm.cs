@@ -1,10 +1,10 @@
 ﻿using SharpDX.Mathematics.Interop;
 using VideoEditorD3D.Application.Controls;
-using VideoEditorD3D.Application.Types;
 using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Direct3D.Forms;
+using VideoEditorD3D.Direct3D.Controls;
 
-namespace VideoEditorD3D.Application;
+namespace VideoEditorD3D.Application.Forms;
 
 public class MainForm : Form
 {
@@ -86,8 +86,8 @@ public class MainForm : Form
         FpsControl.Width = 200;
         FpsControl.Height = 20;
 
-        var nettowidth = Width - Constants.Margin;
-        var nettoheight = Height - Constants.Margin - MenuStrip.Height;
+        var nettowidth = Width - ApplicationConstants.Margin;
+        var nettoheight = Height - ApplicationConstants.Margin - MenuStrip.Height;
 
         var linkerwidth = nettowidth - PropertiesWidth;
         var topheight = nettoheight - TimelineHeight;
@@ -110,11 +110,11 @@ public class MainForm : Form
         DisplayControl.Height = topheight;
 
         PropertiesControl.Top = MenuStrip.Bottom;
-        PropertiesControl.Left = DisplayControl.Right + Constants.Margin;
+        PropertiesControl.Left = DisplayControl.Right + ApplicationConstants.Margin;
         PropertiesControl.Width = nettowidth - linkerwidth;
         PropertiesControl.Height = topheight;
 
-        TimelineControl.Top = DisplayControl.Bottom + Constants.Margin;
+        TimelineControl.Top = DisplayControl.Bottom + ApplicationConstants.Margin;
         TimelineControl.Left = 0;
         TimelineControl.Width = Width;
         TimelineControl.Height = nettoheight - topheight;
@@ -125,14 +125,14 @@ public class MainForm : Form
         var moved = false;
         if (IsMovingY)
         {
-            TimelineHeight = Height - e.Y - Constants.Margin / 2;
+            TimelineHeight = Height - e.Y - ApplicationConstants.Margin / 2;
             OnResize();
             moved = true;
         }
 
         if (IsMovingX)
         {
-            PropertiesWidth = Width - e.X - Constants.Margin / 2;
+            PropertiesWidth = Width - e.X - ApplicationConstants.Margin / 2;
             OnResize();
             moved = true;
         }

@@ -1,6 +1,6 @@
 ﻿using System.CodeDom;
 
-namespace VideoEditorD3D.Application.TimelineUtils;
+namespace VideoEditorD3D.Application.Controls.TimelineHelpers;
 
 public readonly struct TimelinePosition
 {

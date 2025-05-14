@@ -1,44 +1,43 @@
 ﻿using SharpDX.Mathematics.Interop;
 using System.Diagnostics;
 using System.Drawing;
-using VideoEditorD3D.Direct3D.Forms;
-using VideoEditorD3D.Direct3D.Forms.Generic;
 using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Entities;
 using VideoEditorD3D.Application.Types;
 using VideoEditorD3D.Direct3D.Drawing;
 using Rectangle = SharpDX.Rectangle;
 using Point = System.Drawing.Point;
-using VideoEditorD3D.Application.TimelineUtils;
+using VideoEditorD3D.Application.Controls.TimelineHelpers;
+using VideoEditorD3D.Direct3D.Controls;
+using VideoEditorD3D.Direct3D.Controls.Generic;
 
 namespace VideoEditorD3D.Application.Controls;
 
 public class TimelineControl : BackControl
 {
-    private readonly ApplicationContext Application;
+    private readonly ApplicationContext ApplicationContext;
 
-    public GraphicsLayer BackgroundLayer { get; }
-
+    private readonly GraphicsLayer BackgroundLayer;
     private readonly GraphicsLayer TimeMarkersBackLayer;
     private readonly GraphicsLayer TimeMarkersForeLayer;
     private readonly GraphicsLayer VideoClipsLayer;
     private readonly GraphicsLayer PlayerPositionLayer;
+
     private readonly HScrollBar HScrollBarControl;
 
-    private readonly AllBrushes Brushes = new();
     private readonly DragAndDrop DragAndDrop = new();
     private readonly Dragging SelectedClipsDragging = new();
     private readonly Dragging MiddleDragging = new();
     private readonly Scrolling Scrolling = new();
     private readonly List<System.Windows.Forms.Keys> Keys = new();
 
-    private Timeline Timeline => Application.Timeline;
+    private Timeline Timeline => ApplicationContext.Timeline;
     private Rectangle TimelineRectangle => new Rectangle(0, 0, Width, Height - HScrollBarControl.Height);
     private int MiddleOffset => HScrollBarControl.Height / 2;
 
     public TimelineControl(ApplicationContext applicationContext, IApplicationForm applicationForm) : base(applicationForm)
     {
-        Application = applicationContext;
+        ApplicationContext = applicationContext;
 
         BackgroundLayer = CanvasLayers.CreateNewLayer();
         TimeMarkersBackLayer = CanvasLayers.CreateNewLayer();
@@ -115,22 +114,22 @@ public class TimelineControl : BackControl
         for (var i = 0; i < Timeline.VisibleVideoLayers; i++)
         {
             var y = TimelineRectangle.Top + middle - i * videoBlockHeight - MiddleOffset;
-            background.DrawLine(0, y, TimelineRectangle.Width, y, Brushes.HorizontalLines);
+            background.DrawLine(0, y, TimelineRectangle.Width, y, ApplicationConstants.HorizontalLines);
 
             var text = $"{i + Timeline.FirstVisibleVideoLayer}";
-            var meting = background.MeasureText(text, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, Brushes.Text);
+            var meting = background.MeasureText(text, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, ApplicationConstants.Text);
             var textY = y - videoBlockHeight / 2 - meting.Height / 2;
-            foreground.DrawText(text, 2, textY, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, Brushes.Text);
+            foreground.DrawText(text, 2, textY, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, ApplicationConstants.Text);
         }
         for (var i = 0; i < Timeline.VisibleAudioLayers; i++)
         {
             var y = TimelineRectangle.Top + middle + i * audioBlockHeight + MiddleOffset;
-            background.DrawLine(0, y, TimelineRectangle.Width, y, Brushes.HorizontalLines);
+            background.DrawLine(0, y, TimelineRectangle.Width, y, ApplicationConstants.HorizontalLines);
 
             var text = $"{i + Timeline.FirstVisibleAudioLayer}";
-            var meting = background.MeasureText(text, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, Brushes.Text);
+            var meting = background.MeasureText(text, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, ApplicationConstants.Text);
             var textY = y + audioBlockHeight / 2 - meting.Height / 2;
-            foreground.DrawText(text, 2, textY, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, Brushes.Text);
+            foreground.DrawText(text, 2, textY, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, ApplicationConstants.Text);
         }
 
         // Tijd stap bepalen
@@ -148,12 +147,12 @@ public class TimelineControl : BackControl
         {
             var x = Convert.ToInt32((sec - Timeline.VisibleStart) / Timeline.VisibleWidth * Width);
             if (x >= Width) break;
-            background!.DrawLine(x, 0, x, TimelineRectangle.Height, Brushes.VerticalLines);
+            background!.DrawLine(x, 0, x, TimelineRectangle.Height, ApplicationConstants.VerticalLines);
 
             var text = $"{sec.ToString("F" + decimals)}s";
-            var meting = background.MeasureText(text, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, Brushes.Text);
+            var meting = background.MeasureText(text, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, ApplicationConstants.Text);
             var textY = TimelineRectangle.Top + middle - meting.Height / 2;
-            foreground.DrawText(text, 2, textY, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, Brushes.Text);
+            foreground.DrawText(text, 2, textY, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, ApplicationConstants.Text);
         }
     }
     private void DrawVideoClips(GraphicsLayer RenderTarget)
@@ -170,8 +169,8 @@ public class TimelineControl : BackControl
                 if (rect.Top > TimelineRectangle.Height || rect.Bottom < 0) continue; // Clip buiten zichtbare range
 
                 var selected = Timeline.SelectedClips.Contains(clip);
-                var fillBrush = selected ? Brushes.SelectedClip : clip.IsVideoClip ? Brushes.VideoClip : Brushes.AudioClip;
-                var borderPen = Brushes.ClipBorder;
+                var fillBrush = selected ? ApplicationConstants.SelectedClip : clip.IsVideoClip ? ApplicationConstants.VideoClip : ApplicationConstants.AudioClip;
+                var borderPen = ApplicationConstants.ClipBorder;
 
                 RenderTarget.FillRectangle(
                     Convert.ToInt32(rect.Left), 
@@ -194,7 +193,7 @@ public class TimelineControl : BackControl
         // Zorg ervoor dat de lijn binnen de zichtbare regio valt
         if (x >= 0 && x <= Width)
         {
-            RenderTarget.DrawLine(x, 0, x, TimelineRectangle.Height, Brushes.PositionLine, 2);
+            RenderTarget.DrawLine(x, 0, x, TimelineRectangle.Height, ApplicationConstants.PositionLine, 2);
         }
     }
 
@@ -594,14 +593,14 @@ public class TimelineControl : BackControl
         {
             var layer = clip.Layer - Timeline.FirstVisibleVideoLayer;
             var y = middle - MiddleOffset - videoBlockHeight - layer * videoBlockHeight;
-            var rect = new RawRectangleF(x1, y + Constants.Margin / 2, x1 + width, y + Constants.Margin / 2 + videoBlockHeight - Constants.Margin);
+            var rect = new RawRectangleF(x1, y + ApplicationConstants.Margin / 2, x1 + width, y + ApplicationConstants.Margin / 2 + videoBlockHeight - ApplicationConstants.Margin);
             return rect;
         }
         else
         {
             var layer = clip.Layer - Timeline.FirstVisibleAudioLayer;
             var y = middle + MiddleOffset + (clip.Layer - Timeline.FirstVisibleAudioLayer) * audioBlockHeight;
-            var rect = new RawRectangleF(x1, y + Constants.Margin / 2, x1 + width, y + Constants.Margin / 2 + audioBlockHeight - Constants.Margin);
+            var rect = new RawRectangleF(x1, y + ApplicationConstants.Margin / 2, x1 + width, y + ApplicationConstants.Margin / 2 + audioBlockHeight - ApplicationConstants.Margin);
             return rect;
         }
     }

@@ -1,8 +1,8 @@
-﻿using VideoEditorD3D.Direct3D.Forms.Generic;
-using VideoEditorD3D.Direct3D.Interfaces;
+﻿using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Direct3D.Drawing;
+using VideoEditorD3D.Direct3D.Controls.Generic;
 
-namespace VideoEditorD3D.Direct3D.Forms;
+namespace VideoEditorD3D.Direct3D.Controls;
 
 public class Label : ForeBorderBackControl
 {

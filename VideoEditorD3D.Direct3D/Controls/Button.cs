@@ -1,7 +1,7 @@
 ﻿using SharpDX.Mathematics.Interop;
 using VideoEditorD3D.Direct3D.Interfaces;
 
-namespace VideoEditorD3D.Direct3D.Forms;
+namespace VideoEditorD3D.Direct3D.Controls;
 
 public class Button : Label
 {

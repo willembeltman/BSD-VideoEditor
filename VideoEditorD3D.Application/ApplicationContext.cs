@@ -1,8 +1,9 @@
 ﻿using VideoEditorD3D.Entities;
 using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Direct3D.Interfaces;
-using VideoEditorD3D.Application.Types;
 using Bsd.Logger;
+using VideoEditorD3D.Application.Helpers;
+using VideoEditorD3D.Application.Forms;
 
 namespace VideoEditorD3D.Application;
 
@@ -10,11 +11,11 @@ public class ApplicationContext : IApplicationContext
 {
     public ILogger? Logger { get; }
     public bool KillSwitch { get; set; }
-    public ApplicationConfig Config { get; }
+    public ApplicationSettings Config { get; }
     public ApplicationDbContext Db { get; }
 
-    public Project Project { get; private set; } = new Project(); // Initialisatie om nullability te vermijden, wordt netjes ingeladen bij de load
-    public Timeline Timeline { get; private set; } = new Timeline(); // Initialisatie om nullability te vermijden, wordt netjes ingeladen bij de load
+    public Project Project { get; private set; } = new Project(); // Initialise with empty project, not needed, but Timeline needs to be set to something, so let's be consistent.
+    public Timeline Timeline { get; private set; } = new Timeline(); // Initialise with empty timeline because the form wants to use the fps value of the project, which doesn't work when Timeline is null.
 
     public IApplicationForm? ApplicationForm { get; private set; }
     public MainForm? MainForm { get; private set; }
@@ -23,7 +24,7 @@ public class ApplicationContext : IApplicationContext
     public ApplicationContext()
     {
         Logger = new DebugLogger();
-        Config = ApplicationConfig.Load();
+        Config = ApplicationSettings.Load();
         if (Config.LastDatabaseFullName == null)
         {
             Db = new ApplicationDbContext($"NewProject_{DateTime.Now:yyyy-MM-dd HH-mm}.zip");

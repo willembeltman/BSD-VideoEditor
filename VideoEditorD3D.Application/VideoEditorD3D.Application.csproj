@@ -17,8 +17,4 @@
     <ProjectReference Include="..\VideoEditorD3D.FFMpeg\VideoEditorD3D.FFMpeg.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Loggers\" />
-  </ItemGroup>
-
 </Project>

@@ -1,6 +1,6 @@
 ﻿using VideoEditorD3D.Direct3D.Interfaces;
 
-namespace VideoEditorD3D.Direct3D;
+namespace VideoEditorD3D.Direct3D.Timers;
 
 public class Default60FpsDrawerThread : IDrawerThread
 {

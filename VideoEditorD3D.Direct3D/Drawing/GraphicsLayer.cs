@@ -3,7 +3,7 @@ using SharpDX.Direct3D11;
 using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Direct3D.Collections;
 using Buffer = SharpDX.Direct3D11.Buffer;
-using Control = VideoEditorD3D.Direct3D.Forms.Control;
+using Control = VideoEditorD3D.Direct3D.Controls.Control;
 
 namespace VideoEditorD3D.Direct3D.Drawing;
 

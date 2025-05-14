@@ -1,8 +1,8 @@
 ﻿using VideoEditorD3D.Direct3D.Collections;
-using VideoEditorD3D.Direct3D.Forms.Generic;
+using VideoEditorD3D.Direct3D.Controls.Generic;
 using VideoEditorD3D.Direct3D.Interfaces;
 
-namespace VideoEditorD3D.Direct3D.Forms;
+namespace VideoEditorD3D.Direct3D.Controls;
 
 public class MenuStrip : ForeBorderBackControl
 {

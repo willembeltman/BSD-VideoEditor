@@ -1,22 +1,22 @@
 ﻿using Newtonsoft.Json;
 
-namespace VideoEditorD3D.Application.Types;
+namespace VideoEditorD3D.Application;
 
-public class ApplicationConfig
+public class ApplicationSettings
 {
     public string? LastDatabaseFullName { get; set; } = null;
 
-    public static ApplicationConfig Load()
+    public static ApplicationSettings Load()
     {
         if (File.Exists("application.json"))
         {
             var json = File.ReadAllText("application.json");
-            var config = JsonConvert.DeserializeObject<ApplicationConfig>(json);
+            var config = JsonConvert.DeserializeObject<ApplicationSettings>(json);
             return config!;
         }
         else
         {
-            var json = JsonConvert.SerializeObject(new ApplicationConfig());
+            var json = JsonConvert.SerializeObject(new ApplicationSettings());
             File.WriteAllText("application.json", json);
             throw new Exception("made a new application config, please review it");
         }

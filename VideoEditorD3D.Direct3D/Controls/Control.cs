@@ -1,8 +1,9 @@
 ﻿using VideoEditorD3D.Direct3D.Collections;
 using VideoEditorD3D.Direct3D.Drawing;
 using VideoEditorD3D.Direct3D.Interfaces;
+using Form = VideoEditorD3D.Direct3D.Forms.Form;
 
-namespace VideoEditorD3D.Direct3D.Forms;
+namespace VideoEditorD3D.Direct3D.Controls;
 
 public class Control : IDisposable
 {
