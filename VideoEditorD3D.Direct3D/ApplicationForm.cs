@@ -62,7 +62,7 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
         Stopwatch = new Stopwatch();
         Timers = new AllTimers(Stopwatch);
         DrawerThread = applicationContext.OnCreateDrawerThread(this) ?? new Default60FpsDrawerThread(this, applicationContext);
-        ApplicationFormEvents = new ApplicationFormEvents(this, applicationContext);
+        ApplicationFormEvents = new ApplicationFormEvents(this);
 
         InitializeComponents();
     }

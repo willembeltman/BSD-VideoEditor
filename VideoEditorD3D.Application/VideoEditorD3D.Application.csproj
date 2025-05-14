@@ -7,11 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Bsd.Logger" Version="1.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Bsd.Logger\Bsd.Logger.csproj" />
     <ProjectReference Include="..\VideoEditorD3D.Entities\VideoEditorD3D.Entities.csproj" />
     <ProjectReference Include="..\VideoEditorD3D.Direct3D\VideoEditorD3D.Direct3D.csproj" />
     <ProjectReference Include="..\VideoEditorD3D.FFMpeg\VideoEditorD3D.FFMpeg.csproj" />
