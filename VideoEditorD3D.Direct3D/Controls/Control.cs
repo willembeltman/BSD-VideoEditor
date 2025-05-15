@@ -1,23 +1,54 @@
-﻿using VideoEditorD3D.Direct3D.Collections;
+﻿using System.Drawing;
+using System.Windows.Forms;
+using VideoEditorD3D.Direct3D.Collections;
 using VideoEditorD3D.Direct3D.Drawing;
 using VideoEditorD3D.Direct3D.Interfaces;
-using Form = VideoEditorD3D.Direct3D.Forms.Form;
 
 namespace VideoEditorD3D.Direct3D.Controls;
 
-public class Control : IDisposable
+public class Control : IDisposable, IComparable
 {
+    private int OldLayer;
+    private int _Layer = 0;
+    public int Layer
+    {
+        get => _Layer;
+        set
+        {
+            if (_Layer == value) return;
+            _Layer = value;
+            ParentControl!.Controls.Sort();
+        }
+    }
+    public void BringToFront()
+    {
+        OldLayer = Layer;
+        Layer = ParentControl.Controls.Max(a => Layer) + 1;
+    }
+    public void RestoreFromFront()
+    {
+        Layer = OldLayer;
+    }
+    public int CompareTo(object? obj)
+    {
+        ArgumentNullException.ThrowIfNull(obj);
+        return ((Control)obj).Layer - Layer;
+    }
+
     private int _Left = 0;
     private int _Top = 0;
     private int _Width = 480;
     private int _Height = 640;
 
     public IApplicationForm ApplicationForm { get; }
-    public Form? ParentForm { get; internal set; }
-    public Control? ParentControl { get; internal set; }
-    public ControlCollection Controls { get; internal set; }
-    public GraphicsLayerCollection CanvasLayers { get; }
+#nullable disable
+    public Forms.Form ParentForm { get; internal set; }
+    public Control ParentControl { get; internal set; }
+#nullable enable
+    public ControlCollection Controls { get; protected set; }
+    public GraphicsLayerCollection GraphicsLayers { get; }
 
+    public bool HasFocus { get; private set; }
     public bool Loaded { get; private set; } = false;
     public bool Dirty { get; private set; } = true;
     public bool MouseEntered { get; private set; } = false;
@@ -25,9 +56,9 @@ public class Control : IDisposable
 
     public Control(IApplicationForm applicationForm)
     {
-        ApplicationForm = applicationForm;
         Controls = new ControlCollection(this);
-        CanvasLayers = new GraphicsLayerCollection(this);
+        ApplicationForm = applicationForm;
+        GraphicsLayers = new GraphicsLayerCollection(this);
     }
 
     public event EventHandler<KeyPressEventArgs>? KeyPress;
@@ -39,12 +70,15 @@ public class Control : IDisposable
     public event EventHandler<MouseEventArgs>? MouseDown;
     public event EventHandler<MouseEventArgs>? MouseMove;
     public event EventHandler<MouseEventArgs>? MouseWheel;
+    public event EventHandler<MouseEventArgs>? GotFocus;
+    public event EventHandler<MouseEventArgs>? LostFocus;
     public event EventHandler<EventArgs>? MouseEnter;
     public event EventHandler<EventArgs>? MouseLeave;
     public event EventHandler<DragEventArgs>? DragEnter;
     public event EventHandler<DragEventArgs>? DragOver;
     public event EventHandler<EventArgs>? DragLeave;
     public event EventHandler<DragEventArgs>? DragDrop;
+    public event EventHandler<EventArgs>? Resize;
 
     public int Left
     {
@@ -96,7 +130,6 @@ public class Control : IDisposable
     {
         get => Width + Left;
     }
-
     public int Bottom
     {
         get => Height + Top;
@@ -111,7 +144,6 @@ public class Control : IDisposable
             return AbsoluteLeft + Width;
         }
     }
-
     public int AbsoluteBottom => AbsoluteTop + Height;
 
     public void Invalidate()
@@ -135,6 +167,7 @@ public class Control : IDisposable
     }
     public virtual void OnResize()
     {
+        Resize?.Invoke(this, new EventArgs());
         // Hoeft niet door te gaan naar beneden, want dat doet als het goed is het Form of Control al
         Invalidate();
     }
@@ -163,20 +196,49 @@ public class Control : IDisposable
         KeyDown?.Invoke(this, e);
     }
 
-    public virtual void OnMouseClick(MouseEventArgs e)
+    public virtual bool OnMouseClick(MouseEventArgs e)
+    {
+        var res = false;
+        foreach (var control in Controls)
+        {
+            var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
+            if (control.Left < e.X && e.X < control.Right &&
+                control.Top < e.Y && e.Y < control.Bottom)
+            {
+                if (control.OnMouseClick(newE)) return true;
+            }
+            else
+            {
+                control.OnLostFocus(newE);
+            }
+        }
+        OnGotFocus(e);
+        MouseClick?.Invoke(this, e);
+        return res;
+    }
+
+    public virtual void OnGotFocus(MouseEventArgs e)
+    {
+        if (HasFocus == false)
+        {
+            HasFocus = true;
+            GotFocus?.Invoke(this, e);
+        }
+    }
+    public virtual void OnLostFocus(MouseEventArgs e)
     {
         foreach (var control in Controls)
         {
-            if (control.Left < e.X && e.X < control.AbsoluteRight &&
-                control.Top < e.Y && e.Y < control.AbsoluteBottom)
-            {
-                var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
-                control.OnMouseClick(newE);
-            }
+            var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
+            control.OnLostFocus(newE);
         }
-
-        MouseClick?.Invoke(this, e);
+        if (HasFocus)
+        {
+            LostFocus?.Invoke(this, e);
+            HasFocus = false;
+        }
     }
+
     public virtual void OnMouseDoubleClick(MouseEventArgs e)
     {
         foreach (var control in Controls)
@@ -188,6 +250,7 @@ public class Control : IDisposable
                 control.OnMouseDoubleClick(newE);
             }
         }
+        HasFocus = true;
         MouseDoubleClick?.Invoke(this, e);
     }
     public virtual void OnMouseUp(MouseEventArgs e)
@@ -218,29 +281,28 @@ public class Control : IDisposable
     }
     public virtual void OnMouseMove(MouseEventArgs e)
     {
-        MouseEntered = true;
+        var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - Left, e.Y - Top, e.Delta);
+        if (!MouseEntered)
+        {
+            OnMouseEnter(newE);
+        }
+
         foreach (var control in Controls)
         {
-            var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
-
-            if (control.Left < e.X && e.X < control.AbsoluteRight &&
-                control.Top < e.Y && e.Y < control.AbsoluteBottom)
+            if (control.Left <= newE.X && newE.X <= control.Right &&
+                control.Top <= newE.Y && newE.Y <= control.Bottom)
             {
-                if (!control.MouseEntered)
-                {
-                    control.OnMouseEnter(newE);
-                }
                 control.OnMouseMove(newE);
-
             }
             else
             {
                 if (control.MouseEntered)
                 {
-                    control.OnMouseLeave(newE);
+                    control.OnMouseLeave(e);
                 }
             }
         }
+
         MouseMove?.Invoke(this, e);
     }
     public virtual void OnMouseWheel(MouseEventArgs e)
@@ -340,7 +402,7 @@ public class Control : IDisposable
             Dirty = false;
         }
 
-        foreach (var layer in CanvasLayers)
+        foreach (var layer in GraphicsLayers)
         {
             yield return layer;
         }
@@ -356,7 +418,9 @@ public class Control : IDisposable
     public void Dispose()
     {
         OnDispose();
-        CanvasLayers.Dispose();
+        GraphicsLayers.Dispose();
         Controls.Dispose();
+        GC.SuppressFinalize(this);
     }
+
 }

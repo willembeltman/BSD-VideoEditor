@@ -26,8 +26,18 @@ public class MainForm : Form
 
         BackColor = new RawColor4(0.125f, 0.25f, 0.5f, 1);
 
+        DisplayControl = new DisplayControl(applicationContext, applicationForm);
+        DisplayControl.BackColor = new RawColor4(0, 0, 0, 1);
+        Controls.Add(DisplayControl);
+
+        PropertiesControl = new PropertiesControl(applicationContext, applicationForm);
+        PropertiesControl.BackColor = new RawColor4(0, 0, 0, 1);
+        Controls.Add(PropertiesControl);
+
+        TimelineControl = new TimelineControl(applicationContext, applicationForm);
+        TimelineControl.BackColor = new RawColor4(0, 0, 0, 1);
+        Controls.Add(TimelineControl);
         MenuStrip = new MenuStrip(applicationForm);
-        MenuStrip.BackColor = new RawColor4(0.5f, 0.5f, 0.5f, 1);
         Controls.Add(MenuStrip);
 
         var fileMenu = new MenuStripItem(ApplicationForm, "File");
@@ -58,17 +68,6 @@ public class MainForm : Form
         helpMenu.Items.Add(new MenuStripItem(ApplicationForm, "About"));
         helpMenu.Items.Add(new MenuStripItem(ApplicationForm, "Documentation"));
 
-        DisplayControl = new DisplayControl(applicationContext, applicationForm);
-        DisplayControl.BackColor = new RawColor4(0, 0, 0, 1);
-        Controls.Add(DisplayControl);
-
-        PropertiesControl = new PropertiesControl(applicationContext, applicationForm);
-        PropertiesControl.BackColor = new RawColor4(0, 0, 0, 1);
-        Controls.Add(PropertiesControl);
-
-        TimelineControl = new TimelineControl(applicationContext, applicationForm);
-        TimelineControl.BackColor = new RawColor4(0, 0, 0, 1);
-        Controls.Add(TimelineControl);
 
         FpsControl = new FpsControl(applicationForm);
         Controls.Add(FpsControl);
@@ -78,12 +77,10 @@ public class MainForm : Form
     {
         MenuStrip.Left = 0;
         MenuStrip.Top = 0;
-        MenuStrip.Width = Width;
-        MenuStrip.Height = 40;
 
-        FpsControl.Left = Width - 10 - 200;
-        FpsControl.Top = 10;
-        FpsControl.Width = 200;
+        FpsControl.Left = Width - 100;
+        FpsControl.Top = (MenuStrip.Height - FpsControl.Height) / 2;
+        FpsControl.Width = 100;
         FpsControl.Height = 20;
 
         var nettowidth = Width - ApplicationConstants.Margin;
@@ -99,25 +96,27 @@ public class MainForm : Form
         {
             topheight = screenHeightBasedOnWidth;
         }
+
         if (linkerwidth > screenWidthBasedOnHeight)
         {
             linkerwidth = screenWidthBasedOnHeight;
         }
 
-        DisplayControl.Top = MenuStrip.AbsoluteBottom;
+        DisplayControl.Top = MenuStrip.Bottom;
         DisplayControl.Left = 0;
         DisplayControl.Width = linkerwidth;
         DisplayControl.Height = topheight;
 
-        PropertiesControl.Top = MenuStrip.AbsoluteBottom;
-        PropertiesControl.Left = DisplayControl.AbsoluteRight + ApplicationConstants.Margin;
+        PropertiesControl.Top = MenuStrip.Bottom;
+        PropertiesControl.Left = DisplayControl.Right + ApplicationConstants.Margin;
         PropertiesControl.Width = nettowidth - linkerwidth;
         PropertiesControl.Height = topheight;
 
-        TimelineControl.Top = DisplayControl.AbsoluteBottom + ApplicationConstants.Margin;
+        TimelineControl.Top = DisplayControl.Bottom + ApplicationConstants.Margin;
         TimelineControl.Left = 0;
         TimelineControl.Width = Width;
         TimelineControl.Height = nettoheight - topheight;
+
         base.OnResize();
     }
     public override void OnMouseMove(System.Windows.Forms.MouseEventArgs e)

@@ -10,7 +10,7 @@ public class Button : Label
         BorderSize = 2;
     }
 
-    private RawColor4 _MouseDownBackColor = new RawColor4(1, 1, 1, 1);
+    private RawColor4 _MouseDownBackColor = new(1, 1, 1, 1);
     public RawColor4 MouseDownBackColor
     {
         get => _MouseDownBackColor;
@@ -21,7 +21,7 @@ public class Button : Label
             Invalidate();
         }
     }
-    private RawColor4 _MouseDownForeColor = new RawColor4(0, 0, 0, 1);
+    private RawColor4 _MouseDownForeColor = new(0, 0, 0, 1);
     public RawColor4 MouseDownForeColor
     {
         get => _MouseDownForeColor;
@@ -36,6 +36,11 @@ public class Button : Label
     public RawColor4? OriginalBackColor { get; private set; }
     public RawColor4? OriginalForeColor { get; private set; }
 
+    public override bool OnMouseClick(MouseEventArgs e)
+    {
+        return base.OnMouseClick(e);
+    }
+
     public override void OnMouseDown(MouseEventArgs e)
     {
         if (OriginalBackColor == null && OriginalForeColor == null)
@@ -44,7 +49,6 @@ public class Button : Label
             OriginalForeColor = ForeColor;
             BackColor = MouseDownBackColor;
             ForeColor = MouseDownForeColor;
-            Invalidate();
         }
         base.OnMouseClick(e);
     }
@@ -59,9 +63,6 @@ public class Button : Label
         {
             BackColor = OriginalBackColor.Value;
             ForeColor = OriginalForeColor.Value;
-            OriginalBackColor = null;
-            OriginalForeColor = null;
-            Invalidate();
         }
         base.OnMouseLeave(e);
     }

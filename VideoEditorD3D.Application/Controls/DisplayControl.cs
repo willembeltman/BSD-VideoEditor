@@ -1,7 +1,7 @@
 ﻿using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Direct3D.Drawing;
 using VideoEditorD3D.FFMpeg.Types;
-using VideoEditorD3D.Direct3D.Controls.Generic;
+using VideoEditorD3D.Direct3D.Controls.Templates;
 
 namespace VideoEditorD3D.Application.Controls;
 
@@ -9,11 +9,9 @@ public class DisplayControl : BackControl
 {
     public DisplayControl(ApplicationContext applicationContext, IApplicationForm applicationForm) : base(applicationForm)
     {
-        Background = CanvasLayers.CreateNewLayer();
-        Foreground = CanvasLayers.CreateNewLayer();
+        Foreground = GraphicsLayers.CreateNewLayer();
     }
 
-    private readonly GraphicsLayer Background;
 
     private readonly GraphicsLayer Foreground;
 
@@ -33,9 +31,7 @@ public class DisplayControl : BackControl
 
     public override void OnDraw()
     {
-        Background.StartDrawing();
-        Background.FillRectangle(0, 0, Width, Height, BackColor);
-        Background.EndDrawing();
+
 
         Foreground.StartDrawing();
         if (_Frame != null) Foreground.DrawByteArrayImage(0, 0, Width, Height, _Frame.Buffer, _Frame.Resolution.Width, _Frame.Resolution.Height);

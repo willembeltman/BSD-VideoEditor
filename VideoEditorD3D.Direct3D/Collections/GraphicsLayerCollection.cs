@@ -1,4 +1,5 @@
-﻿using VideoEditorD3D.Direct3D.Drawing;
+﻿using VideoEditorD3D.Direct3D.Controls;
+using VideoEditorD3D.Direct3D.Drawing;
 using Control = VideoEditorD3D.Direct3D.Controls.Control;
 
 namespace VideoEditorD3D.Direct3D.Collections
@@ -31,6 +32,7 @@ namespace VideoEditorD3D.Direct3D.Collections
             {
                 layer.Dispose();
             }
+            GC.SuppressFinalize(this);
         }
     }
 }

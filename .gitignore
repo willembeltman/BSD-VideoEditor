@@ -88,9 +88,6 @@ BenchmarkDotNet.Artifacts/
 # Build directory used by the dotnet CLI
 /bin/
 /obj/
-MyVideoEditor/Executebles/ffmpeg.exe
-MyVideoEditor/Executebles/ffplay.exe
-MyVideoEditor/Executebles/ffprobe.exe
-VideoEditorOLD/Executebles/ffmpeg.exe
-VideoEditorOLD/Executebles/ffplay.exe
-VideoEditorOLD/Executebles/ffprobe.exe
+ffmpeg.exe
+ffplay.exe
+ffprobe.exe

@@ -9,6 +9,7 @@ using VideoEditorD3D.Direct3D.Collections;
 using VideoEditorD3D.Direct3D.Timers;
 using Device = SharpDX.Direct3D11.Device;
 using VideoEditorD3D.Direct3D.Drawing;
+using VideoEditorD3D.Direct3D.Forms;
 
 namespace VideoEditorD3D.Direct3D;
 
@@ -17,6 +18,7 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
     #region Initilized at Constructor
     private readonly IApplicationContext ApplicationContext;
     private readonly ApplicationFormEvents ApplicationFormEvents;
+    private readonly PopupCollection Popups;
     private readonly Lock UILock;
     private readonly Stopwatch Stopwatch;
     private readonly AllTimers Timers;
@@ -53,11 +55,13 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
     Forms.Form IApplicationForm.CurrentForm { get => _CurrentForm!; set => _CurrentForm = value; }
     Stopwatch IApplicationForm.Stopwatch => Stopwatch;
     AllTimers IApplicationForm.Timers => Timers;
+    PopupCollection IApplicationForm.Popups => Popups;
     #endregion
 
     public ApplicationForm(IApplicationContext applicationContext)
     {
         ApplicationContext = applicationContext;
+        Popups = new PopupCollection(this);
         UILock = new Lock();
         Stopwatch = new Stopwatch();
         Timers = new AllTimers(Stopwatch);
@@ -84,6 +88,7 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
         }
     }
     private bool IsNotReadyToDraw => !Initialized || IsClosed || ApplicationContext.KillSwitch || Width == 0 || Height == 0;
+
 
     protected override void OnHandleCreated(EventArgs e)
     {
@@ -171,7 +176,7 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
                 _Device?.Dispose();
                 _SamplerState?.Dispose();
                 _Characters?.Dispose();
-                _AlphaBlendState?.Dispose(); 
+                _AlphaBlendState?.Dispose();
 
                 // Get the width and height
                 int realWidth = ClientRectangle.Width;
@@ -428,13 +433,13 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
 
     public void TryDraw()
     {
-        if (IsNotReadyToDraw) 
+        if (IsNotReadyToDraw)
             return;
 
         try
         {
             var currentForm = _CurrentForm;
-            if (currentForm == null) 
+            if (currentForm == null)
                 return;
 
             Draw(currentForm);
@@ -490,7 +495,7 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
 
         _DeviceContext.ClearRenderTargetView(_RenderTargetView, currentForm.BackColor);
 
-        foreach (var layer in currentForm.GetAllCanvasLayers())
+        foreach (GraphicsLayer layer in GetAllLayers())
         {
             if (layer.TriangleVerticesBuffer != null)
             {
@@ -510,6 +515,25 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
 
         _SwapChain.Present(0, PresentFlags.None);
     }
+
+    private IEnumerable<GraphicsLayer> GetAllLayers()
+    {
+        if (_CurrentForm != null)
+        {
+            foreach (var layer in _CurrentForm.GetAllCanvasLayers())
+            {
+                yield return layer;
+            }
+        }
+        foreach (var popup in Popups)
+        {
+            foreach (var layer in popup.GetAllCanvasLayers())
+            {
+                yield return layer;
+            }
+        }
+    }
+
     private void DrawImage(DeviceContext deviceContext, ITextureImage image)
     {
         deviceContext.InputAssembler.InputLayout = _BitmapInputLayout;

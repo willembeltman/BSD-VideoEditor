@@ -1,124 +1,148 @@
 ﻿using VideoEditorD3D.Direct3D.Collections;
 using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Direct3D.Drawing;
-using VideoEditorD3D.Direct3D.Controls.Generic;
+using VideoEditorD3D.Direct3D.Controls.Templates;
+using VideoEditorD3D.Direct3D.Forms;
 
 namespace VideoEditorD3D.Direct3D.Controls;
 
 public class MenuStripItem : ForeBorderBackControl
 {
-    private bool _Visible;
-    private bool _IsOpen;
-    GraphicsLayer Background;
-    GraphicsLayer Foreground;
 
-    public string Text { get; }
+    public event EventHandler<MouseEventArgs>? Clicked;
+
 
     public ObservableArrayCollection<MenuStripItem> Items { get; }
+    Popup Popup { get; }
+    public string Text { get; }
+    protected GraphicsLayer Foreground { get; }
+#nullable disable
+    public MenuStrip MenuStrip { get; internal set; }
+#nullable enable
 
     public MenuStripItem(IApplicationForm applicationForm, string text) : base(applicationForm)
     {
         Text = text;
 
-        Background = CanvasLayers.CreateNewLayer();
-        Foreground = CanvasLayers.CreateNewLayer();
+        Foreground = GraphicsLayers.CreateNewLayer();
 
-        var size = Foreground.MeasureText(text);
+        BackColor = new SharpDX.Mathematics.Interop.RawColor4(0.5f, 0.5f, 0.5f, 1);
+        ForeColor = new SharpDX.Mathematics.Interop.RawColor4(1f, 1f, 1f, 1f);
+        MeasureSize();
 
+        FontSizeChanged += MenuStripItem_FontSizeChanged;
+        FontChanged += MenuStripItem_FontChanged;
+        FontLetterSpacingChanged += MenuStripItem_FontLetterSpacingChanged;
+        FontStyleChanged += MenuStripItem_FontStyleChanged;
+        GotFocus += MenuStripItem_GotFocus;
+        LostFocus += MenuStripItem_LostFocus;
+
+        Popup = new Popup(ApplicationForm);
 
         Items = new ObservableArrayCollection<MenuStripItem>();
-        Items.Added += (sender, item) => {
-            item.Visible = false;
-            Controls.Add(item);
+        Items.Added += (sender, item) =>
+        {
+            item.MenuStrip = MenuStrip;
+            Popup.Controls.Add(item);
+            PerformLayout();
         };
-        Items.Removed += (sender, item) => {
-            Controls.Remove(item);
+        Items.Removed += (sender, item) =>
+        {
+            Popup.Controls.Remove(item);
+            PerformLayout();
         };
+    }
+
+    private void PerformLayout()
+    {
+        Popup.Width = Items.Max(a => a.Width);
+        Popup.Height = Items.Sum(a => a.Height);
+        Popup.Left = AbsoluteLeft;
+        Popup.Top = AbsoluteBottom;
+        var top = 0;
+        foreach (var item in Items)
+        {
+            item.Top = top;
+            item.Width = Popup.Width;
+            top += item.Height;
+        }
 
     }
 
-    public override bool Visible { get => _Visible; set => _Visible = value; }
+    private void MenuStripItem_FontStyleChanged(object? sender, FontStyle e) => MeasureSize();
+    private void MenuStripItem_FontLetterSpacingChanged(object? sender, int e) => MeasureSize();
+    private void MenuStripItem_FontChanged(object? sender, string e) => MeasureSize();
+    private void MenuStripItem_FontSizeChanged(object? sender, float e) => MeasureSize();
 
-    public override void OnMouseEnter(EventArgs e)
+    private void MenuStripItem_GotFocus(object? sender, MouseEventArgs e)
     {
-        base.OnMouseEnter(e);
+    }
+    private void MenuStripItem_LostFocus(object? sender, MouseEventArgs e)
+    {
+        MenuStrip.CloseAll();
+    }
+
+
+    private void MeasureSize()
+    {
+        var meting = Foreground.MeasureText(Text, -1, -1, Font, FontSize, FontStyle, FontLetterSpacing, ForeColor);
+        Width = meting.Width + TextPaddingLeft + TextPaddingRight;
+        Height = meting.Height + TextPaddingTop + TextPaddingBottom;
+    }
+
+    public override bool OnMouseClick(MouseEventArgs e)
+    {
         if (ParentControl is MenuStrip)
         {
+            (ParentControl as MenuStrip)!.CloseAll();
+        }
+
+        if (Items.Count > 0)
+        {
             Open();
         }
-    }
+        else
+        {
+            Clicked?.Invoke(this, e);
+        }
 
+        return base.OnMouseClick(e);
+    }
+    public override void OnMouseEnter(EventArgs e)
+    {
+        var temp = ForeColor;
+        ForeColor = BackColor;
+        BackColor = temp;
+        base.OnMouseEnter(e);
+    }
     public override void OnMouseLeave(EventArgs e)
     {
+        var temp = ForeColor;
+        ForeColor = BackColor;
+        BackColor = temp;
         base.OnMouseLeave(e);
-        // Je zou hier een timer kunnen gebruiken om het menu niet meteen te sluiten
     }
 
-    public override void OnMouseClick(MouseEventArgs e)
+    public void Open()
     {
-        if (_IsOpen)
-            Close();
-        else
-            Open();
-
-        base.OnMouseClick(e);
+        ApplicationForm.Popups.Add(Popup);
     }
-
-    private void Open()
+    public void Close()
     {
-        _IsOpen = true;
-        LayoutDropdownItems();
-        foreach (var item in Items)
-            item.Visible = true;
-        Invalidate();
+        ApplicationForm.Popups.Remove(Popup);
     }
 
-    private void Close()
-    {
-        _IsOpen = false;
-        foreach (var item in Items)
-        {
-            item.Visible = false;
-            item.Close(); // recursive close
-        }
-        Invalidate();
-    }
 
-    private void LayoutDropdownItems()
-    {
-        int y = Height;
-        foreach (var item in Items)
-        {
-            item.Left = 0;
-            item.Top = y;
-            item.Width = 100; //Math.Max(100, TextRenderer.MeasureText(item.Text, item.Font).Width + 20);
-            item.Height = 24;
-            y += item.Height;
-        }
-    }
     public override void OnDraw()
     {
         base.OnDraw();
 
-        // Tekstmeting
-        var meting = Foreground.MeasureText(Text, -1, -1, "Ebrima", 12, FontStyle.Regular, -2, ForeColor);
+        int textX = TextPaddingLeft; // Padding links
+        int textY = TextPaddingTop;
 
-        // Horizontale centrering (optioneel: aanpassen afhankelijk van je layout engine)
-        int textX = Left + 5; // Padding links
-        int textY = Top + (Height - meting.Height) / 2;
-
-        Foreground.DrawText(
-            Text,
-            textX,
-            textY,
-            -1,
-            -1,
-            "Ebrima",
-            12,
-            FontStyle.Regular,
-            -2,
-            ForeColor
-        );
+        Foreground.StartDrawing();
+        Foreground.DrawText(Text, textX, textY, -1, -1, Font, FontSize, FontStyle, FontLetterSpacing, ForeColor);
+        Foreground.EndDrawing();
     }
 
 }

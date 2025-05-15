@@ -13,6 +13,7 @@ public interface IApplicationForm
 
     CharacterCollection Characters { get; }
     Forms.Form CurrentForm { get; set; }
+    PopupCollection Popups { get; }
     Stopwatch Stopwatch { get; }
     AllTimers Timers { get; }
     Cursor Cursor { get; set; }

@@ -1,6 +1,6 @@
 ﻿using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Direct3D.Drawing;
-using VideoEditorD3D.Direct3D.Controls.Generic;
+using VideoEditorD3D.Direct3D.Controls.Templates;
 
 namespace VideoEditorD3D.Direct3D.Controls;
 
@@ -8,14 +8,10 @@ public class Label : ForeBorderBackControl
 {
     public Label(IApplicationForm application) : base(application)
     {
-        Background = CanvasLayers.CreateNewLayer();
-        Foreground = CanvasLayers.CreateNewLayer();
-        Border = CanvasLayers.CreateNewLayer();
+        Foreground = GraphicsLayers.CreateNewLayer();
     }
 
-    private readonly GraphicsLayer Background;
-    private readonly GraphicsLayer Foreground;
-    private readonly GraphicsLayer Border;
+    protected readonly GraphicsLayer Foreground;
 
     private string _Text = string.Empty;
     public string Text
@@ -31,17 +27,9 @@ public class Label : ForeBorderBackControl
 
     public override void OnDraw()
     {
-        Background.StartDrawing();
-        Background.FillRectangle(0, 0, Width, Height, BackColor);
-        Background.EndDrawing();
-
         Foreground.StartDrawing();
-        Foreground.DrawText(Text, 0, 0, Width, Height, Font, FontSize, FontStyle, FontLetterSpacing, ForeColor);
+        Foreground.DrawText(Text, TextPaddingLeft, TextPaddingTop, TextPaddingLeft + Width + TextPaddingRight, TextPaddingTop + Height + TextPaddingBottom, Font, FontSize, FontStyle, FontLetterSpacing, ForeColor);
         Foreground.EndDrawing();
-
-        Border.StartDrawing();
-        Border.DrawRectangle(0, 0, Width, Height, BorderColor, BorderSize);
-        Border.EndDrawing();
 
         base.OnDraw();
     }

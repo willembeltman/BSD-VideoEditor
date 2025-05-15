@@ -1,7 +1,7 @@
 ﻿using SharpDX.Mathematics.Interop;
 using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Direct3D.Drawing;
-using VideoEditorD3D.Direct3D.Controls.Generic;
+using VideoEditorD3D.Direct3D.Controls.Templates;
 
 namespace VideoEditorD3D.Direct3D.Controls;
 
@@ -10,9 +10,9 @@ public class HScrollBar : ForeBorderBackControl
     public HScrollBar(IApplicationForm application)
         : base(application)
     {
-        Background = CanvasLayers.CreateNewLayer();
-        Thumb = CanvasLayers.CreateNewLayer();
-        Border = CanvasLayers.CreateNewLayer();
+        Background = GraphicsLayers.CreateNewLayer();
+        Thumb = GraphicsLayers.CreateNewLayer();
+        Border = GraphicsLayers.CreateNewLayer();
 
         BackColor = new RawColor4(0.2f, 0.2f, 0.2f, 1);
         ForeColor = new RawColor4(0.6f, 0.6f, 0.6f, 1);
