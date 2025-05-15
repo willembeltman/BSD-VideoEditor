@@ -73,7 +73,7 @@ public class MainForm : Form
         FpsControl = new FpsControl(applicationForm);
         Controls.Add(FpsControl);
     }
-     
+
     public override void OnResize()
     {
         MenuStrip.Left = 0;
@@ -81,8 +81,8 @@ public class MainForm : Form
         MenuStrip.Width = Width;
         MenuStrip.Height = 40;
 
-        FpsControl.Left = 3;
-        FpsControl.Top = 3;
+        FpsControl.Left = Width - 10 - 200;
+        FpsControl.Top = 10;
         FpsControl.Width = 200;
         FpsControl.Height = 20;
 
@@ -104,17 +104,17 @@ public class MainForm : Form
             linkerwidth = screenWidthBasedOnHeight;
         }
 
-        DisplayControl.Top = MenuStrip.Bottom;
+        DisplayControl.Top = MenuStrip.AbsoluteBottom;
         DisplayControl.Left = 0;
         DisplayControl.Width = linkerwidth;
         DisplayControl.Height = topheight;
 
-        PropertiesControl.Top = MenuStrip.Bottom;
-        PropertiesControl.Left = DisplayControl.Right + ApplicationConstants.Margin;
+        PropertiesControl.Top = MenuStrip.AbsoluteBottom;
+        PropertiesControl.Left = DisplayControl.AbsoluteRight + ApplicationConstants.Margin;
         PropertiesControl.Width = nettowidth - linkerwidth;
         PropertiesControl.Height = topheight;
 
-        TimelineControl.Top = DisplayControl.Bottom + ApplicationConstants.Margin;
+        TimelineControl.Top = DisplayControl.AbsoluteBottom + ApplicationConstants.Margin;
         TimelineControl.Left = 0;
         TimelineControl.Width = Width;
         TimelineControl.Height = nettoheight - topheight;
@@ -180,10 +180,10 @@ public class MainForm : Form
 
     private bool MouseIsOverXResizer(System.Windows.Forms.MouseEventArgs e)
     {
-        return e.X > DisplayControl.Right && e.X < PropertiesControl.Left;
+        return e.X > DisplayControl.AbsoluteRight && e.X < PropertiesControl.Left;
     }
     private bool MouseIsOverYResizer(System.Windows.Forms.MouseEventArgs e)
     {
-        return e.Y > DisplayControl.Bottom && e.Y < TimelineControl.Top;
+        return e.Y > DisplayControl.AbsoluteBottom && e.Y < TimelineControl.Top;
     }
 }

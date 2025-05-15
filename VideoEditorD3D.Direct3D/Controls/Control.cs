@@ -92,12 +92,26 @@ public class Control : IDisposable
             }
         }
     }
-    public int Right => Left + Width;
-    public int Bottom => Top + Height;
+    public int Right
+    {
+        get => Width + Left;
+    }
+
+    public int Bottom
+    {
+        get => Height + Top;
+    }
 
     public int AbsoluteLeft => (ParentControl?.AbsoluteLeft ?? 0) + Left;
     public int AbsoluteTop => (ParentControl?.AbsoluteTop ?? 0) + Top;
-    public int AbsoluteRight => AbsoluteLeft + Width;
+    public int AbsoluteRight
+    {
+        get
+        {
+            return AbsoluteLeft + Width;
+        }
+    }
+
     public int AbsoluteBottom => AbsoluteTop + Height;
 
     public void Invalidate()
@@ -153,8 +167,8 @@ public class Control : IDisposable
     {
         foreach (var control in Controls)
         {
-            if (control.Left < e.X && e.X < control.Right &&
-                control.Top < e.Y && e.Y < control.Bottom)
+            if (control.Left < e.X && e.X < control.AbsoluteRight &&
+                control.Top < e.Y && e.Y < control.AbsoluteBottom)
             {
                 var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
                 control.OnMouseClick(newE);
@@ -167,8 +181,8 @@ public class Control : IDisposable
     {
         foreach (var control in Controls)
         {
-            if (control.Left < e.X && e.X < control.Right &&
-                control.Top < e.Y && e.Y < control.Bottom)
+            if (control.Left < e.X && e.X < control.AbsoluteRight &&
+                control.Top < e.Y && e.Y < control.AbsoluteBottom)
             {
                 var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
                 control.OnMouseDoubleClick(newE);
@@ -180,8 +194,8 @@ public class Control : IDisposable
     {
         foreach (var control in Controls)
         {
-            if (control.Left < e.X && e.X < control.Right &&
-                control.Top < e.Y && e.Y < control.Bottom)
+            if (control.Left < e.X && e.X < control.AbsoluteRight &&
+                control.Top < e.Y && e.Y < control.AbsoluteBottom)
             {
                 var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
                 control.OnMouseUp(newE);
@@ -193,8 +207,8 @@ public class Control : IDisposable
     {
         foreach (var control in Controls)
         {
-            if (control.Left < e.X && e.X < control.Right &&
-                control.Top < e.Y && e.Y < control.Bottom)
+            if (control.Left < e.X && e.X < control.AbsoluteRight &&
+                control.Top < e.Y && e.Y < control.AbsoluteBottom)
             {
                 var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
                 control.OnMouseDown(newE);
@@ -209,8 +223,8 @@ public class Control : IDisposable
         {
             var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
 
-            if (control.Left < e.X && e.X < control.Right &&
-                control.Top < e.Y && e.Y < control.Bottom)
+            if (control.Left < e.X && e.X < control.AbsoluteRight &&
+                control.Top < e.Y && e.Y < control.AbsoluteBottom)
             {
                 if (!control.MouseEntered)
                 {
@@ -233,8 +247,8 @@ public class Control : IDisposable
     {
         foreach (var control in Controls)
         {
-            if (control.Left < e.X && e.X < control.Right &&
-                control.Top < e.Y && e.Y < control.Bottom)
+            if (control.Left < e.X && e.X < control.AbsoluteRight &&
+                control.Top < e.Y && e.Y < control.AbsoluteBottom)
             {
                 var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
                 control.OnMouseWheel(newE);
@@ -264,8 +278,8 @@ public class Control : IDisposable
     {
         foreach (var control in Controls)
         {
-            if (control.Left < e.X && e.X < control.Right &&
-                control.Top < e.Y && e.Y < control.Bottom)
+            if (control.Left < e.X && e.X < control.AbsoluteRight &&
+                control.Top < e.Y && e.Y < control.AbsoluteBottom)
             {
                 control.OnDragEnter(e);
             }
@@ -276,8 +290,8 @@ public class Control : IDisposable
     {
         foreach (var control in Controls)
         {
-            if (control.Left < e.X && e.X < control.Right &&
-                control.Top < e.Y && e.Y < control.Bottom)
+            if (control.Left < e.X && e.X < control.AbsoluteRight &&
+                control.Top < e.Y && e.Y < control.AbsoluteBottom)
             {
                 control.OnDragOver(e);
             }
@@ -296,8 +310,8 @@ public class Control : IDisposable
     {
         foreach (var control in Controls)
         {
-            if (control.Left < e.X && e.X < control.Right &&
-                control.Top < e.Y && e.Y < control.Bottom)
+            if (control.Left < e.X && e.X < control.AbsoluteRight &&
+                control.Top < e.Y && e.Y < control.AbsoluteBottom)
             {
                 control.OnDragDrop(e);
             }

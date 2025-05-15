@@ -31,9 +31,73 @@ public class TimelineControl : BackControl
     private readonly Scrolling Scrolling = new();
     private readonly List<System.Windows.Forms.Keys> Keys = new();
 
-    private Timeline Timeline => ApplicationContext.Timeline;
+    private Timeline Timeline2 => ApplicationContext.Timeline;
     private Rectangle TimelineRectangle => new Rectangle(0, 0, Width, Height - HScrollBarControl.Height);
     private int MiddleOffset => HScrollBarControl.Height / 2;
+
+    public double CurrentTime
+    {
+        get { return Timeline2.CurrentTime; }
+        set
+        {
+            Timeline2.CurrentTime = value;
+            Invalidate();
+        }
+    }
+    public int VisibleAudioLayers
+    {
+        get { return Timeline2.VisibleAudioLayers; }
+        set
+        {
+            Timeline2.VisibleAudioLayers = value;
+            Invalidate();
+        }
+    }
+    public int VisibleVideoLayers
+    {
+        get { return Timeline2.VisibleVideoLayers; }
+        set
+        {
+            Timeline2.VisibleVideoLayers = value;
+            Invalidate();
+        }
+    }
+    public int FirstVisibleVideoLayer
+    {
+        get { return Timeline2.FirstVisibleVideoLayer; }
+        set
+        {
+            Timeline2.FirstVisibleVideoLayer = value;
+            Invalidate();
+        }
+    }
+    public int FirstVisibleAudioLayer
+    {
+        get { return Timeline2.FirstVisibleAudioLayer; }
+        set
+        {
+            Timeline2.FirstVisibleAudioLayer = value;
+            Invalidate();
+        }
+    }
+    public double VisibleWidth
+    {
+        get { return Timeline2.VisibleWidth; }
+        set
+        {
+            Timeline2.VisibleWidth = value;
+            Invalidate();
+        }
+    }
+    public double VisibleStart
+    {
+        get { return Timeline2.VisibleStart; }
+        set
+        {
+            Timeline2.VisibleStart = value;
+            Invalidate();
+        }
+    }
 
     public TimelineControl(ApplicationContext applicationContext, IApplicationForm applicationForm) : base(applicationForm)
     {
@@ -107,26 +171,26 @@ public class TimelineControl : BackControl
     private void DrawTimeMarkers(GraphicsLayer background, GraphicsLayer foreground)
     {
         int middle = TimelineRectangle.Height / 2;
-        int videoBlockHeight = (middle - MiddleOffset) / Timeline.VisibleVideoLayers;
-        int audioBlockHeight = (middle - MiddleOffset) / Timeline.VisibleAudioLayers;
+        int videoBlockHeight = (middle - MiddleOffset) / VisibleVideoLayers;
+        int audioBlockHeight = (middle - MiddleOffset) / VisibleAudioLayers;
 
         // Vertical lines + layer numbers
-        for (var i = 0; i < Timeline.VisibleVideoLayers; i++)
+        for (var i = 0; i < VisibleVideoLayers; i++)
         {
             var y = TimelineRectangle.Top + middle - i * videoBlockHeight - MiddleOffset;
             background.DrawLine(0, y, TimelineRectangle.Width, y, ApplicationConstants.HorizontalLines);
 
-            var text = $"{i + Timeline.FirstVisibleVideoLayer}";
+            var text = $"{i + FirstVisibleVideoLayer}";
             var meting = background.MeasureText(text, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, ApplicationConstants.Text);
             var textY = y - videoBlockHeight / 2 - meting.Height / 2;
             foreground.DrawText(text, 2, textY, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, ApplicationConstants.Text);
         }
-        for (var i = 0; i < Timeline.VisibleAudioLayers; i++)
+        for (var i = 0; i < VisibleAudioLayers; i++)
         {
             var y = TimelineRectangle.Top + middle + i * audioBlockHeight + MiddleOffset;
             background.DrawLine(0, y, TimelineRectangle.Width, y, ApplicationConstants.HorizontalLines);
 
-            var text = $"{i + Timeline.FirstVisibleAudioLayer}";
+            var text = $"{i + FirstVisibleAudioLayer}";
             var meting = background.MeasureText(text, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, ApplicationConstants.Text);
             var textY = y + audioBlockHeight / 2 - meting.Height / 2;
             foreground.DrawText(text, 2, textY, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, ApplicationConstants.Text);
@@ -135,7 +199,7 @@ public class TimelineControl : BackControl
         // Tijd stap bepalen
         var timeIncrease = 0.00001D;
         var decimals = 5;
-        while (Width / Timeline.VisibleWidth * timeIncrease < 50)
+        while (Width / VisibleWidth * timeIncrease < 50)
         {
             timeIncrease *= 10;
             decimals--;
@@ -145,37 +209,37 @@ public class TimelineControl : BackControl
         // Horizontal lines + time 
         for (var sec = 0D; sec < double.MaxValue; sec += timeIncrease)
         {
-            var x = Convert.ToInt32((sec - Timeline.VisibleStart) / Timeline.VisibleWidth * Width);
+            var x = Convert.ToInt32((sec - VisibleStart) / VisibleWidth * Width);
             if (x >= Width) break;
             background!.DrawLine(x, 0, x, TimelineRectangle.Height, ApplicationConstants.VerticalLines);
 
             var text = $"{sec.ToString("F" + decimals)}s";
             var meting = background.MeasureText(text, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, ApplicationConstants.Text);
             var textY = TimelineRectangle.Top + middle - meting.Height / 2;
-            foreground.DrawText(text, 2, textY, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, ApplicationConstants.Text);
+            foreground.DrawText(text, x, textY, -1, -1, "Ebrima", 8, FontStyle.Regular, -2, ApplicationConstants.Text);
         }
     }
     private void DrawVideoClips(GraphicsLayer RenderTarget)
     {
-        var clips = Timeline.AllClips.Concat(DragAndDrop.AllClips);
+        var clips = Timeline2.AllClips.Concat(DragAndDrop.AllClips);
         foreach (var clip in clips)
         {
-            if (clip.IsVideoClip && Timeline.FirstVisibleVideoLayer <= clip.Layer ||
-                clip.IsAudioClip && Timeline.FirstVisibleAudioLayer <= clip.Layer)
+            if (clip.IsVideoClip && FirstVisibleVideoLayer <= clip.Layer ||
+                clip.IsAudioClip && FirstVisibleAudioLayer <= clip.Layer)
             {
                 var rect = CalculateRectangle(clip);
 
                 if (rect.Left > TimelineRectangle.Width || rect.Right < 0) continue; // Clip buiten zichtbare range
                 if (rect.Top > TimelineRectangle.Height || rect.Bottom < 0) continue; // Clip buiten zichtbare range
 
-                var selected = Timeline.SelectedClips.Contains(clip);
+                var selected = Timeline2.SelectedClips.Contains(clip);
                 var fillBrush = selected ? ApplicationConstants.SelectedClip : clip.IsVideoClip ? ApplicationConstants.VideoClip : ApplicationConstants.AudioClip;
                 var borderPen = ApplicationConstants.ClipBorder;
 
                 RenderTarget.FillRectangle(
-                    Convert.ToInt32(rect.Left), 
-                    Convert.ToInt32(rect.Top), 
-                    Convert.ToInt32(rect.Right - rect.Left), 
+                    Convert.ToInt32(rect.Left),
+                    Convert.ToInt32(rect.Top),
+                    Convert.ToInt32(rect.Right - rect.Left),
                     Convert.ToInt32(rect.Bottom - rect.Top), fillBrush);
                 RenderTarget.DrawRectangle(
                     Convert.ToInt32(rect.Left),
@@ -188,7 +252,7 @@ public class TimelineControl : BackControl
     private void DrawPlayerPosition(GraphicsLayer RenderTarget)
     {
         // Bereken de x-positie van de player marker
-        int x = Convert.ToInt32((Timeline.CurrentTime - Timeline.VisibleStart) / Timeline.VisibleWidth * Width);
+        int x = Convert.ToInt32((CurrentTime - VisibleStart) / VisibleWidth * Width);
 
         // Zorg ervoor dat de lijn binnen de zichtbare regio valt
         if (x >= 0 && x <= Width)
@@ -239,14 +303,14 @@ public class TimelineControl : BackControl
         if (timelinePosition.TimelinePart == TimelinePart.Video)
         {
             // Video
-            Timeline.FirstVisibleVideoLayer += delta;
-            if (Timeline.FirstVisibleVideoLayer < 0) Timeline.FirstVisibleVideoLayer = 0;
+            FirstVisibleVideoLayer += delta;
+            if (FirstVisibleVideoLayer < 0) FirstVisibleVideoLayer = 0;
         }
         if (timelinePosition.TimelinePart == TimelinePart.Video)
         {
             // Audio
-            Timeline.FirstVisibleAudioLayer += delta;
-            if (Timeline.FirstVisibleAudioLayer < 0) Timeline.FirstVisibleAudioLayer = 0;
+            FirstVisibleAudioLayer += delta;
+            if (FirstVisibleAudioLayer < 0) FirstVisibleAudioLayer = 0;
         }
     }
     private void ZoomY(int delta, TimelinePosition timelinePosition)
@@ -254,14 +318,14 @@ public class TimelineControl : BackControl
         if (timelinePosition.TimelinePart == TimelinePart.Video)
         {
             // Video
-            Timeline.VisibleVideoLayers -= delta;
-            if (Timeline.VisibleVideoLayers < 1) Timeline.VisibleVideoLayers = 1;
+            VisibleVideoLayers -= delta;
+            if (VisibleVideoLayers < 1) VisibleVideoLayers = 1;
         }
         if (timelinePosition.TimelinePart == TimelinePart.Audio)
         {
             // Audio
-            Timeline.VisibleAudioLayers -= delta;
-            if (Timeline.VisibleAudioLayers < 1) Timeline.VisibleAudioLayers = 1;
+            VisibleAudioLayers -= delta;
+            if (VisibleAudioLayers < 1) VisibleAudioLayers = 1;
         }
     }
     private void ZoomX(int delta, TimelinePosition timelinePosition)
@@ -270,29 +334,29 @@ public class TimelineControl : BackControl
         {
             for (int i = 0; i < delta; i++)
             {
-                Timeline.VisibleWidth -= Timeline.VisibleWidth / 10;
+                VisibleWidth -= VisibleWidth / 10;
             }
         }
         if (delta < 0)
         {
             for (int i = 0; i < delta * -1; i++)
             {
-                Timeline.VisibleWidth += Timeline.VisibleWidth / 10;
+                VisibleWidth += VisibleWidth / 10;
             }
         }
     }
     private void SetupScrollbar()
     {
-        var max = Timeline.AudioClips.Any() ? Timeline.AudioClips.Max(a => a.EndTime) : Timeline.VisibleStart + Timeline.VisibleWidth;
-        max = Math.Max(max, Timeline.VisibleStart + Timeline.VisibleWidth);
+        var max = Timeline2.AudioClips.Any() ? Timeline2.AudioClips.Max(a => a.EndTime) : Timeline2.VisibleStart + VisibleWidth;
+        max = Math.Max(max, Timeline2.VisibleStart + VisibleWidth);
         HScrollBarControl.Minimum = 0;
         HScrollBarControl.Maximum = Convert.ToInt32(Math.Ceiling(max));
-        HScrollBarControl.LargeChange = Convert.ToInt32(Math.Floor(Timeline.VisibleWidth));
+        HScrollBarControl.LargeChange = Convert.ToInt32(Math.Floor(VisibleWidth));
     }
 
     private void ScrollBarControl_Scroll(object? sender, System.Windows.Forms.ScrollEventArgs e)
     {
-        Timeline.VisibleStart = e.NewValue;
+        VisibleStart = e.NewValue;
     }
 
     private void TimelineControl_DragEnter(object? sender, System.Windows.Forms.DragEventArgs e)
@@ -330,7 +394,7 @@ public class TimelineControl : BackControl
             {
                 var clip = new TimelineClipVideo()
                 {
-                    TimelineId = Timeline.Id,
+                    TimelineId = Timeline2.Id,
                     TimelineClipGroupId = group.Id,
                     StreamInfo = videoStream,
                     Layer = layer,
@@ -348,7 +412,7 @@ public class TimelineControl : BackControl
             {
                 var clip = new TimelineClipAudio()
                 {
-                    TimelineId = Timeline.Id,
+                    TimelineId = Timeline2.Id,
                     TimelineClipGroupId = group.Id,
                     StreamInfo = audioStream,
                     Layer = layer,
@@ -430,9 +494,9 @@ public class TimelineControl : BackControl
         if (fullNames.Length == 0) return;
 
         foreach (var item in DragAndDrop.VideoClips)
-            Timeline.VideoClips.Add(item);
+            Timeline2.VideoClips.Add(item);
         foreach (var item in DragAndDrop.AudioClips)
-            Timeline.AudioClips.Add(item);
+            Timeline2.AudioClips.Add(item);
 
         TimelineControl_DragLeave(sender, e);
     }
@@ -471,12 +535,12 @@ public class TimelineControl : BackControl
         if (startposition.Value.TimelinePart == TimelinePart.Middle)
         {
             MiddleDragging.Set(startpoint, startposition);
-            Timeline.CurrentTime = startposition.Value.CurrentTime;
+            CurrentTime = startposition.Value.CurrentTime;
             return;
         }
 
         var selectedClips = GetSelectedClips(e);
-        if (Enumerable.Any<TimelineClip>(selectedClips, a => Timeline.SelectedClips.Any((object b) => b.Equals(a))))
+        if (Enumerable.Any<TimelineClip>(selectedClips, a => Timeline2.SelectedClips.Any((object b) => b.Equals(a))))
         {
             SelectedClipsDragging.Set(startpoint, startposition);
             foreach (var clip in selectedClips)
@@ -487,8 +551,8 @@ public class TimelineControl : BackControl
             return;
         }
 
-        Timeline.SelectedClips.Clear();
-        Timeline.SelectedClips.AddRange(selectedClips);
+        Timeline2.SelectedClips.Clear();
+        Timeline2.SelectedClips.AddRange(selectedClips);
     }
     private void TimelineControl_MouseMove(object? sender, System.Windows.Forms.MouseEventArgs e)
     {
@@ -502,14 +566,14 @@ public class TimelineControl : BackControl
 
         if (MiddleDragging.IsDragging && endPosition.Value.TimelinePart == TimelinePart.Middle)
         {
-            Timeline.CurrentTime = endPosition.Value.CurrentTime;
+            CurrentTime = endPosition.Value.CurrentTime;
             return;
         }
 
         if (SelectedClipsDragging.IsDragging && endPosition.Value != SelectedClipsDragging.StartPosition)
         {
             var diff = endPosition.Value - SelectedClipsDragging.StartPosition;
-            foreach (var clip in Timeline.SelectedClips)
+            foreach (var clip in Timeline2.SelectedClips)
             {
                 clip.Layer = clip.OldLayer + diff.Layer;
                 if (clip.Layer < 0) clip.Layer = 0;
@@ -528,7 +592,7 @@ public class TimelineControl : BackControl
     private TimelineClip[] GetSelectedClips(System.Windows.Forms.MouseEventArgs e)
     {
         var selectedClips = new List<TimelineClip>();
-        foreach (var clip in Timeline.AllClips)
+        foreach (var clip in Timeline2.AllClips)
         {
             var rect = CalculateRectangle(clip);
             if (rect.Left < e.X && e.X < rect.Right &&
@@ -537,7 +601,7 @@ public class TimelineControl : BackControl
             {
                 selectedClips.Add(clip);
 
-                foreach (var clip2 in Timeline.AllClips)
+                foreach (var clip2 in Timeline2.AllClips)
                 {
                     if (clip2.TimelineClipGroup.Value?.Id == clip.TimelineClipGroup.Value?.Id &&
                         !selectedClips.Contains(clip2))
@@ -551,7 +615,7 @@ public class TimelineControl : BackControl
     }
     private TimelinePosition? GetTimelinePosition(Point ucPoint)
     {
-        var currentTime = Timeline.VisibleStart + Timeline.VisibleWidth * ucPoint.X / TimelineRectangle.Width;
+        var currentTime = VisibleStart + VisibleWidth * ucPoint.X / TimelineRectangle.Width;
 
         var timelineHeight = TimelineRectangle.Height;
         var videoHeight = timelineHeight / 2 - MiddleOffset;
@@ -559,9 +623,9 @@ public class TimelineControl : BackControl
         var audioHeight = timelineHeight - videoHeight - middleHeight;
         if (ucPoint.Y < videoHeight)
         {
-            var videoLayerHeight = videoHeight / Timeline.VisibleVideoLayers;
-            var relativeLayerIndex = Timeline.VisibleVideoLayers - ucPoint.Y / videoLayerHeight - 1;
-            var layerIndex = Timeline.FirstVisibleVideoLayer + relativeLayerIndex;
+            var videoLayerHeight = videoHeight / VisibleVideoLayers;
+            var relativeLayerIndex = VisibleVideoLayers - ucPoint.Y / videoLayerHeight - 1;
+            var layerIndex = FirstVisibleVideoLayer + relativeLayerIndex;
             if (layerIndex < 0) layerIndex = 0;
             return new TimelinePosition(currentTime, layerIndex, TimelinePart.Video);
         }
@@ -571,9 +635,9 @@ public class TimelineControl : BackControl
         }
         else if (ucPoint.Y >= videoHeight + middleHeight && ucPoint.Y < timelineHeight)
         {
-            var audioLayerHeight = audioHeight / Timeline.VisibleAudioLayers;
+            var audioLayerHeight = audioHeight / VisibleAudioLayers;
             var relativeLayerIndex = (ucPoint.Y - videoHeight) / audioLayerHeight - 1;
-            var layerIndex = Timeline.FirstVisibleAudioLayer + relativeLayerIndex;
+            var layerIndex = FirstVisibleAudioLayer + relativeLayerIndex;
             if (layerIndex < 0) layerIndex = 0;
             return new TimelinePosition(currentTime, layerIndex, TimelinePart.Audio);
         }
@@ -582,24 +646,24 @@ public class TimelineControl : BackControl
     private RawRectangleF CalculateRectangle(TimelineClip clip)
     {
         int middle = TimelineRectangle.Height / 2;
-        int videoBlockHeight = (middle - HScrollBarControl.Height / 2) / Timeline.VisibleVideoLayers;
-        int audioBlockHeight = (middle - MiddleOffset) / Timeline.VisibleAudioLayers;
+        int videoBlockHeight = (middle - HScrollBarControl.Height / 2) / VisibleVideoLayers;
+        int audioBlockHeight = (middle - MiddleOffset) / VisibleAudioLayers;
 
-        int x1 = Convert.ToInt32((clip.StartTime - Timeline.VisibleStart) / Timeline.VisibleWidth * TimelineRectangle.Width);
-        int x2 = Convert.ToInt32((clip.EndTime - Timeline.VisibleStart) / Timeline.VisibleWidth * TimelineRectangle.Width);
+        int x1 = Convert.ToInt32((clip.StartTime - VisibleStart) / VisibleWidth * TimelineRectangle.Width);
+        int x2 = Convert.ToInt32((clip.EndTime - VisibleStart) / VisibleWidth * TimelineRectangle.Width);
         int width = x2 - x1;
 
         if (clip.IsVideoClip)
         {
-            var layer = clip.Layer - Timeline.FirstVisibleVideoLayer;
+            var layer = clip.Layer - FirstVisibleVideoLayer;
             var y = middle - MiddleOffset - videoBlockHeight - layer * videoBlockHeight;
             var rect = new RawRectangleF(x1, y + ApplicationConstants.Margin / 2, x1 + width, y + ApplicationConstants.Margin / 2 + videoBlockHeight - ApplicationConstants.Margin);
             return rect;
         }
         else
         {
-            var layer = clip.Layer - Timeline.FirstVisibleAudioLayer;
-            var y = middle + MiddleOffset + (clip.Layer - Timeline.FirstVisibleAudioLayer) * audioBlockHeight;
+            var layer = clip.Layer - FirstVisibleAudioLayer;
+            var y = middle + MiddleOffset + (clip.Layer - FirstVisibleAudioLayer) * audioBlockHeight;
             var rect = new RawRectangleF(x1, y + ApplicationConstants.Margin / 2, x1 + width, y + ApplicationConstants.Margin / 2 + audioBlockHeight - ApplicationConstants.Margin);
             return rect;
         }

@@ -30,8 +30,6 @@ public class MenuStrip : ForeBorderBackControl
         {
             item.Left = x;
             item.Top = 0;
-            item.Height = Height;
-            item.Width = 60; // Math.Max(60, TextRenderer.MeasureText(item.Text, item.Font).Width + 20);
             x += item.Width;
         }
     }

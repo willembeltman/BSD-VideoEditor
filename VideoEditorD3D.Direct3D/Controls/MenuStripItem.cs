@@ -19,6 +19,13 @@ public class MenuStripItem : ForeBorderBackControl
     public MenuStripItem(IApplicationForm applicationForm, string text) : base(applicationForm)
     {
         Text = text;
+
+        Background = CanvasLayers.CreateNewLayer();
+        Foreground = CanvasLayers.CreateNewLayer();
+
+        var size = Foreground.MeasureText(text);
+
+
         Items = new ObservableArrayCollection<MenuStripItem>();
         Items.Added += (sender, item) => {
             item.Visible = false;
@@ -28,8 +35,6 @@ public class MenuStripItem : ForeBorderBackControl
             Controls.Remove(item);
         };
 
-        Background = CanvasLayers.CreateNewLayer();
-        Foreground = CanvasLayers.CreateNewLayer();
     }
 
     public override bool Visible { get => _Visible; set => _Visible = value; }
