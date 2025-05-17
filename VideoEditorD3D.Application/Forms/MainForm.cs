@@ -73,15 +73,17 @@ public class MainForm : Form
         Controls.Add(FpsControl);
     }
 
+    public override void OnUpdate()
+    {
+        FpsControl.Left = Width - FpsControl.Width - 5;
+        FpsControl.Top = (MenuStrip.Height - FpsControl.Height) / 2 + 1;
+        base.OnUpdate();
+    }
+
     public override void OnResize()
     {
         MenuStrip.Left = 0;
         MenuStrip.Top = 0;
-
-        FpsControl.Left = Width - 100;
-        FpsControl.Top = (MenuStrip.Height - FpsControl.Height) / 2;
-        FpsControl.Width = 100;
-        FpsControl.Height = 20;
 
         var nettowidth = Width - ApplicationConstants.Margin;
         var nettoheight = Height - ApplicationConstants.Margin - MenuStrip.Height;

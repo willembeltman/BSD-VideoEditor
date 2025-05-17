@@ -12,8 +12,11 @@ public class FpsControl : Label
         BorderColor = new RawColor4(1, 1, 1, 1);
         ForeColor = new RawColor4(1, 1, 1, 1);
         BorderSize = 1;
-        FontSize = 6f;
+        TextPadding = 2;
+        TextPaddingRight = 5;
+        FontSize = 7f;
         Font = "Ebrima";
+        Text = $"{ApplicationForm.Timers.FpsTimer.Fps}fps   {ApplicationForm.Timers.OnUpdateTimer.Time * 1000:F3}ms   {ApplicationForm.Timers.RenderToGpuTimer.Time * 1000:F3}ms";
     }
 
     public override void OnUpdate()

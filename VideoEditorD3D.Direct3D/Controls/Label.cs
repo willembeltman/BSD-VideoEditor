@@ -21,14 +21,22 @@ public class Label : ForeBorderBackControl
         {
             if (_Text == value) return;
             _Text = value;
+
+            var size = Foreground.MeasureText(Text, -1, -1, Font, FontSize, FontStyle, FontLetterSpacing, ForeColor);
+            Width = TextPaddingLeft + TextPaddingRight + size.Width;
+            Height = TextPaddingTop + TextPaddingBottom + size.Height;
+
             Invalidate();
+            //ParentControl.Invalidate();
         }
     }
 
     public override void OnDraw()
     {
         Foreground.StartDrawing();
-        Foreground.DrawText(Text, TextPaddingLeft, TextPaddingTop, TextPaddingLeft + Width + TextPaddingRight, TextPaddingTop + Height + TextPaddingBottom, Font, FontSize, FontStyle, FontLetterSpacing, ForeColor);
+        var size = Foreground.DrawText(Text, TextPaddingLeft, TextPaddingTop, -1, -1, Font, FontSize, FontStyle, FontLetterSpacing, ForeColor);
+        Width = TextPaddingLeft + TextPaddingRight + size.Width;
+        Height = TextPaddingTop + TextPaddingBottom + size.Height;
         Foreground.EndDrawing();
 
         base.OnDraw();

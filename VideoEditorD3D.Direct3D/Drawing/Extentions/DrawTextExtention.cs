@@ -61,6 +61,6 @@ public static class DrawTextExtention
             currentTop = currentBottom;
         }
 
-        return new Size(maxRight, currentBottom);
+        return new Size(maxRight - absoluteLeft, currentBottom - absoluteTop);
     }
 }

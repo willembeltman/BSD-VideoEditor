@@ -238,26 +238,6 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
                 });
                 _DeviceContext.PixelShader.SetSampler(0, _SamplerState);
 
-                // Create the alpha blend state to handle transparency and set it to the output merger
-                var blendDesc = new BlendStateDescription
-                {
-                    AlphaToCoverageEnable = false,
-                    IndependentBlendEnable = false
-                };
-                blendDesc.RenderTarget[0] = new RenderTargetBlendDescription
-                {
-                    IsBlendEnabled = true,
-                    SourceBlend = BlendOption.SourceAlpha,
-                    DestinationBlend = BlendOption.InverseSourceAlpha,
-                    BlendOperation = BlendOperation.Add,
-                    SourceAlphaBlend = BlendOption.One,
-                    DestinationAlphaBlend = BlendOption.Zero,
-                    AlphaBlendOperation = BlendOperation.Add,
-                    RenderTargetWriteMask = ColorWriteMaskFlags.All
-                };
-                _AlphaBlendState = new BlendState(_Device, blendDesc);
-                _DeviceContext.OutputMerger.SetBlendState(_AlphaBlendState);
-
                 // Create a new character collection attached to the current device
                 _Characters = new CharacterCollection(this);
 
@@ -346,6 +326,28 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
 
         _DeviceContext!.OutputMerger.SetRenderTargets(_RenderTargetView);
         _DeviceContext!.Rasterizer.SetViewport(0, 0, width, height);
+
+
+
+        // Create the alpha blend state to handle transparency and set it to the output merger
+        var blendDesc = new BlendStateDescription
+        {
+            AlphaToCoverageEnable = false,
+            IndependentBlendEnable = false
+        };
+        blendDesc.RenderTarget[0] = new RenderTargetBlendDescription
+        {
+            IsBlendEnabled = true,
+            SourceBlend = BlendOption.SourceAlpha,
+            DestinationBlend = BlendOption.InverseSourceAlpha,
+            BlendOperation = BlendOperation.Add,
+            SourceAlphaBlend = BlendOption.One,
+            DestinationAlphaBlend = BlendOption.Zero,
+            AlphaBlendOperation = BlendOperation.Add,
+            RenderTargetWriteMask = ColorWriteMaskFlags.All
+        };
+        _AlphaBlendState = new BlendState(_Device, blendDesc);
+        _DeviceContext.OutputMerger.SetBlendState(_AlphaBlendState);
     }
     private void CompileShaders()
     {

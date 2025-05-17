@@ -126,4 +126,17 @@ public class ForeBorderBackControl(IApplicationForm application) : BorderBackCon
             Invalidate();
         }
     }
+
+    public int TextPadding
+    {
+        get => TextPaddingTop;
+        set
+        {
+            //if (TextPaddingTop == value) return;
+            TextPaddingTop = value;
+            TextPaddingLeft = value;
+            TextPaddingBottom = value;
+            TextPaddingRight = value;
+        }
+    }
 }
