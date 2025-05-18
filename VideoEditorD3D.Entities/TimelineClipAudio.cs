@@ -1,5 +1,5 @@
 ﻿
-using EntityFrameworkZip.Attributes;
+using EntityFrameworkZip;
 
 namespace VideoEditorD3D.Entities;
 

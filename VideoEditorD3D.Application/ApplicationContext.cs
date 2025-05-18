@@ -89,7 +89,6 @@ public class ApplicationContext : IApplicationContext
     public void Dispose()
     {
         KillSwitch = true;
-        Db.Dispose();
         Logger?.Dispose();
         GC.SuppressFinalize(this);
     }

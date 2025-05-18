@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using EntityFrameworkZip.Interfaces;
+﻿using EntityFrameworkZip;
 using VideoEditorD3D.FFMpeg;
 
 namespace VideoEditorD3D.Entities;
@@ -42,9 +41,9 @@ public abstract class TimelineClip : IEntity
     }
     public int Layer { get; set; }
 
-    public virtual Lazy<Timeline> Timeline { get; set; }
-    public virtual Lazy<MediaStream> MediaStream { get; set; }
-    public virtual Lazy<TimelineClipGroup> TimelineClipGroup { get; set; }
+    public virtual ILazy<Timeline> Timeline { get; set; }
+    public virtual ILazy<MediaStream> MediaStream { get; set; }
+    public virtual ILazy<TimelineClipGroup> TimelineClipGroup { get; set; }
 
     [NotMapped]
     public abstract bool IsVideoClip { get; }

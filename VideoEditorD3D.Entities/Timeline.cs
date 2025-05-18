@@ -1,5 +1,4 @@
-﻿using EntityFrameworkZip.Attributes;
-using EntityFrameworkZip.Interfaces;
+﻿using EntityFrameworkZip;
 using VideoEditorD3D.FFMpeg.Types;
 
 namespace VideoEditorD3D.Entities;
@@ -27,7 +26,7 @@ public class Timeline : IEntity
     [NotMapped]
     public List<TimelineClip> SelectedClips { get; } = new List<TimelineClip>();
 
-    public virtual Lazy<Project> Project { get; set; }
+    public virtual ILazy<Project> Project { get; set; }
     public virtual ICollection<TimelineClipVideo> VideoClips { get; set; }
     public virtual ICollection<TimelineClipAudio> AudioClips { get; set; }
 }
