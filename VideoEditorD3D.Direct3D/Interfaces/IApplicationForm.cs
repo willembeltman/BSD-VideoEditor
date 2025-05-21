@@ -21,4 +21,5 @@ public interface IApplicationForm
     void TryDraw();
     void CloseForm();
     Point PointToClient(Point formPoint);
+    void EnableDragAndDrop();
 }

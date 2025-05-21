@@ -27,8 +27,8 @@ public class ApplicationContext : IApplicationContext
         Config = ApplicationSettings.Load();
         if (Config.LastDatabaseFullName == null)
         {
-            Db = new ApplicationDbContext($"NewProject_{DateTime.Now:yyyy-MM-dd HH-mm}.zip");
-            Config.LastDatabaseFullName = Db.FullName;
+            Config.LastDatabaseFullName = $"NewProject_{DateTime.Now:yyyy-MM-dd HH-mm}.zip";
+            Db = new ApplicationDbContext(Config.LastDatabaseFullName);
             Config.Save();
         }
         else
@@ -52,12 +52,14 @@ public class ApplicationContext : IApplicationContext
     public void Start(IApplicationForm applicationForm)
     {
         ApplicationForm = applicationForm;
+        ApplicationForm.EnableDragAndDrop();
         Logger?.StartThread();
         LoadCurrentProjectAndTimeline();
     }
 
     private void LoadCurrentProjectAndTimeline()
     {
+
         if (Db.Projects.Any())
         {
             Project = Db.Projects.First();

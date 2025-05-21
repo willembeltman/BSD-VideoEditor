@@ -90,7 +90,7 @@ public class MenuStripItem : ForeBorderBackControl
         Height = meting.Height + TextPaddingTop + TextPaddingBottom;
     }
 
-    public override bool OnMouseClick(MouseEventArgs e)
+    public override void OnMouseClick(MouseEventArgs e)
     {
         if (ParentControl is MenuStrip)
         {
@@ -106,7 +106,7 @@ public class MenuStripItem : ForeBorderBackControl
             Clicked?.Invoke(this, e);
         }
 
-        return base.OnMouseClick(e);
+        base.OnMouseClick(e);
     }
     public override void OnMouseEnter(EventArgs e)
     {

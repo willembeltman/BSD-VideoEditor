@@ -24,4 +24,20 @@
     <ProjectReference Include="..\VideoEditorD3D.Direct3D\VideoEditorD3D.Direct3D.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Executebles\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Executebles\ffmpeg.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Executebles\ffplay.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Executebles\ffprobe.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

@@ -2,6 +2,7 @@
 using System.Windows.Forms;
 using VideoEditorD3D.Direct3D.Collections;
 using VideoEditorD3D.Direct3D.Drawing;
+using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Controls;
@@ -74,10 +75,10 @@ public class Control : IDisposable, IComparable
     public event EventHandler<MouseEventArgs>? LostFocus;
     public event EventHandler<EventArgs>? MouseEnter;
     public event EventHandler<EventArgs>? MouseLeave;
-    public event EventHandler<DragEventArgs>? DragEnter;
-    public event EventHandler<DragEventArgs>? DragOver;
+    public event EventHandler<DragEvent>? DragEnter;
+    public event EventHandler<DragEvent>? DragOver;
     public event EventHandler<EventArgs>? DragLeave;
-    public event EventHandler<DragEventArgs>? DragDrop;
+    public event EventHandler<DragEvent>? DragDrop;
     public event EventHandler<EventArgs>? Resize;
 
     public int Left
@@ -146,12 +147,14 @@ public class Control : IDisposable, IComparable
     }
     public int AbsoluteBottom => AbsoluteTop + Height;
 
+    public bool DragEntered { get; private set; }
+
     public void Invalidate()
     {
-        foreach (var control in Controls)
-        {
-            control.Invalidate();
-        }
+        //foreach (var control in Controls)
+        //{
+        //    control.Invalidate();
+        //}
         Dirty = true;
     }
     public virtual void OnLoad()
@@ -196,33 +199,18 @@ public class Control : IDisposable, IComparable
         KeyDown?.Invoke(this, e);
     }
 
-    public virtual bool OnMouseClick(MouseEventArgs e)
-    {
-        var res = false;
-        foreach (var control in Controls)
-        {
-            var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
-            if (control.Left < e.X && e.X < control.Right &&
-                control.Top < e.Y && e.Y < control.Bottom)
-            {
-                if (control.OnMouseClick(newE)) return true;
-            }
-            else
-            {
-                control.OnLostFocus(newE);
-            }
-        }
-        OnGotFocus(e);
-        MouseClick?.Invoke(this, e);
-        return res;
-    }
+
 
     public virtual void OnGotFocus(MouseEventArgs e)
     {
-        if (HasFocus == false)
+        if (0 <= e.X && e.X <= Width &&
+            0 <= e.Y && e.Y <= Height)
         {
-            HasFocus = true;
-            GotFocus?.Invoke(this, e);
+            if (HasFocus == false)
+            {
+                HasFocus = true;
+                GotFocus?.Invoke(this, e);
+            }
         }
     }
     public virtual void OnLostFocus(MouseEventArgs e)
@@ -239,84 +227,128 @@ public class Control : IDisposable, IComparable
         }
     }
 
-    public virtual void OnMouseDoubleClick(MouseEventArgs e)
+    public virtual void OnMouseClick(MouseEventArgs e)
     {
-        foreach (var control in Controls)
+        if (0 <= e.X && e.X <= Width &&
+            0 <= e.Y && e.Y <= Height)
         {
-            if (control.Left < e.X && e.X < control.AbsoluteRight &&
-                control.Top < e.Y && e.Y < control.AbsoluteBottom)
+            foreach (var control in Controls)
             {
                 var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
-                control.OnMouseDoubleClick(newE);
+                if (control.Left < e.X && e.X < control.Right &&
+                    control.Top < e.Y && e.Y < control.Bottom)
+                {
+                    control.OnMouseClick(newE);
+                    break;
+                }
             }
+            MouseClick?.Invoke(this, e);
         }
-        HasFocus = true;
-        MouseDoubleClick?.Invoke(this, e);
+    }
+
+    public virtual void OnMouseDoubleClick(MouseEventArgs e)
+    {
+        if (0 <= e.X && e.X <= Width &&
+            0 <= e.Y && e.Y <= Height)
+        {
+            foreach (var control in Controls)
+            {
+                if (control.Left < e.X && e.X < control.Right &&
+                    control.Top < e.Y && e.Y < control.Bottom)
+                {
+                    var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
+                    control.OnMouseDoubleClick(newE);
+                    break;
+                }
+            }
+            MouseDoubleClick?.Invoke(this, e);
+        }
     }
     public virtual void OnMouseUp(MouseEventArgs e)
     {
-        foreach (var control in Controls)
+        if (0 <= e.X && e.X <= Width &&
+            0 <= e.Y && e.Y <= Height)
         {
-            if (control.Left < e.X && e.X < control.AbsoluteRight &&
-                control.Top < e.Y && e.Y < control.AbsoluteBottom)
+            foreach (var control in Controls)
             {
-                var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
-                control.OnMouseUp(newE);
+                if (control.Left < e.X && e.X < control.Right &&
+                    control.Top < e.Y && e.Y < control.Bottom)
+                {
+                    var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
+                    control.OnMouseUp(newE);
+                }
             }
+            MouseUp?.Invoke(this, e);
         }
-        MouseUp?.Invoke(this, e);
     }
     public virtual void OnMouseDown(MouseEventArgs e)
     {
-        foreach (var control in Controls)
+        if (0 <= e.X && e.X <= Width &&
+            0 <= e.Y && e.Y <= Height)
         {
-            if (control.Left < e.X && e.X < control.AbsoluteRight &&
-                control.Top < e.Y && e.Y < control.AbsoluteBottom)
+            foreach (var control in Controls)
             {
                 var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
-                control.OnMouseDown(newE);
+                if (control.Left < e.X && e.X < control.Right &&
+                    control.Top < e.Y && e.Y < control.Bottom)
+                {
+                    control.OnMouseDown(newE);
+                }
+                else
+                {
+                    control.OnLostFocus(newE);
+                }
             }
+            OnGotFocus(e);
+            MouseDown?.Invoke(this, e);
         }
-        MouseDown?.Invoke(this, e);
     }
     public virtual void OnMouseMove(MouseEventArgs e)
     {
-        var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - Left, e.Y - Top, e.Delta);
-        if (!MouseEntered)
+        if (0 <= e.X && e.X <= Width &&
+            0 <= e.Y && e.Y <= Height)
         {
-            OnMouseEnter(newE);
-        }
-
-        foreach (var control in Controls)
-        {
-            if (control.Left <= newE.X && newE.X <= control.Right &&
-                control.Top <= newE.Y && newE.Y <= control.Bottom)
+            if (!MouseEntered)
             {
-                control.OnMouseMove(newE);
+                OnMouseEnter(e);
             }
-            else
+
+            foreach (var control in Controls)
             {
-                if (control.MouseEntered)
+                var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
+                if (control.Left <= e.X && e.X <= control.Right &&
+                    control.Top <= e.Y && e.Y <= control.Bottom)
                 {
-                    control.OnMouseLeave(e);
+                    control.OnMouseMove(newE);
+                }
+                else
+                {
+                    if (control.MouseEntered)
+                    {
+                        control.OnMouseLeave(newE);
+                    }
                 }
             }
-        }
 
-        MouseMove?.Invoke(this, e);
+            MouseMove?.Invoke(this, e);
+        }
     }
     public virtual void OnMouseWheel(MouseEventArgs e)
     {
-        foreach (var control in Controls)
+        if (0 <= e.X && e.X <= Width &&
+            0 <= e.Y && e.Y <= Height)
         {
-            if (control.Left < e.X && e.X < control.AbsoluteRight &&
-                control.Top < e.Y && e.Y < control.AbsoluteBottom)
+            foreach (var control in Controls)
             {
-                var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
-                control.OnMouseWheel(newE);
+                if (control.Left < e.X && e.X < control.Right &&
+                    control.Top < e.Y && e.Y < control.Bottom)
+                {
+                    var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - control.Left, e.Y - control.Top, e.Delta);
+                    control.OnMouseWheel(newE);
+                }
             }
+            MouseWheel?.Invoke(this, e);
         }
-        MouseWheel?.Invoke(this, e);
     }
     public virtual void OnMouseEnter(EventArgs e)
     {
@@ -326,6 +358,7 @@ public class Control : IDisposable, IComparable
     public virtual void OnMouseLeave(EventArgs e)
     {
         MouseEntered = false;
+
         foreach (var control in Controls)
         {
             if (control.MouseEntered)
@@ -333,52 +366,83 @@ public class Control : IDisposable, IComparable
                 control.OnMouseLeave(e);
             }
         }
+
         MouseLeave?.Invoke(this, e);
     }
 
-    public virtual void OnDragEnter(DragEventArgs e)
+    public virtual void OnDragEnter(DragEvent e)
     {
-        foreach (var control in Controls)
+        if (0 <= e.X && e.X <= Width &&
+            0 <= e.Y && e.Y <= Height)
         {
-            if (control.Left < e.X && e.X < control.AbsoluteRight &&
-                control.Top < e.Y && e.Y < control.AbsoluteBottom)
-            {
-                control.OnDragEnter(e);
-            }
+            DragEntered = true;
+            DragEnter?.Invoke(this, e);
         }
-        DragEnter?.Invoke(this, e);
     }
-    public virtual void OnDragOver(DragEventArgs e)
+    public virtual void OnDragOver(DragEvent e)
     {
-        foreach (var control in Controls)
+        if (0 <= e.X && e.X <= Width &&
+            0 <= e.Y && e.Y <= Height)
         {
-            if (control.Left < e.X && e.X < control.AbsoluteRight &&
-                control.Top < e.Y && e.Y < control.AbsoluteBottom)
+            if (!DragEntered)
             {
-                control.OnDragOver(e);
+                OnDragEnter(e);
             }
+
+            foreach (var control in Controls)
+            {
+                var newE = new DragEvent(control, e);
+                //var newE = new DragEventArgs(e.Data, e.KeyState, e.X - control.Left, e.Y - control.Top, e.AllowedEffect, e.Effect, e.DropImageType, e.Message, e.MessageReplacementToken);
+                if (control.Left <= e.X && e.X <= control.Right &&
+                    control.Top <= e.Y && e.Y <= control.Bottom)
+                {
+                    control.OnDragOver(newE);
+                }
+                else
+                {
+                    if (control.DragEntered)
+                    {
+                        control.OnDragLeave(newE);
+                    }
+                }
+            }
+
+            DragOver?.Invoke(this, e);
         }
-        DragOver?.Invoke(this, e);
     }
     public virtual void OnDragLeave(EventArgs e)
     {
+        DragEntered = false;
+
         foreach (var control in Controls)
         {
-            control.OnDragLeave(e);
-        }
-        DragLeave?.Invoke(this, e);
-    }
-    public virtual void OnDragDrop(DragEventArgs e)
-    {
-        foreach (var control in Controls)
-        {
-            if (control.Left < e.X && e.X < control.AbsoluteRight &&
-                control.Top < e.Y && e.Y < control.AbsoluteBottom)
+            if (control.DragEntered)
             {
-                control.OnDragDrop(e);
+                control.OnDragLeave(e);
             }
         }
-        DragDrop?.Invoke(this, e);
+
+        DragLeave?.Invoke(this, e);
+    }
+    public virtual void OnDragDrop(DragEvent e)
+    {
+        if (0 <= e.X && e.X <= Width &&
+            0 <= e.Y && e.Y <= Height)
+        {
+            DragEntered = false;
+
+            foreach (var control in Controls)
+            {
+                if (control.Left < e.X && e.X < control.Right &&
+                    control.Top < e.Y && e.Y < control.Bottom)
+                {
+                    var newE = new DragEvent(control, e);
+                    //var newE = new DragEventArgs(e.Data, e.KeyState, e.X - control.Left, e.Y - control.Top, e.AllowedEffect, e.Effect, e.DropImageType, e.Message, e.MessageReplacementToken);
+                    control.OnDragDrop(newE);
+                }
+            }
+            DragDrop?.Invoke(this, e);
+        }
     }
 
     public virtual void OnUpdate()

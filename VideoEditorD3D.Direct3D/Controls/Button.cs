@@ -36,9 +36,9 @@ public class Button : Label
     public RawColor4? OriginalBackColor { get; private set; }
     public RawColor4? OriginalForeColor { get; private set; }
 
-    public override bool OnMouseClick(MouseEventArgs e)
+    public override void OnMouseClick(MouseEventArgs e)
     {
-        return base.OnMouseClick(e);
+        base.OnMouseClick(e);
     }
 
     public override void OnMouseDown(MouseEventArgs e)

@@ -10,6 +10,7 @@ using Point = System.Drawing.Point;
 using VideoEditorD3D.Application.Controls.TimelineHelpers;
 using VideoEditorD3D.Direct3D.Controls;
 using VideoEditorD3D.Direct3D.Controls.Templates;
+using VideoEditorD3D.Direct3D.Forms;
 
 namespace VideoEditorD3D.Application.Controls;
 
@@ -353,7 +354,7 @@ public class TimelineControl : BackControl
         VisibleStart = e.NewValue;
     }
 
-    private void TimelineControl_DragEnter(object? sender, System.Windows.Forms.DragEventArgs e)
+    private void TimelineControl_DragEnter(object? sender, DragEvent e)
     {
         var fullNames = GetDragAndDropFilenames(e);
         if (fullNames.Length == 0)
@@ -421,8 +422,10 @@ public class TimelineControl : BackControl
 
             DragAndDrop.MediaContainers.Add(file);
         }
+
+        Invalidate();
     }
-    private void TimelineControl_DragOver(object? sender, System.Windows.Forms.DragEventArgs e)
+    private void TimelineControl_DragOver(object? sender, DragEvent e)
     {
         var fullNames = GetDragAndDropFilenames(e);
         if (fullNames.Length == 0)
@@ -481,8 +484,9 @@ public class TimelineControl : BackControl
         }
 
         SetupScrollbar();
+        Invalidate();
     }
-    private void TimelineControl_DragDrop(object? sender, System.Windows.Forms.DragEventArgs e)
+    private void TimelineControl_DragDrop(object? sender, DragEvent e)
     {
         var fullNames = GetDragAndDropFilenames(e);
         if (fullNames.Length == 0) return;
@@ -493,13 +497,15 @@ public class TimelineControl : BackControl
             Timeline.AudioClips.Add(item);
 
         TimelineControl_DragLeave(sender, e);
+        Invalidate();
     }
     private void TimelineControl_DragLeave(object? sender, EventArgs e)
     {
         DragAndDrop.Clear();
         SetupScrollbar();
+        Invalidate();
     }
-    private string[] GetDragAndDropFilenames(System.Windows.Forms.DragEventArgs e)
+    private string[] GetDragAndDropFilenames(DragEvent e)
     {
         if (e == null || e.Data == null) return [];
         if (!e.Data.GetDataPresent(System.Windows.Forms.DataFormats.FileDrop)) return [];
@@ -547,6 +553,7 @@ public class TimelineControl : BackControl
 
         Timeline.SelectedClips.Clear();
         Timeline.SelectedClips.AddRange(selectedClips);
+        Invalidate();
     }
     private void TimelineControl_MouseMove(object? sender, System.Windows.Forms.MouseEventArgs e)
     {
@@ -556,11 +563,12 @@ public class TimelineControl : BackControl
         var endPosition = GetTimelinePosition(endPoint);
         if (endPosition == null) return;
 
-        Debug.WriteLine($"{endPosition.Value.Layer} {endPosition.Value.CurrentTime} {endPosition.Value.TimelinePart}");
+        //Debug.WriteLine($"{endPosition.Value.Layer} {endPosition.Value.CurrentTime} {endPosition.Value.TimelinePart}");
 
         if (MiddleDragging.IsDragging && endPosition.Value.TimelinePart == TimelinePart.Middle)
         {
             CurrentTime = endPosition.Value.CurrentTime;
+            Invalidate();
             return;
         }
 
@@ -572,8 +580,9 @@ public class TimelineControl : BackControl
                 clip.Layer = clip.OldLayer + diff.Layer;
                 if (clip.Layer < 0) clip.Layer = 0;
                 clip.StartTime = clip.OldTimelineStartTime + diff.CurrentTime;
-                Debug.WriteLine($"Dragging {diff.CurrentTime}x{diff.Layer} {clip.OldTimelineStartTime}+{diff.CurrentTime.ToString("F3")}={clip.StartTime}");
+                //Debug.WriteLine($"Dragging {diff.CurrentTime}x{diff.Layer} {clip.OldTimelineStartTime}+{diff.CurrentTime.ToString("F3")}={clip.StartTime}");
             }
+            Invalidate();
             return;
         }
     }
@@ -581,6 +590,7 @@ public class TimelineControl : BackControl
     {
         MiddleDragging.IsDragging = false;
         SelectedClipsDragging.IsDragging = false;
+        Invalidate();
     }
 
     private TimelineClip[] GetSelectedClips(System.Windows.Forms.MouseEventArgs e)
@@ -597,7 +607,7 @@ public class TimelineControl : BackControl
 
                 foreach (var clip2 in Timeline.AllClips)
                 {
-                    if (clip2.TimelineClipGroup.Value?.Id == clip.TimelineClipGroup.Value?.Id &&
+                    if (clip2.TimelineClipGroup?.Value.Id == clip.TimelineClipGroup?.Value.Id &&
                         !selectedClips.Contains(clip2))
                     {
                         selectedClips.Add(clip2);

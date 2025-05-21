@@ -578,11 +578,9 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
 
         Close();
     }
+
+    public void EnableDragAndDrop()
+    {
+        this.AllowDrop = true;
+    }
 }
-// 553 lines isn't that bad, right? ¯\_(ツ)_/¯
-//
-// (•_•)
-//
-// ( •_•)>⌐■-■
-//
-// (⌐■_■)
