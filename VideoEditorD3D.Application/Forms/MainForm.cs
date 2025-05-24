@@ -1,9 +1,9 @@
 ﻿using SharpDX.Mathematics.Interop;
 using VideoEditorD3D.Application.Controls;
+using VideoEditorD3D.Application.Controls.Controls;
 using VideoEditorD3D.Application.Controls.Timeline;
 using VideoEditorD3D.Direct3D.Controls;
 using VideoEditorD3D.Direct3D.Forms;
-using VideoEditorD3D.Entities;
 
 namespace VideoEditorD3D.Application.Forms;
 
@@ -12,6 +12,7 @@ public class MainForm : Form
     private readonly MenuStrip MenuStrip;
     private readonly DisplayControl DisplayControl;
     private readonly TimelineControl TimelineControl;
+    private readonly ControlsControl ControlsControl;
     private readonly PropertiesControl PropertiesControl;
     private readonly FpsControl FpsControl;
 
@@ -21,10 +22,6 @@ public class MainForm : Form
     private bool IsMovingY;
 
     public new ApplicationContext ApplicationContext { get; }
-    public Project Project => ApplicationContext.Project;
-    public Timeline Timeline => ApplicationContext.Timeline;
-    public ApplicationSettings Config => ApplicationContext.Config;
-    public ApplicationDbContext Db => ApplicationContext.Db;
 
     public MainForm(ApplicationContext applicationContext) 
     {
@@ -34,6 +31,10 @@ public class MainForm : Form
         DisplayControl = new DisplayControl();
         DisplayControl.BackColor = new RawColor4(0, 0, 0, 1);
         Controls.Add(DisplayControl);
+
+        ControlsControl = new ControlsControl();
+        DisplayControl.BackColor = new RawColor4(0, 0, 0, 1);
+        Controls.Add(ControlsControl);
 
         PropertiesControl = new PropertiesControl();
         PropertiesControl.BackColor = new RawColor4(0, 0, 0, 1);
@@ -83,9 +84,7 @@ public class MainForm : Form
         MouseDown += MainForm_MouseDown;
         MouseUp += MainForm_MouseUp;
         MouseLeave += MainForm_MouseLeave;
-        //MenuStrip.Resize += MainForm_Resize;
     }
-
 
     public void MainForm_Update(object? sender, EventArgs e)
     {
@@ -95,13 +94,14 @@ public class MainForm : Form
     public void MainForm_Resize(object? sender, EventArgs e)
     {
         var nettowidth = Width - ApplicationConstants.Margin;
-        var nettoheight = Height - ApplicationConstants.Margin - MenuStrip.Height;
+        var nettoheight = Height - ApplicationConstants.Margin - MenuStrip.Height - ControlsControl.Height;
 
         var linkerwidth = nettowidth - PropertiesWidth;
         var topheight = nettoheight - TimelineHeight;
 
-        var screenWidthBasedOnHeight = topheight * Timeline.Resolution.Width / Timeline.Resolution.Height;
-        var screenHeightBasedOnWidth = linkerwidth * Timeline.Resolution.Height / Timeline.Resolution.Width;
+        var timeline = ApplicationContext.Timeline;
+        var screenWidthBasedOnHeight = topheight * timeline.Resolution.Width / timeline.Resolution.Height;
+        var screenHeightBasedOnWidth = linkerwidth * timeline.Resolution.Height / timeline.Resolution.Width;
 
         if (topheight > screenHeightBasedOnWidth)
         {
@@ -123,7 +123,11 @@ public class MainForm : Form
         PropertiesControl.Width = nettowidth - linkerwidth;
         PropertiesControl.Height = topheight;
 
-        TimelineControl.Top = DisplayControl.Bottom + ApplicationConstants.Margin;
+        ControlsControl.Top = DisplayControl.Bottom + ApplicationConstants.Margin;
+        ControlsControl.Left = 0;
+        ControlsControl.Width = Width;
+
+        TimelineControl.Top = ControlsControl.Bottom;
         TimelineControl.Left = 0;
         TimelineControl.Width = Width;
         TimelineControl.Height = nettoheight - topheight;
@@ -133,7 +137,7 @@ public class MainForm : Form
         var moved = false;
         if (IsMovingY)
         {
-            TimelineHeight = Height - e.Y - ApplicationConstants.Margin / 2;
+            TimelineHeight = Height - e.Y - ControlsControl.Height - ApplicationConstants.Margin / 2;
             OnResize();
             moved = true;
         }
@@ -188,6 +192,6 @@ public class MainForm : Form
     }
     private bool MouseIsOverYResizer(MouseEvent e)
     {
-        return e.Y > DisplayControl.AbsoluteBottom && e.Y < TimelineControl.Top;
+        return e.Y > DisplayControl.AbsoluteBottom && e.Y < ControlsControl.Top;
     }
 }

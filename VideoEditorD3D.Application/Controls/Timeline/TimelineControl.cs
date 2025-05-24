@@ -28,7 +28,8 @@ public partial class TimelineControl : BackControl
     private readonly Scrolling Scrolling = new();
     private readonly List<System.Windows.Forms.Keys> Keys = new();
 
-    private new MainForm ApplicationContext => (MainForm)ParentForm;
+    private MainForm MainForm => (MainForm)ParentForm;
+    private new ApplicationContext ApplicationContext => MainForm.ApplicationContext;
     private Entities.Timeline Timeline => ApplicationContext.Timeline;
     private Rectangle TimelineRectangle => new(0, 0, Width, Height - HScrollBarControl.Height);
     private int MiddleOffset => HScrollBarControl.Height / 2;
