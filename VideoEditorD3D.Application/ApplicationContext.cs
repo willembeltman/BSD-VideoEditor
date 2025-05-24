@@ -1,30 +1,27 @@
-﻿using VideoEditorD3D.Entities;
+﻿using Bsd.Logger;
+using VideoEditorD3D.Application.Forms;
+using VideoEditorD3D.Application.Helpers;
 using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Direct3D.Interfaces;
-using Bsd.Logger;
-using VideoEditorD3D.Application.Helpers;
-using VideoEditorD3D.Application.Forms;
+using VideoEditorD3D.Entities;
 
 namespace VideoEditorD3D.Application;
 
 public class ApplicationContext : IApplicationContext
 {
+    private VideoDrawerThread? _DrawerThread;
+
     public ILogger? Logger { get; }
-    public bool KillSwitch { get; set; }
     public ApplicationSettings Config { get; }
     public ApplicationDbContext Db { get; }
-
-    public Project Project { get; private set; } = new Project(); // Initialise with empty project, not needed, but Timeline needs to be set to something, so let's be consistent.
-    public Timeline Timeline { get; private set; } = new Timeline(); // Initialise with empty timeline because the form wants to use the fps value of the project, which doesn't work when Timeline is null.
-
-    public IApplicationForm? ApplicationForm { get; private set; }
-    public MainForm? MainForm { get; private set; }
-    public VideoDrawerThread? DrawerThread { get; private set; }
+    public Project Project { get; }
+    public Timeline Timeline { get; }
 
     public ApplicationContext()
     {
         Logger = new DebugLogger();
         Config = ApplicationSettings.Load();
+
         if (Config.LastDatabaseFullName == null)
         {
             Config.LastDatabaseFullName = $"NewProject_{DateTime.Now:yyyy-MM-dd HH-mm}.zip";
@@ -35,30 +32,6 @@ public class ApplicationContext : IApplicationContext
         {
             Db = new ApplicationDbContext(Config.LastDatabaseFullName);
         }
-    }
-
-    public IDrawerThread? OnCreateDrawerThread(IApplicationForm applicationForm)
-    {
-        ApplicationForm = applicationForm;
-        DrawerThread = new VideoDrawerThread(this, applicationForm);
-        return DrawerThread;
-    }
-    public Form OnCreateStartForm(IApplicationForm applicationForm)
-    {
-        ApplicationForm = applicationForm;
-        MainForm = new MainForm(this, applicationForm);
-        return MainForm;
-    }
-    public void Start(IApplicationForm applicationForm)
-    {
-        ApplicationForm = applicationForm;
-        ApplicationForm.EnableDragAndDrop();
-        Logger?.StartThread();
-        LoadCurrentProjectAndTimeline();
-    }
-
-    private void LoadCurrentProjectAndTimeline()
-    {
 
         if (Db.Projects.Any())
         {
@@ -88,10 +61,19 @@ public class ApplicationContext : IApplicationContext
         Timeline = Project.CurrentTimeline.Value;
     }
 
+    public IDrawerThread? OnCreateDrawerThread(IApplicationForm applicationForm)
+    {
+        return new VideoDrawerThread(this, applicationForm);
+    }
+    public Form OnCreateMainForm(IApplicationForm applicationForm)
+    {
+        return new MainForm(this);
+    }
+
     public void Dispose()
     {
-        KillSwitch = true;
         Logger?.Dispose();
+        _DrawerThread?.Dispose();
         GC.SuppressFinalize(this);
     }
 }

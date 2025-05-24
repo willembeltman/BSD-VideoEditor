@@ -1,16 +1,16 @@
-﻿using VideoEditorD3D.Direct3D.Vertices;
-using SharpDX.Direct3D11;
-using VideoEditorD3D.Direct3D.Interfaces;
+﻿using SharpDX.Direct3D11;
 using VideoEditorD3D.Direct3D.Collections;
+using VideoEditorD3D.Direct3D.Interfaces;
+using VideoEditorD3D.Direct3D.Vertices;
 using Buffer = SharpDX.Direct3D11.Buffer;
 using Control = VideoEditorD3D.Direct3D.Controls.Control;
 
 namespace VideoEditorD3D.Direct3D.Drawing;
 
-public class GraphicsLayer(IApplicationForm applicationForm, Control control) : IDisposable
+public class GraphicsLayer(Control control) : IDisposable
 {
     private readonly Control Control = control;
-    private readonly IApplicationForm ApplicationForm = applicationForm;
+    private IApplicationForm ApplicationForm => control.ApplicationForm;
 
     public int AbsoluteLeft => Control.AbsoluteLeft;
     public int AbsoluteTop => Control.AbsoluteTop;
@@ -31,7 +31,7 @@ public class GraphicsLayer(IApplicationForm applicationForm, Control control) : 
         LineVerticesBuffer = null;
         TriangleVerticesBuffer?.Dispose();
         TriangleVerticesBuffer = null;
-        
+
         foreach (var image in TextureImages)
             image.Dispose();
         foreach (var image in TextureImages)

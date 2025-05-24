@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
-using VideoEditorD3D.FFMpeg.Types;
 using VideoEditorD3D.FFMpeg.Helpers;
+using VideoEditorD3D.FFMpeg.Types;
 
 namespace VideoEditorD3D.FFMpeg;
 
@@ -29,7 +29,7 @@ public class SimpleFrameReader
 
     public double StartTime
     {
-        get => _StartTime; 
+        get => _StartTime;
         set
         {
             _StartTime = value;

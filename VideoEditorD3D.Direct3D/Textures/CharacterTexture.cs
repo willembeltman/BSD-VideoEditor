@@ -1,18 +1,18 @@
 using SharpDX.Direct3D11;
 using SharpDX.Mathematics.Interop;
-using VideoEditorD3D.Direct3D.SharpDXExtentions;
 using VideoEditorD3D.Direct3D.Interfaces;
+using VideoEditorD3D.Direct3D.SharpDXExtentions;
 
 namespace VideoEditorD3D.Direct3D.Textures;
 
 public class CharacterTexture : ICachedTexture
 {
     public CharacterTexture(
-        char character, 
-        string fontName, 
-        float fontSize, 
+        char character,
+        string fontName,
+        float fontSize,
         FontStyle fontStyle,
-        RawColor4 backColor, 
+        RawColor4 backColor,
         RawColor4 foreColor,
         Device device)
     {

@@ -3,11 +3,10 @@ using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Controls.Templates;
 
-public class ForeBorderBackControl(IApplicationForm application) : BorderBackControl(application)
+public class ForeBorderBackControl : BorderBackControl
 {
 
-
-    public event EventHandler<RawColor4>? FontColorChanged;
+    public event EventHandler<RawColor4>? ForeColorChanged;
     private RawColor4 _ForeColor = new RawColor4(0, 0, 0, 0);
     public RawColor4 ForeColor
     {
@@ -16,7 +15,7 @@ public class ForeBorderBackControl(IApplicationForm application) : BorderBackCon
         {
             if (_ForeColor.Equals(value)) return;
             _ForeColor = value;
-            FontColorChanged?.Invoke(this, _ForeColor);
+            ForeColorChanged?.Invoke(this, _ForeColor);
             Invalidate();
         }
     }
@@ -36,7 +35,7 @@ public class ForeBorderBackControl(IApplicationForm application) : BorderBackCon
     }
 
     public event EventHandler<float>? FontSizeChanged;
-    private float _FontSize = 10;
+    private float _FontSize = 8;
     public float FontSize
     {
         get => _FontSize;
@@ -48,6 +47,7 @@ public class ForeBorderBackControl(IApplicationForm application) : BorderBackCon
             Invalidate();
         }
     }
+
     public event EventHandler<FontStyle>? FontStyleChanged;
     private FontStyle _FontStyle = FontStyle.Regular;
     public FontStyle FontStyle
@@ -61,8 +61,9 @@ public class ForeBorderBackControl(IApplicationForm application) : BorderBackCon
             Invalidate();
         }
     }
+
     public event EventHandler<int>? FontLetterSpacingChanged;
-    private int _FontLetterSpacing = -2;
+    private int _FontLetterSpacing = -3;
     public int FontLetterSpacing
     {
         get => _FontLetterSpacing;
@@ -74,6 +75,7 @@ public class ForeBorderBackControl(IApplicationForm application) : BorderBackCon
             Invalidate();
         }
     }
+
     public event EventHandler<int>? TextPaddingChanged;
     private int _TextPaddingTop = 4;
     public int TextPaddingTop
@@ -87,8 +89,9 @@ public class ForeBorderBackControl(IApplicationForm application) : BorderBackCon
             Invalidate();
         }
     }
+
     public event EventHandler<int>? TextPaddingLeftChanged;
-    private int _TextPaddingLeft = 2;
+    private int _TextPaddingLeft = 6;
     public int TextPaddingLeft
     {
         get => _TextPaddingLeft;
@@ -100,8 +103,9 @@ public class ForeBorderBackControl(IApplicationForm application) : BorderBackCon
             Invalidate();
         }
     }
+
     public event EventHandler<int>? TextPaddingBottomChanged;
-    private int _TextPaddingBottom = 4;
+    private int _TextPaddingBottom = 6;
     public int TextPaddingBottom
     {
         get => _TextPaddingBottom;
@@ -113,8 +117,9 @@ public class ForeBorderBackControl(IApplicationForm application) : BorderBackCon
             Invalidate();
         }
     }
+
     public event EventHandler<int>? TextPaddingRightChanged;
-    private int _TextPaddingRight = 10;
+    private int _TextPaddingRight = 12;
     public int TextPaddingRight
     {
         get => _TextPaddingRight;

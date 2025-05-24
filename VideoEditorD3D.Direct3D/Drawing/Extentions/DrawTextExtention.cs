@@ -1,5 +1,5 @@
-﻿using SharpDX.Mathematics.Interop;
-using SharpDX.Direct3D11;
+﻿using SharpDX.Direct3D11;
+using SharpDX.Mathematics.Interop;
 using VideoEditorD3D.Direct3D.TexturesWithVerticies;
 using Buffer = SharpDX.Direct3D11.Buffer;
 

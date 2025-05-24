@@ -6,7 +6,7 @@ namespace VideoEditorD3D.Application.Controls;
 
 public class FpsControl : Label
 {
-    public FpsControl(IApplicationForm application) : base(application)
+    public FpsControl()
     {
         BackColor = new RawColor4(0, 0, 0, 0.5f);
         BorderColor = new RawColor4(1, 1, 1, 1);
@@ -16,12 +16,11 @@ public class FpsControl : Label
         TextPaddingRight = 5;
         FontSize = 7f;
         Font = "Ebrima";
-        Text = $"{ApplicationForm.Timers.FpsTimer.Fps}fps   {ApplicationForm.Timers.OnUpdateTimer.Time * 1000:F3}ms   {ApplicationForm.Timers.RenderToGpuTimer.Time * 1000:F3}ms";
+        Update += FpsControl_Update;
     }
 
-    public override void OnUpdate()
+    private void FpsControl_Update(object? sender, EventArgs e)
     {
         Text = $"{ApplicationForm.Timers.FpsTimer.Fps}fps   {ApplicationForm.Timers.OnUpdateTimer.Time * 1000:F3}ms   {ApplicationForm.Timers.RenderToGpuTimer.Time * 1000:F3}ms";
-        base.OnUpdate();
     }
 }

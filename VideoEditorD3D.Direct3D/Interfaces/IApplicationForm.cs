@@ -1,19 +1,21 @@
-﻿using System.Diagnostics;
-using SharpDX.Direct3D11;
+﻿using SharpDX.Direct3D11;
+using System.Diagnostics;
 using VideoEditorD3D.Direct3D.Collections;
 using VideoEditorD3D.Direct3D.Timers;
+using FormCollection = VideoEditorD3D.Direct3D.Collections.FormCollection;
 
 namespace VideoEditorD3D.Direct3D.Interfaces;
 
 public interface IApplicationForm
 {
+    IApplicationContext ApplicationContext { get; }
     Device Device { get; }
+    bool KillSwitch { get; set; }
     int Width { get; }
     int Height { get; }
 
     CharacterCollection Characters { get; }
-    Forms.Form CurrentForm { get; set; }
-    PopupCollection Popups { get; }
+    FormCollection Forms { get; }
     Stopwatch Stopwatch { get; }
     AllTimers Timers { get; }
     Cursor Cursor { get; set; }
@@ -21,5 +23,4 @@ public interface IApplicationForm
     void TryDraw();
     void CloseForm();
     Point PointToClient(Point formPoint);
-    void EnableDragAndDrop();
 }

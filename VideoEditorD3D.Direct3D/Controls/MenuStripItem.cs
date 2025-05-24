@@ -1,96 +1,88 @@
-﻿using VideoEditorD3D.Direct3D.Collections;
-using VideoEditorD3D.Direct3D.Interfaces;
-using VideoEditorD3D.Direct3D.Drawing;
+﻿using SharpDX.Mathematics.Interop;
+using VideoEditorD3D.Direct3D.Collections;
 using VideoEditorD3D.Direct3D.Controls.Templates;
+using VideoEditorD3D.Direct3D.Drawing;
 using VideoEditorD3D.Direct3D.Forms;
+using VideoEditorD3D.Direct3D.Interfaces;
+using Form = VideoEditorD3D.Direct3D.Forms.Form;
 
 namespace VideoEditorD3D.Direct3D.Controls;
 
 public class MenuStripItem : ForeBorderBackControl
 {
+    private readonly Form Popup;
+    private readonly GraphicsLayer Foreground;
+    public readonly string Text;
 
-    public event EventHandler<MouseEventArgs>? Clicked;
-
-
+    public event EventHandler<MouseEvent>? Clicked;
     public ObservableArrayCollection<MenuStripItem> Items { get; }
-    Popup Popup { get; }
-    public string Text { get; }
-    protected GraphicsLayer Foreground { get; }
+    public MenuStripItem? ParentItem { get; private set; }
+
 #nullable disable
     public MenuStrip MenuStrip { get; internal set; }
+    public bool Opened { get; private set; }
 #nullable enable
 
-    public MenuStripItem(IApplicationForm applicationForm, string text) : base(applicationForm)
+    public MenuStripItem(string text)
     {
         Text = text;
 
         Foreground = GraphicsLayers.CreateNewLayer();
 
-        BackColor = new SharpDX.Mathematics.Interop.RawColor4(0.5f, 0.5f, 0.5f, 1);
-        ForeColor = new SharpDX.Mathematics.Interop.RawColor4(1f, 1f, 1f, 1f);
-        MeasureSize();
-
-        FontSizeChanged += MenuStripItem_FontSizeChanged;
-        FontChanged += MenuStripItem_FontChanged;
-        FontLetterSpacingChanged += MenuStripItem_FontLetterSpacingChanged;
-        FontStyleChanged += MenuStripItem_FontStyleChanged;
-        GotFocus += MenuStripItem_GotFocus;
         LostFocus += MenuStripItem_LostFocus;
+        Load += MenuStripItem_Load;
+        MouseClick += MenuStripItem_MouseClick;
+        MouseEnter += MenuStripItem_MouseEnter;
+        MouseLeave += MenuStripItem_MouseLeave;
+        Draw += MenuStripItem_Draw;
 
-        Popup = new Popup(ApplicationForm);
+        Popup = new Form();
 
         Items = new ObservableArrayCollection<MenuStripItem>();
         Items.Added += (sender, item) =>
         {
+            item.ParentItem = this;
             item.MenuStrip = MenuStrip;
             Popup.Controls.Add(item);
-            PerformLayout();
+            item.Resize += (sender, item) => { PerformLayout(); };
         };
         Items.Removed += (sender, item) =>
         {
             Popup.Controls.Remove(item);
-            PerformLayout();
         };
+
+        Top = 42;
+        Height = 42;
+        Width = 100;
     }
 
-    private void PerformLayout()
+
+    private void MenuStripItem_Load(object? sender, EventArgs e)
     {
-        Popup.Width = Items.Max(a => a.Width);
-        Popup.Height = Items.Sum(a => a.Height);
-        Popup.Left = AbsoluteLeft;
-        Popup.Top = AbsoluteBottom;
-        var top = 0;
-        foreach (var item in Items)
-        {
-            item.Top = top;
-            item.Width = Popup.Width;
-            top += item.Height;
-        }
+        Popup.BackColor = MenuStrip.MenuBackColor;
 
+        ForeColor = MenuStrip.NormalForeColor;
+        BackColor = MenuStrip.NormalBackColor;
+        BorderColor = MenuStrip.NormalBorderColor;
+        BorderSize = MenuStrip.NormalBorderSize;
+
+        Font = MenuStrip.Font;
+        FontSize = MenuStrip.FontSize;
+        FontLetterSpacing = MenuStrip.FontLetterSpacing;
+        FontStyle = MenuStrip.FontStyle;
+        TextPaddingLeft = MenuStrip.TextPaddingLeft;
+        TextPaddingTop = MenuStrip.TextPaddingTop;
+        TextPaddingRight = MenuStrip.TextPaddingRight;
+        TextPaddingBottom = MenuStrip.TextPaddingBottom;
+        MeasureSize();
     }
 
-    private void MenuStripItem_FontStyleChanged(object? sender, FontStyle e) => MeasureSize();
-    private void MenuStripItem_FontLetterSpacingChanged(object? sender, int e) => MeasureSize();
-    private void MenuStripItem_FontChanged(object? sender, string e) => MeasureSize();
-    private void MenuStripItem_FontSizeChanged(object? sender, float e) => MeasureSize();
-
-    private void MenuStripItem_GotFocus(object? sender, MouseEventArgs e)
-    {
-    }
-    private void MenuStripItem_LostFocus(object? sender, MouseEventArgs e)
+    private void MenuStripItem_LostFocus(object? sender, MouseEvent e)
     {
         MenuStrip.CloseAll();
     }
 
-
-    private void MeasureSize()
-    {
-        var meting = Foreground.MeasureText(Text, -1, -1, Font, FontSize, FontStyle, FontLetterSpacing, ForeColor);
-        Width = meting.Width + TextPaddingLeft + TextPaddingRight;
-        Height = meting.Height + TextPaddingTop + TextPaddingBottom;
-    }
-
-    public override void OnMouseClick(MouseEventArgs e)
+    private void MenuStripItem_MouseClick(object? sender, MouseEvent e)
     {
         if (ParentControl is MenuStrip)
         {
@@ -105,38 +97,30 @@ public class MenuStripItem : ForeBorderBackControl
         {
             Clicked?.Invoke(this, e);
         }
+    }
+    private void MenuStripItem_MouseEnter(object? sender, EventArgs e)
+    {
+        ForeColor = MenuStrip.MouseOverForeColor;
+        BackColor = MenuStrip.MouseOverBackColor;
+        BorderColor = MenuStrip.MouseOverBorderColor;
+        BorderSize = MenuStrip.MouseOverBorderSize;
 
-        base.OnMouseClick(e);
+        if (ParentItem == null && MenuStrip.Opened)
+        {
+            MenuStrip.CloseAll();
+            Open();
+        }
     }
-    public override void OnMouseEnter(EventArgs e)
+    private void MenuStripItem_MouseLeave(object? sender, EventArgs e)
     {
-        var temp = ForeColor;
-        ForeColor = BackColor;
-        BackColor = temp;
-        base.OnMouseEnter(e);
-    }
-    public override void OnMouseLeave(EventArgs e)
-    {
-        var temp = ForeColor;
-        ForeColor = BackColor;
-        BackColor = temp;
-        base.OnMouseLeave(e);
-    }
-
-    public void Open()
-    {
-        ApplicationForm.Popups.Add(Popup);
-    }
-    public void Close()
-    {
-        ApplicationForm.Popups.Remove(Popup);
+        ForeColor = MenuStrip.NormalForeColor;
+        BackColor = MenuStrip.NormalBackColor;
+        BorderColor = MenuStrip.NormalBorderColor;
+        BorderSize = MenuStrip.NormalBorderSize;
     }
 
-
-    public override void OnDraw()
+    private void MenuStripItem_Draw(object? sender, EventArgs e)
     {
-        base.OnDraw();
-
         int textX = TextPaddingLeft; // Padding links
         int textY = TextPaddingTop;
 
@@ -145,5 +129,48 @@ public class MenuStripItem : ForeBorderBackControl
         Foreground.EndDrawing();
     }
 
+    public void PerformLayout()
+    {
+        Popup.Width = Items.Max(a => a.Width);
+        Popup.Height = Items.Sum(a => a.Height);
+        Popup.Left = AbsoluteLeft;
+        Popup.Top = AbsoluteBottom;
+        var top = 0;
+        foreach (var item in Items)
+        {
+            item.Top = top;
+            item.Width = Popup.Width;
+            top += item.Height;
+        }
+        Invalidate();
+    }
+    private void MeasureSize()
+    {
+        var meting = Foreground.MeasureText(Text, -1, -1, Font, FontSize, FontStyle, FontLetterSpacing, ForeColor);
+        Width = meting.Width + TextPaddingLeft + TextPaddingRight;
+        Height = meting.Height + TextPaddingTop + TextPaddingBottom;
+    }
+
+    public void Open()
+    {
+        if (ParentItem != null)
+            ParentItem.Opened = true;
+        MenuStrip.Opened = true;
+        ApplicationForm.Forms.Add(Popup);
+    }
+    public void Close()
+    {
+        ApplicationForm.Forms.Remove(Popup);
+        if (ParentItem != null)
+            ParentItem.Opened = false;
+    }
+
+    public void InvalidateAllChildren()
+    {
+        Popup.Invalidate();
+        Invalidate();
+        foreach (var item in Items)
+            item.InvalidateAllChildren();
+    }
 }
 

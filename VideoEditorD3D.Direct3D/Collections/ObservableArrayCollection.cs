@@ -11,33 +11,32 @@ public class ObservableArrayCollection<T> : ICollection<T>
     public event EventHandler<T>? Added;
     public event EventHandler<T>? Removed;
 
-    private ImmutableArray<T> _items;
+    public ImmutableArray<T> CurrentArray;
 
     public ObservableArrayCollection()
     {
-        _items = ImmutableArray<T>.Empty;
+        CurrentArray = ImmutableArray<T>.Empty;
     }
 
-    public int Count => _items.Length;
+    public int Count => CurrentArray.Length;
 
     public bool IsReadOnly => false;
 
     // Add method om items toe te voegen
     public void Add(T item)
     {
-        _items = _items.Add(item); // Voeg het item toe aan de array
-
         Added?.Invoke(this, item); // Trigger de Added event
         Changed?.Invoke(this, item); // Trigger de Changed event
+        CurrentArray = CurrentArray.Add(item); // Voeg het item toe aan de array
     }
 
     // Verwijder een item
     public bool Remove(T item)
     {
-        var contains = _items.Contains(item);
+        var contains = CurrentArray.Contains(item);
         if (contains)
         {
-            _items = _items.Remove(item); // Verwijder het item uit de array
+            CurrentArray = CurrentArray.Remove(item); // Verwijder het item uit de array
             Removed?.Invoke(this, item); // Trigger de Removed event
             Changed?.Invoke(this, item); // Trigger de Changed event
         }
@@ -46,13 +45,13 @@ public class ObservableArrayCollection<T> : ICollection<T>
 
     public void Sort()
     {
-        _items = _items.Sort(); // Sorteer de array
+        CurrentArray = CurrentArray.Sort(); // Sorteer de array
     }
 
     // Clear method om de collectie leeg te maken
     public void Clear()
     {
-        _items = _items.Clear(); // Maak de array leeg
+        CurrentArray = CurrentArray.Clear(); // Maak de array leeg
 
         Cleared?.Invoke(this, new EventArgs()); // Trigger de Cleared event
         Changed?.Invoke(this, null); // Trigger de Changed event
@@ -61,19 +60,19 @@ public class ObservableArrayCollection<T> : ICollection<T>
     // Check of een item in de collectie zit
     public bool Contains(T item)
     {
-        return _items.Contains(item); 
+        return CurrentArray.Contains(item);
     }
 
     // Kopieer items naar een array
     public void CopyTo(T[] array, int arrayIndex)
     {
-        _items.CopyTo(array, arrayIndex);
+        CurrentArray.CopyTo(array, arrayIndex);
     }
 
     // Enumerator voor itereren over de collectie
     public IEnumerator<T> GetEnumerator()
     {
-        var temp = _items;
+        var temp = CurrentArray;
         for (int i = 0; i < temp.Length; i++)
         {
             yield return temp[i];

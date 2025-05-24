@@ -1,10 +1,12 @@
-﻿namespace VideoEditorD3D.Application.Controls.TimelineHelpers;
+﻿using VideoEditorD3D.Direct3D.Forms;
+
+namespace VideoEditorD3D.Application.Controls.Timeline;
 
 public class Scrolling
 {
     public int OldSmallScrollDelta { get; set; } = 0;
     public int TotalBigScrollDelta { get; set; } = 0;
-    public int GetScrollDelta(System.Windows.Forms.MouseEventArgs e)
+    public int GetScrollDelta(MouseEvent e)
     {
         TotalBigScrollDelta += e.Delta;
 

@@ -1,15 +1,13 @@
-﻿using System.CodeDom;
-
-namespace VideoEditorD3D.Application.Controls.TimelineHelpers;
+﻿namespace VideoEditorD3D.Application.Controls.Timeline;
 
 public readonly struct TimelinePosition
 {
     public TimelinePosition(
         double currentTime,
-        int layerIndex, 
+        int layerIndex,
         TimelinePart mediaFormat//, 
-        //TimelineClipVideo[] videoClips, 
-        //TimelineClipAudio[] audioClips
+                                //TimelineClipVideo[] videoClips, 
+                                //TimelineClipAudio[] audioClips
         )
     {
         CurrentTime = currentTime;

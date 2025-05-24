@@ -1,28 +1,29 @@
-﻿using SharpDX.Direct3D;
+﻿using SharpDX;
+using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
-using SharpDX;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using VideoEditorD3D.Direct3D.Interfaces;
-using VideoEditorD3D.Direct3D.Vertices;
+using System.Windows.Forms;
 using VideoEditorD3D.Direct3D.Collections;
-using VideoEditorD3D.Direct3D.Timers;
-using Device = SharpDX.Direct3D11.Device;
 using VideoEditorD3D.Direct3D.Drawing;
-using VideoEditorD3D.Direct3D.Forms;
+using VideoEditorD3D.Direct3D.Interfaces;
+using VideoEditorD3D.Direct3D.Timers;
+using VideoEditorD3D.Direct3D.Vertices;
+using Device = SharpDX.Direct3D11.Device;
+using FormCollection = VideoEditorD3D.Direct3D.Collections.FormCollection;
 
 namespace VideoEditorD3D.Direct3D;
 
 public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
 {
     #region Initilized at Constructor
+    private bool KillSwitch;
     private readonly IApplicationContext ApplicationContext;
     private readonly ApplicationFormEvents ApplicationFormEvents;
-    private readonly PopupCollection Popups;
     private readonly Lock UILock;
     private readonly Stopwatch Stopwatch;
     private readonly AllTimers Timers;
-    private readonly IDrawerThread DrawerThread;
     private bool ReInitialize;
     private bool Initialized;
     private bool IsClosed;
@@ -42,30 +43,32 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
     private Device? _Device;
     private BlendState? _AlphaBlendState;
     private CharacterCollection? _Characters;
-    private Forms.Form? _CurrentForm;
+    private FormCollection? _Forms;
+
+    private IDrawerThread? _DrawerThread;
     private int? _PhysicalWidth;
     private int? _PhysicalHeight;
     #endregion
 
     #region (Private) IApplicationForm interface
+    bool IApplicationForm.KillSwitch { get => KillSwitch; set => KillSwitch = value; }
+    IApplicationContext IApplicationForm.ApplicationContext => ApplicationContext;
     Device IApplicationForm.Device => _Device!;
     CharacterCollection IApplicationForm.Characters => _Characters!;
     int IApplicationForm.Width => _PhysicalWidth!.Value;
     int IApplicationForm.Height => _PhysicalHeight!.Value;
-    Forms.Form IApplicationForm.CurrentForm { get => _CurrentForm!; set => _CurrentForm = value; }
     Stopwatch IApplicationForm.Stopwatch => Stopwatch;
     AllTimers IApplicationForm.Timers => Timers;
-    PopupCollection IApplicationForm.Popups => Popups;
+    FormCollection IApplicationForm.Forms => _Forms;
     #endregion
 
     public ApplicationForm(IApplicationContext applicationContext)
     {
         ApplicationContext = applicationContext;
-        Popups = new PopupCollection(this);
+        _Forms = new FormCollection(this);
         UILock = new Lock();
         Stopwatch = new Stopwatch();
         Timers = new AllTimers(Stopwatch);
-        DrawerThread = applicationContext.OnCreateDrawerThread(this) ?? new Default60FpsDrawerThread(this, applicationContext);
         ApplicationFormEvents = new ApplicationFormEvents(this);
 
         InitializeComponents();
@@ -87,20 +90,22 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
             return res;
         }
     }
-    private bool IsNotReadyToDraw => !Initialized || IsClosed || ApplicationContext.KillSwitch || Width == 0 || Height == 0;
+    private bool IsNotReadyToDraw => !Initialized || IsClosed || KillSwitch || Width == 0 || Height == 0;
 
 
     protected override void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
+
+        
+
         RecreateSwapChain();
     }
     protected override void OnLoad(EventArgs e)
     {
         CenterToScreen();
         Stopwatch.Start();
-        ApplicationContext.Start(this);
-        DrawerThread.StartThread();
+        ApplicationContext.Logger?.StartThread();
     }
     protected override void OnResize(EventArgs e)
     {
@@ -112,8 +117,8 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
         lock (UILock)
         {
             IsClosed = true;
-            ApplicationContext.KillSwitch = true;
-            DrawerThread.Dispose();
+            KillSwitch = true;
+            _DrawerThread?.Dispose();
             base.OnFormClosing(e);
         }
     }
@@ -121,6 +126,9 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
     {
         base.Dispose(disposing);
 
+        KillSwitch = true;
+
+        _Forms?.Dispose();
         _Characters?.Dispose();
         _NormalInputLayout?.Dispose();
         _NormalVertexShader?.Dispose();
@@ -130,7 +138,7 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
         _DeviceContext?.Dispose();
         _Device?.Dispose();
 
-        DrawerThread.Dispose(); // Zou al disposed moeten zijn, maar goed
+        _DrawerThread?.Dispose(); // Zou al disposed moeten zijn, maar goed
         ApplicationContext.Dispose();
     }
 
@@ -177,6 +185,8 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
                 _SamplerState?.Dispose();
                 _Characters?.Dispose();
                 _AlphaBlendState?.Dispose();
+                _DrawerThread?.Dispose();
+                _Forms?.Dispose();
 
                 // Get the width and height
                 int realWidth = ClientRectangle.Width;
@@ -200,8 +210,6 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
                     if (quality8 > 0)
                         sampleSize = 8; // MSAA8 supported
                 }
-
-
 
                 // Create swap chain and device and set them up
                 var swapChainDesc = new SwapChainDescription()
@@ -241,10 +249,15 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
                 // Create a new character collection attached to the current device
                 _Characters = new CharacterCollection(this);
 
+                _DrawerThread = ApplicationContext.OnCreateDrawerThread(this) ?? new Default60FpsDrawerThread(this);
+                _DrawerThread?.StartThread();
+
                 // Ask the application to create the start form
-                _CurrentForm = ApplicationContext.OnCreateStartForm(this);
-                _CurrentForm.Width = realWidth;
-                _CurrentForm.Height = realHeight;
+                _Forms = new FormCollection(this);
+                var startForm = ApplicationContext.OnCreateMainForm(this);
+                startForm.Width = realWidth;
+                startForm.Height = realHeight;
+                _Forms.Add(startForm);
 
                 // Setup state switches be ready to draw
                 ReInitialize = false;
@@ -258,7 +271,7 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
     }
     private void ResizeSwapChain()
     {
-        if (IsNotReadyToDraw || _Device == null || _SwapChain == null || _CurrentForm == null)
+        if (IsClosed || KillSwitch || Width == 0 || Height == 0 || _Device == null || _SwapChain == null || _Forms.Count < 1)
             return;
 
         if (IsMinimized)
@@ -298,8 +311,8 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
 
             // Then set the width and height of the current form, this will trigger
             // the OnResize event of the current form and force redraw on next frame
-            _CurrentForm.Width = newWidth;
-            _CurrentForm.Height = newHeight;
+            _Forms.First().Width = newWidth;
+            _Forms.First().Height = newHeight;
 
             // Then try to resize the swap chain
             try
@@ -440,11 +453,10 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
 
         try
         {
-            var currentForm = _CurrentForm;
-            if (currentForm == null)
+            var forms = _Forms!.CurrentArray;
+            if (forms.Length < 1)
                 return;
-
-            Draw(currentForm);
+            Draw(forms);
         }
         catch (Exception ex)
         {
@@ -458,82 +470,64 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
             }
         }
     }
-    private void Draw(Forms.Form currentForm)
+    private void Draw(ImmutableArray<Forms.Form> forms)
     {
         if (IsNotReadyToDraw)
             return;
 
-        if (!currentForm.Loaded)
-        {
-            currentForm.OnLoad();
-        }
-
         using (Timers.OnUpdateTimer.DisposableObject)
         {
-            currentForm.OnUpdate();
+            foreach (var form in forms)
+            {
+                form.OnUpdate();
+                form.OnDraw();
+            }
         }
 
         using (Timers.RenderToGpuTimer.DisposableObject)
         {
-            LockAndRenderToGpu(currentForm);
+            LockAndRenderToGpu(forms);
         }
 
         Timers.FpsTimer.CountFps();
     }
-    private void LockAndRenderToGpu(Forms.Form currentForm)
+    private void LockAndRenderToGpu(ImmutableArray<Forms.Form> forms)
     {
         if (IsNotReadyToDraw)
             return;
 
         lock (UILock)
         {
-            RenderToGpu(currentForm);
+            RenderToGpu(forms);
         }
     }
-    private void RenderToGpu(Forms.Form currentForm)
+    private void RenderToGpu(ImmutableArray<Forms.Form> forms)
     {
         if (IsNotReadyToDraw || _DeviceContext == null || _Device == null || _SwapChain == null)
             return;
 
-        _DeviceContext.ClearRenderTargetView(_RenderTargetView, currentForm.BackColor);
-
-        foreach (GraphicsLayer layer in GetAllLayers())
+        foreach (var form in forms)
         {
-            if (layer.TriangleVerticesBuffer != null)
+            foreach (var layer in form.GetAllCanvasLayers())
             {
-                DrawTriangle(_DeviceContext, layer);
-            }
+                if (layer.TriangleVerticesBuffer != null)
+                {
+                    DrawTriangle(_DeviceContext, layer);
+                }
 
-            if (layer.LineVerticesBuffer != null)
-            {
-                DrawLine(_DeviceContext, layer);
-            }
+                if (layer.LineVerticesBuffer != null)
+                {
+                    DrawLine(_DeviceContext, layer);
+                }
 
-            foreach (var image in layer.TextureImages)
-            {
-                DrawImage(_DeviceContext, image);
+                foreach (var image in layer.TextureImages)
+                {
+                    DrawImage(_DeviceContext, image);
+                }
             }
         }
 
         _SwapChain.Present(0, PresentFlags.None);
-    }
-
-    private IEnumerable<GraphicsLayer> GetAllLayers()
-    {
-        if (_CurrentForm != null)
-        {
-            foreach (var layer in _CurrentForm.GetAllCanvasLayers())
-            {
-                yield return layer;
-            }
-        }
-        foreach (var popup in Popups)
-        {
-            foreach (var layer in popup.GetAllCanvasLayers())
-            {
-                yield return layer;
-            }
-        }
     }
 
     private void DrawImage(DeviceContext deviceContext, ITextureImage image)
@@ -579,8 +573,4 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
         Close();
     }
 
-    public void EnableDragAndDrop()
-    {
-        this.AllowDrop = true;
-    }
 }

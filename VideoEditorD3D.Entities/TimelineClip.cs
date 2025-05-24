@@ -13,7 +13,7 @@ public abstract class TimelineClip : IEntity
     public double LengthTime { get; set; }
     public double EndTime
     {
-        get => StartTime + LengthTime; 
+        get => StartTime + LengthTime;
         set
         {
             LengthTime = value - StartTime;

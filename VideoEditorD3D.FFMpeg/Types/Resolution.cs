@@ -18,7 +18,7 @@ public struct Resolution
 
     public int Width
     {
-        get => _Width; 
+        get => _Width;
         set
         {
             _Width = value;

@@ -1,17 +1,19 @@
-﻿using VideoEditorD3D.Direct3D.Interfaces;
+﻿using VideoEditorD3D.Direct3D.Controls.Templates;
 using VideoEditorD3D.Direct3D.Drawing;
-using VideoEditorD3D.Direct3D.Controls.Templates;
+using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Controls;
 
 public class Label : ForeBorderBackControl
 {
-    public Label(IApplicationForm application) : base(application)
+    protected readonly GraphicsLayer Foreground;
+
+    public Label() 
     {
         Foreground = GraphicsLayers.CreateNewLayer();
-    }
 
-    protected readonly GraphicsLayer Foreground;
+        Draw += Label_Draw;
+    }
 
     private string _Text = string.Empty;
     public string Text
@@ -31,14 +33,12 @@ public class Label : ForeBorderBackControl
         }
     }
 
-    public override void OnDraw()
+    private void Label_Draw(object? sender, EventArgs e)
     {
         Foreground.StartDrawing();
         var size = Foreground.DrawText(Text, TextPaddingLeft, TextPaddingTop, -1, -1, Font, FontSize, FontStyle, FontLetterSpacing, ForeColor);
         Width = TextPaddingLeft + TextPaddingRight + size.Width;
         Height = TextPaddingTop + TextPaddingBottom + size.Height;
         Foreground.EndDrawing();
-
-        base.OnDraw();
     }
 }

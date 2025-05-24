@@ -14,8 +14,8 @@ public class CharacterCollection(IApplicationForm application) : ObservableArray
             .FirstOrDefault(a =>
                 a.Char == character &&
                 a.FontName == font &&
-                a.FontSize == fontSize && 
-                a.FontStyle == fontStyle && 
+                a.FontSize == fontSize &&
+                a.FontStyle == fontStyle &&
                 a.BackColor.Equals(backColor) &&
                 a.ForeColor.Equals(foreColor));
         if (item == null)
@@ -23,7 +23,7 @@ public class CharacterCollection(IApplicationForm application) : ObservableArray
             item = new CharacterTexture(
                 character,
                 font,
-                fontSize, 
+                fontSize,
                 fontStyle,
                 backColor,
                 foreColor,

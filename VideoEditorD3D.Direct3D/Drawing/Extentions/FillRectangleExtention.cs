@@ -1,6 +1,6 @@
 ﻿using SharpDX.Mathematics.Interop;
-using VideoEditorD3D.Direct3D.Vertices;
 using VideoEditorD3D.Direct3D.SharpDXExtentions;
+using VideoEditorD3D.Direct3D.Vertices;
 
 namespace VideoEditorD3D.Direct3D.Drawing;
 

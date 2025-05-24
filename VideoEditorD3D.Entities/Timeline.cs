@@ -19,7 +19,18 @@ public class Timeline : IEntity
     public int VisibleVideoLayers { get; set; } = 3;
     public int FirstVisibleAudioLayer { get; set; } = 0;
     public int VisibleAudioLayers { get; set; } = 3;
-    public double CurrentTime { get; set; }
+
+    private double _CurrentTime;
+    public double CurrentTime
+    {
+        get => _CurrentTime;
+        set
+        {
+            _CurrentTime = value;
+            CurrentTimeUpdated?.Invoke(this, value);
+        }
+    }
+    public event EventHandler<double> CurrentTimeUpdated;
 
     [NotMapped]
     public IEnumerable<TimelineClip> AllClips => VideoClips.Select(a => a as TimelineClip).Concat(AudioClips);

@@ -10,12 +10,6 @@ public class DragEvent : EventArgs
         X = x;
         Y = y;
     }
-    public DragEvent(Control control, DragEventArgs dragEventArgs)
-    {
-        DragEventArgs = dragEventArgs;
-        X = dragEventArgs.X - control.Left;
-        Y = dragEventArgs.Y - control.Top;
-    }
     public DragEvent(Control control, DragEvent dragEvent)
     {
         DragEventArgs = dragEvent.DragEventArgs;
@@ -57,7 +51,7 @@ public class DragEvent : EventArgs
     /// </summary>
     public DragDropEffects Effect
     {
-        get => DragEventArgs.Effect; 
+        get => DragEventArgs.Effect;
         set => DragEventArgs.Effect = value;
     }
 

@@ -1,13 +1,17 @@
 ﻿using SharpDX.Mathematics.Interop;
+using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Controls;
 
 public class Button : Label
 {
-    public Button(IApplicationForm application) : base(application)
+    public Button() 
     {
         BorderSize = 2;
+        MouseDown += Button_MouseDown;
+        MouseUp += Button_MouseUp;
+        MouseLeave += Button_MouseLeave;
     }
 
     private RawColor4 _MouseDownBackColor = new(1, 1, 1, 1);
@@ -21,6 +25,7 @@ public class Button : Label
             Invalidate();
         }
     }
+
     private RawColor4 _MouseDownForeColor = new(0, 0, 0, 1);
     public RawColor4 MouseDownForeColor
     {
@@ -36,12 +41,7 @@ public class Button : Label
     public RawColor4? OriginalBackColor { get; private set; }
     public RawColor4? OriginalForeColor { get; private set; }
 
-    public override void OnMouseClick(MouseEventArgs e)
-    {
-        base.OnMouseClick(e);
-    }
-
-    public override void OnMouseDown(MouseEventArgs e)
+    private void Button_MouseDown(object? sender, MouseEvent e)
     {
         if (OriginalBackColor == null && OriginalForeColor == null)
         {
@@ -50,20 +50,17 @@ public class Button : Label
             BackColor = MouseDownBackColor;
             ForeColor = MouseDownForeColor;
         }
-        base.OnMouseClick(e);
     }
-    public override void OnMouseUp(MouseEventArgs e)
+    private void Button_MouseUp(object? sender, MouseEvent e)
     {
-        OnMouseLeave(e);
-        base.OnMouseClick(e);
+        Button_MouseLeave(sender, e);
     }
-    public override void OnMouseLeave(EventArgs e)
+    private void Button_MouseLeave(object? sender, EventArgs e)
     {
         if (OriginalBackColor != null && OriginalForeColor != null)
         {
             BackColor = OriginalBackColor.Value;
             ForeColor = OriginalForeColor.Value;
         }
-        base.OnMouseLeave(e);
     }
 }

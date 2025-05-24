@@ -1,8 +1,9 @@
 ﻿using SharpDX.Mathematics.Interop;
 using VideoEditorD3D.Application.Controls;
-using VideoEditorD3D.Direct3D.Interfaces;
-using VideoEditorD3D.Direct3D.Forms;
+using VideoEditorD3D.Application.Controls.Timeline;
 using VideoEditorD3D.Direct3D.Controls;
+using VideoEditorD3D.Direct3D.Forms;
+using VideoEditorD3D.Entities;
 
 namespace VideoEditorD3D.Application.Forms;
 
@@ -13,86 +14,94 @@ public class MainForm : Form
     private readonly TimelineControl TimelineControl;
     private readonly PropertiesControl PropertiesControl;
     private readonly FpsControl FpsControl;
-    private readonly ApplicationContext ApplicationContext;
 
     private int TimelineHeight = 200;
     private int PropertiesWidth = 320;
     private bool IsMovingX;
     private bool IsMovingY;
 
-    public MainForm(ApplicationContext applicationContext, IApplicationForm applicationForm) : base(applicationForm)
+    public new ApplicationContext ApplicationContext { get; }
+    public Project Project => ApplicationContext.Project;
+    public Timeline Timeline => ApplicationContext.Timeline;
+    public ApplicationSettings Config => ApplicationContext.Config;
+    public ApplicationDbContext Db => ApplicationContext.Db;
+
+    public MainForm(ApplicationContext applicationContext) 
     {
         ApplicationContext = applicationContext;
-
         BackColor = new RawColor4(0.125f, 0.25f, 0.5f, 1);
 
-        DisplayControl = new DisplayControl(applicationContext, applicationForm);
+        DisplayControl = new DisplayControl();
         DisplayControl.BackColor = new RawColor4(0, 0, 0, 1);
         Controls.Add(DisplayControl);
 
-        PropertiesControl = new PropertiesControl(applicationContext, applicationForm);
+        PropertiesControl = new PropertiesControl();
         PropertiesControl.BackColor = new RawColor4(0, 0, 0, 1);
         Controls.Add(PropertiesControl);
 
-        TimelineControl = new TimelineControl(applicationContext, applicationForm);
+        TimelineControl = new TimelineControl();
         TimelineControl.BackColor = new RawColor4(0, 0, 0, 1);
         Controls.Add(TimelineControl);
-        MenuStrip = new MenuStrip(applicationForm);
+
+        MenuStrip = new MenuStrip(this);
         Controls.Add(MenuStrip);
 
-        var fileMenu = new MenuStripItem(ApplicationForm, "File");
+        var fileMenu = new MenuStripItem("File");
         MenuStrip.Items.Add(fileMenu);
-        fileMenu.Items.Add(new MenuStripItem(ApplicationForm, "New"));
-        fileMenu.Items.Add(new MenuStripItem(ApplicationForm, "Open"));
-        fileMenu.Items.Add(new MenuStripItem(ApplicationForm, "Save"));
-        fileMenu.Items.Add(new MenuStripItem(ApplicationForm, "Save As"));
-        fileMenu.Items.Add(new MenuStripItem(ApplicationForm, "Exit"));
+        fileMenu.Items.Add(new MenuStripItem("New"));
+        fileMenu.Items.Add(new MenuStripItem("Open"));
+        fileMenu.Items.Add(new MenuStripItem("Save"));
+        fileMenu.Items.Add(new MenuStripItem("Save As"));
+        fileMenu.Items.Add(new MenuStripItem("Exit"));
 
-        var editMenu = new MenuStripItem(ApplicationForm, "Edit");
+        var editMenu = new MenuStripItem("Edit");
         MenuStrip.Items.Add(editMenu);
-        editMenu.Items.Add(new MenuStripItem(ApplicationForm, "Undo"));
-        editMenu.Items.Add(new MenuStripItem(ApplicationForm, "Redo"));
-        editMenu.Items.Add(new MenuStripItem(ApplicationForm, "Cut"));
-        editMenu.Items.Add(new MenuStripItem(ApplicationForm, "Copy"));
-        editMenu.Items.Add(new MenuStripItem(ApplicationForm, "Paste"));
-        editMenu.Items.Add(new MenuStripItem(ApplicationForm, "Preferences"));
+        editMenu.Items.Add(new MenuStripItem("Undo"));
+        editMenu.Items.Add(new MenuStripItem("Redo"));
+        editMenu.Items.Add(new MenuStripItem("Cut"));
+        editMenu.Items.Add(new MenuStripItem("Copy"));
+        editMenu.Items.Add(new MenuStripItem("Paste"));
+        editMenu.Items.Add(new MenuStripItem("Preferences"));
 
-        var viewMenu = new MenuStripItem(ApplicationForm, "View");
+        var viewMenu = new MenuStripItem("View");
         MenuStrip.Items.Add(viewMenu);
-        viewMenu.Items.Add(new MenuStripItem(ApplicationForm, "Zoom In"));
-        viewMenu.Items.Add(new MenuStripItem(ApplicationForm, "Zoom Out"));
-        viewMenu.Items.Add(new MenuStripItem(ApplicationForm, "Reset Zoom"));
+        viewMenu.Items.Add(new MenuStripItem("Zoom In"));
+        viewMenu.Items.Add(new MenuStripItem("Zoom Out"));
+        viewMenu.Items.Add(new MenuStripItem("Reset Zoom"));
 
-        var helpMenu = new MenuStripItem(ApplicationForm, "Help");
+        var helpMenu = new MenuStripItem("Help");
         MenuStrip.Items.Add(helpMenu);
-        helpMenu.Items.Add(new MenuStripItem(ApplicationForm, "About"));
-        helpMenu.Items.Add(new MenuStripItem(ApplicationForm, "Documentation"));
+        helpMenu.Items.Add(new MenuStripItem("About"));
+        helpMenu.Items.Add(new MenuStripItem("Documentation"));
 
-
-        FpsControl = new FpsControl(applicationForm);
+        FpsControl = new FpsControl();
         Controls.Add(FpsControl);
+
+        Update += MainForm_Update;
+        Resize += MainForm_Resize;
+        MouseMove += MainForm_MouseMove;
+        MouseDown += MainForm_MouseDown;
+        MouseUp += MainForm_MouseUp;
+        MouseLeave += MainForm_MouseLeave;
+        //MenuStrip.Resize += MainForm_Resize;
     }
 
-    public override void OnUpdate()
+
+    public void MainForm_Update(object? sender, EventArgs e)
     {
         FpsControl.Left = Width - FpsControl.Width - 5;
         FpsControl.Top = (MenuStrip.Height - FpsControl.Height) / 2 + 1;
-        base.OnUpdate();
     }
-
-    public override void OnResize()
+    public void MainForm_Resize(object? sender, EventArgs e)
     {
-        MenuStrip.Left = 0;
-        MenuStrip.Top = 0;
-
         var nettowidth = Width - ApplicationConstants.Margin;
         var nettoheight = Height - ApplicationConstants.Margin - MenuStrip.Height;
 
         var linkerwidth = nettowidth - PropertiesWidth;
         var topheight = nettoheight - TimelineHeight;
 
-        var screenWidthBasedOnHeight = topheight * ApplicationContext.Timeline.Resolution.Width / ApplicationContext.Timeline.Resolution.Height;
-        var screenHeightBasedOnWidth = linkerwidth * ApplicationContext.Timeline.Resolution.Height / ApplicationContext.Timeline.Resolution.Width;
+        var screenWidthBasedOnHeight = topheight * Timeline.Resolution.Width / Timeline.Resolution.Height;
+        var screenHeightBasedOnWidth = linkerwidth * Timeline.Resolution.Height / Timeline.Resolution.Width;
 
         if (topheight > screenHeightBasedOnWidth)
         {
@@ -118,10 +127,8 @@ public class MainForm : Form
         TimelineControl.Left = 0;
         TimelineControl.Width = Width;
         TimelineControl.Height = nettoheight - topheight;
-
-        base.OnResize();
     }
-    public override void OnMouseMove(System.Windows.Forms.MouseEventArgs e)
+    public void MainForm_MouseMove(object? sender, MouseEvent e)
     {
         var moved = false;
         if (IsMovingY)
@@ -159,31 +166,27 @@ public class MainForm : Form
         {
             ApplicationForm.Cursor = System.Windows.Forms.Cursors.Default;
         }
-        base.OnMouseMove(e);
     }
-    public override void OnMouseDown(System.Windows.Forms.MouseEventArgs e)
+    public void MainForm_MouseDown(object? sender, MouseEvent e)
     {
         IsMovingX = MouseIsOverXResizer(e);
         IsMovingY = MouseIsOverYResizer(e);
-        base.OnMouseDown(e);
     }
-    public override void OnMouseUp(System.Windows.Forms.MouseEventArgs e)
+    public void MainForm_MouseUp(object? sender, MouseEvent e)
     {
         IsMovingX = false;
         IsMovingY = false;
-        base.OnMouseUp(e);
     }
-    public override void OnMouseLeave(EventArgs e)
+    public void MainForm_MouseLeave(object? sender, EventArgs e)
     {
         ApplicationForm.Cursor = System.Windows.Forms.Cursors.Default;
-        base.OnMouseLeave(e);
     }
 
-    private bool MouseIsOverXResizer(System.Windows.Forms.MouseEventArgs e)
+    private bool MouseIsOverXResizer(MouseEvent e)
     {
         return e.X > DisplayControl.AbsoluteRight && e.X < PropertiesControl.Left;
     }
-    private bool MouseIsOverYResizer(System.Windows.Forms.MouseEventArgs e)
+    private bool MouseIsOverYResizer(MouseEvent e)
     {
         return e.Y > DisplayControl.AbsoluteBottom && e.Y < TimelineControl.Top;
     }

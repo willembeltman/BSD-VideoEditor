@@ -1,6 +1,6 @@
-﻿using VideoEditorD3D.FFMpeg.Json;
-using VideoEditorD3D.FFMpeg.Enums;
+﻿using VideoEditorD3D.FFMpeg.Enums;
 using VideoEditorD3D.FFMpeg.Helpers;
+using VideoEditorD3D.FFMpeg.Json;
 
 namespace VideoEditorD3D.FFMpeg;
 
@@ -50,7 +50,7 @@ public class MediaContainer
 
     public bool EqualTo(object? obj)
     {
-        if (!(obj is MediaContainer)) return false; 
+        if (!(obj is MediaContainer)) return false;
         var other = obj as MediaContainer;
         if (other == null) return false;
         if (FullName != other.FullName) return false;

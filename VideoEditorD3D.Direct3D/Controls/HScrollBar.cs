@@ -1,14 +1,14 @@
 ﻿using SharpDX.Mathematics.Interop;
-using VideoEditorD3D.Direct3D.Interfaces;
-using VideoEditorD3D.Direct3D.Drawing;
 using VideoEditorD3D.Direct3D.Controls.Templates;
+using VideoEditorD3D.Direct3D.Drawing;
+using VideoEditorD3D.Direct3D.Forms;
+using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Controls;
 
 public class HScrollBar : ForeBorderBackControl
 {
-    public HScrollBar(IApplicationForm application)
-        : base(application)
+    public HScrollBar()
     {
         Background = GraphicsLayers.CreateNewLayer();
         Thumb = GraphicsLayers.CreateNewLayer();
@@ -18,7 +18,14 @@ public class HScrollBar : ForeBorderBackControl
         ForeColor = new RawColor4(0.6f, 0.6f, 0.6f, 1);
         BorderColor = new RawColor4(1, 1, 1, 1);
         BorderSize = 1;
+
+        Draw += HScrollBar_Draw;
+        MouseDown += HScrollBar_MouseDown;
+        MouseMove += HScrollBar_MouseMove;
+        MouseUp += HScrollBar_MouseUp;
+        MouseLeave += HScrollBar_MouseLeave;
     }
+
 
     private readonly GraphicsLayer Background;
     private readonly GraphicsLayer Thumb;
@@ -78,7 +85,7 @@ public class HScrollBar : ForeBorderBackControl
         }
     }
 
-    public override void OnDraw()
+    private void HScrollBar_Draw(object? sender, EventArgs e)
     {
         Background.StartDrawing();
         Background.FillRectangle(0, 0, Width, Height, BackColor);
@@ -95,10 +102,8 @@ public class HScrollBar : ForeBorderBackControl
         Border.StartDrawing();
         Border.DrawRectangle(0, 0, Width, Height, BorderColor, BorderSize);
         Border.EndDrawing();
-
-        base.OnDraw();
     }
-    public override void OnMouseDown(MouseEventArgs e)
+    private void HScrollBar_MouseDown(object? sender, MouseEvent e)
     {
         float x = e.X;
         float y = e.Y;
@@ -107,9 +112,8 @@ public class HScrollBar : ForeBorderBackControl
             isDragging = true;
             dragOffsetX = x - GetThumbX();
         }
-        base.OnMouseDown(e);
     }
-    public override void OnMouseMove(MouseEventArgs e)
+    private void HScrollBar_MouseMove(object? sender, MouseEvent e)
     {
         if (isDragging)
         {
@@ -121,17 +125,14 @@ public class HScrollBar : ForeBorderBackControl
             float ratio = Math.Clamp(relativeX / trackWidth, 0, 1);
             Value = Minimum + (Maximum - LargeChange - Minimum) * ratio;
         }
-        base.OnMouseMove(e);
     }
-    public override void OnMouseUp(MouseEventArgs e)
+    private void HScrollBar_MouseUp(object? sender, MouseEvent e)
     {
         isDragging = false;
-        base.OnMouseUp(e);
     }
-    public override void OnMouseLeave(EventArgs e)
+    private void HScrollBar_MouseLeave(object? sender, EventArgs e)
     {
         isDragging = false;
-        base.OnMouseLeave(e);
     }
 
     private bool IsPointInThumb(float x, float y)

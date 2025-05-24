@@ -1,4 +1,4 @@
-﻿namespace VideoEditorD3D.Application.Controls.TimelineHelpers;
+﻿namespace VideoEditorD3D.Application.Controls.Timeline;
 
 public enum TimelinePart
 {

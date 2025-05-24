@@ -1,5 +1,5 @@
-﻿using System.Runtime.InteropServices;
-using SharpDX.Mathematics.Interop;
+﻿using SharpDX.Mathematics.Interop;
+using System.Runtime.InteropServices;
 
 namespace VideoEditorD3D.Direct3D.Vertices;
 

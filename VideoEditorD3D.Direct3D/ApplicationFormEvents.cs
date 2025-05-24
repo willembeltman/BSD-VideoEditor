@@ -5,181 +5,143 @@ namespace VideoEditorD3D.Direct3D;
 
 public class ApplicationFormEvents(IApplicationForm applicationForm)
 {
-    Controls.Control Form => applicationForm.CurrentForm;
-
     public void OnKeyPress(object? sender, KeyPressEventArgs e)
     {
-        if (Form == null) return;
-        foreach (var popup in applicationForm.Popups) popup.OnKeyPress(e);
-        Form.OnKeyPress(e);
+        foreach (var popup in applicationForm.Forms) popup.OnKeyPress(e);
     }
     public void OnKeyUp(object? sender, KeyEventArgs e)
     {
-        if (Form == null) return;
-        foreach (var popup in applicationForm.Popups) popup.OnKeyUp(e);
-        Form.OnKeyUp(e);
+        foreach (var popup in applicationForm.Forms) popup.OnKeyUp(e);
     }
     public void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        if (Form == null) return;
-        foreach (var popup in applicationForm.Popups) popup.OnKeyDown(e);
-        Form.OnKeyDown(e);
+        foreach (var popup in applicationForm.Forms) popup.OnKeyDown(e);
     }
     public void OnMouseClick(object? sender, MouseEventArgs e)
     {
-        if (Form == null) return;
-        foreach (var popup in applicationForm.Popups)
+        foreach (var popup in applicationForm.Forms)
         {
             if (popup.Left <= e.X && e.X <= popup.Right &&
                 popup.Top <= e.Y && e.Y <= popup.Bottom)
             {
-                var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - popup.Left, e.Y - popup.Top, e.Delta);
+                var newE = new MouseEvent(popup, e);
                 popup.OnMouseClick(newE);
             }
         }
-        Form.OnMouseClick(e);
     }
     public void OnMouseDoubleClick(object? sender, MouseEventArgs e)
     {
-        if (Form == null) return;
-        foreach (var popup in applicationForm.Popups)
+        foreach (var popup in applicationForm.Forms)
         {
-            var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - popup.Left, e.Y - popup.Top, e.Delta);
+            var newE = new MouseEvent(popup, e);
             popup.OnMouseDoubleClick(newE);
         }
-        Form.OnMouseDoubleClick(e);
     }
     public void OnMouseUp(object? sender, MouseEventArgs e)
     {
-        if (Form == null) return;
-        foreach (var popup in applicationForm.Popups)
+        foreach (var popup in applicationForm.Forms)
         {
-            if (popup.Left <= e.X && e.X <= popup.Right &&
-                popup.Top <= e.Y && e.Y <= popup.Bottom)
-            {
-                var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - popup.Left, e.Y - popup.Top, e.Delta);
+            //if (popup.Left <= e.X && e.X <= popup.Right &&
+            //    popup.Top <= e.Y && e.Y <= popup.Bottom)
+            //{
+                var newE = new MouseEvent(popup, e);
                 popup.OnMouseUp(newE);
-            }
+            //}
         }
-        Form.OnMouseUp(e);
     }
     public void OnMouseDown(object? sender, MouseEventArgs e)
     {
-        if (Form == null) return;
-        foreach (var popup in applicationForm.Popups)
+        foreach (var popup in applicationForm.Forms)
         {
-            if (popup.Left <= e.X && e.X <= popup.Right &&
-                popup.Top <= e.Y && e.Y <= popup.Bottom)
-            {
-                var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - popup.Left, e.Y - popup.Top, e.Delta);
+            //if (popup.Left <= e.X && e.X <= popup.Right &&
+            //    popup.Top <= e.Y && e.Y <= popup.Bottom)
+            //{
+                var newE = new MouseEvent(popup, e);
                 popup.OnMouseDown(newE);
-            }
+            //}
         }
-        Form.OnMouseDown(e);
     }
     public void OnMouseMove(object? sender, MouseEventArgs e)
     {
-        if (Form == null) return;
-        foreach (var popup in applicationForm.Popups)
+        foreach (var popup in applicationForm.Forms)
         {
-            if (popup.Left <= e.X && e.X <= popup.Right &&
-                popup.Top <= e.Y && e.Y <= popup.Bottom)
-            {
-                var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - popup.Left, e.Y - popup.Top, e.Delta);
+            //if (popup.Left <= e.X && e.X <= popup.Right &&
+            //    popup.Top <= e.Y && e.Y <= popup.Bottom)
+            //{
+                var newE = new MouseEvent(popup, e);
                 popup.OnMouseMove(newE);
-            }
+            //}
         }
-        Form.OnMouseMove(e);
     }
     public void OnMouseWheel(object? sender, MouseEventArgs e)
     {
-        if (Form == null) return;
-        foreach (var popup in applicationForm.Popups)
+        foreach (var popup in applicationForm.Forms)
         {
-            if (popup.Left <= e.X && e.X <= popup.Right &&
-                popup.Top <= e.Y && e.Y <= popup.Bottom)
-            {
-                var newE = new MouseEventArgs(e.Button, e.Clicks, e.X - popup.Left, e.Y - popup.Top, e.Delta);
+            //if (popup.Left <= e.X && e.X <= popup.Right &&
+            //    popup.Top <= e.Y && e.Y <= popup.Bottom)
+            //{
+                var newE = new MouseEvent(popup, e);
                 popup.OnMouseWheel(newE);
-            }
+            //}
         }
-        Form.OnMouseWheel(e);
     }
     public void OnDragDrop(object? sender, DragEventArgs e)
     {
-        if (Form == null) return;
         var desktopPoint = new Point(e.X, e.Y);
         var formPoint = applicationForm.PointToClient(desktopPoint);
         var e2 = new DragEvent(e, formPoint.X, formPoint.Y);
-        //e = new DragEventArgs(e.Data, e.KeyState, formPoint.X, formPoint.Y, e.AllowedEffect, e.Effect);
-        foreach (var popup in applicationForm.Popups)
+        foreach (var popup in applicationForm.Forms)
         {
-            if (popup.Left <= e.X && e.X <= popup.Right &&
-                popup.Top <= e.Y && e.Y <= popup.Bottom)
-            {
-                var newE = new DragEvent(popup, e);
-                //var newE = new DragEventArgs(e.Data, e.KeyState, e.X - popup.Left, e.Y - popup.Top, e.AllowedEffect, e.Effect);
+            //if (popup.Left <= e.X && e.X <= popup.Right &&
+            //    popup.Top <= e.Y && e.Y <= popup.Bottom)
+            //{
+                var newE = new DragEvent(popup, e2);
                 popup.OnDragDrop(newE);
-            }
+            //}
         }
-        Form.OnDragDrop(e2);
     }
     public void OnDragEnter(object? sender, DragEventArgs e)
     {
-        if (Form == null) return;
         var desktopPoint = new Point(e.X, e.Y);
         var formPoint = applicationForm.PointToClient(desktopPoint);
         var e2 = new DragEvent(e, formPoint.X, formPoint.Y);
-        //e = new DragEventArgs(e.Data, e.KeyState, formPoint.X, formPoint.Y, e.AllowedEffect, e.Effect);
-        foreach (var popup in applicationForm.Popups)
+        foreach (var popup in applicationForm.Forms)
         {
-            if (popup.Left <= e.X && e.X <= popup.Right &&
-                popup.Top <= e.Y && e.Y <= popup.Bottom)
-            {
-                var newE = new DragEvent(popup, e);
-                //var newE = new DragEventArgs(e.Data, e.KeyState, e.X - popup.Left, e.Y - popup.Top, e.AllowedEffect, e.Effect);
+            //if (popup.Left <= e.X && e.X <= popup.Right &&
+            //    popup.Top <= e.Y && e.Y <= popup.Bottom)
+            //{
+                var newE = new DragEvent(popup, e2);
                 popup.OnDragEnter(newE);
-            }
+            //}
         }
-        Form.OnDragEnter(e2);
     }
     public void OnDragOver(object? sender, DragEventArgs e)
     {
-        if (Form == null) return;
         var desktopPoint = new Point(e.X, e.Y);
         var formPoint = applicationForm.PointToClient(desktopPoint);
         var e2 = new DragEvent(e, formPoint.X, formPoint.Y);
-        //e = new DragEventArgs(e.Data, e.KeyState, formPoint.X, formPoint.Y, e.AllowedEffect, e.Effect);
-        foreach (var popup in applicationForm.Popups)
+        foreach (var popup in applicationForm.Forms)
         {
-            if (popup.Left <= e.X && e.X <= popup.Right &&
-                popup.Top <= e.Y && e.Y <= popup.Bottom)
-            {
-                var newE = new DragEvent(popup, e);
-                //var newE = new DragEventArgs(e.Data, e.KeyState, e.X - popup.Left, e.Y - popup.Top, e.AllowedEffect, e.Effect);
+            //if (popup.Left <= e.X && e.X <= popup.Right &&
+            //    popup.Top <= e.Y && e.Y <= popup.Bottom)
+            //{
+                var newE = new DragEvent(popup, e2);
                 popup.OnDragOver(newE);
-            }
+            //}
         }
-        Form.OnDragOver(e2);
     }
     public void OnDragLeave(object? sender, EventArgs e)
     {
-        if (Form == null) return;
-        foreach (var popup in applicationForm.Popups) popup.OnDragLeave(e);
-        Form.OnDragLeave(e);
+        foreach (var popup in applicationForm.Forms) popup.OnDragLeave(e);
     }
 
-    internal void OnMouseEnter(object? sender, EventArgs e)
+    public void OnMouseEnter(object? sender, EventArgs e)
     {
-        if (Form == null) return;
-        foreach (var popup in applicationForm.Popups) popup.OnMouseEnter(e);
-        Form.OnMouseEnter(e);
+        foreach (var popup in applicationForm.Forms) popup.OnMouseEnter(e);
     }
 
-    internal void OnMouseLeave(object? sender, EventArgs e)
+    public void OnMouseLeave(object? sender, EventArgs e)
     {
-        if (Form == null) return;
-        foreach (var popup in applicationForm.Popups) popup.OnMouseLeave(e);
-        Form.OnMouseLeave(e);
+        foreach (var popup in applicationForm.Forms) popup.OnMouseLeave(e);
     }
 }

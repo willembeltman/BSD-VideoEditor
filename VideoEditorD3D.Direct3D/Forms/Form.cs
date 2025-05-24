@@ -6,7 +6,7 @@ namespace VideoEditorD3D.Direct3D.Forms;
 
 public class Form : BackControl
 {
-    public Form(IApplicationForm applicationForm) : base(applicationForm)
+    public Form()
     {
         Controls = new ControlCollection(this);
     }

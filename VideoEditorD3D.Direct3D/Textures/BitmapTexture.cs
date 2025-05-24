@@ -1,6 +1,6 @@
+using SharpDX;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
-using SharpDX;
 using VideoEditorD3D.Direct3D.Interfaces;
 using Device = SharpDX.Direct3D11.Device;
 

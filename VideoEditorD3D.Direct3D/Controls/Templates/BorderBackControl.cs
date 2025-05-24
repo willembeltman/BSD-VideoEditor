@@ -10,9 +10,10 @@ public class BorderBackControl : BackControl
     private int _BorderSize = 1;
     private readonly GraphicsLayer Border;
 
-    public BorderBackControl(IApplicationForm application) : base(application)
+    public BorderBackControl()
     {
         Border = GraphicsLayers.CreateNewLayer();
+        Draw += BorderBackControl_Draw;
     }
 
     public event EventHandler<RawColor4>? BorderColorChanged;
@@ -39,15 +40,15 @@ public class BorderBackControl : BackControl
             Invalidate();
         }
     }
-    public override void OnDraw()
+
+    private void BorderBackControl_Draw(object? sender, EventArgs e)
     {
+        Border.StartDrawing();
         if (BorderColor.A > 0)
         {
-            Border.StartDrawing();
             Border.DrawRectangle(0, 0, Width, Height, BorderColor, BorderSize);
-            Border.EndDrawing();
         }
+        Border.EndDrawing();
 
-        base.OnDraw();
     }
 }
