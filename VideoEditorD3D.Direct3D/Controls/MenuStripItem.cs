@@ -31,7 +31,7 @@ public class MenuStripItem : ForeBorderBackControl
 
         LostFocus += MenuStripItem_LostFocus;
         Load += MenuStripItem_Load;
-        MouseClick += MenuStripItem_MouseClick;
+        Click += MenuStripItem_MouseClick;
         MouseEnter += MenuStripItem_MouseEnter;
         MouseLeave += MenuStripItem_MouseLeave;
         Draw += MenuStripItem_Draw;

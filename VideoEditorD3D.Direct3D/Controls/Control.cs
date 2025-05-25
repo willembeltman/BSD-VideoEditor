@@ -37,9 +37,8 @@ public class Control : IDisposable, IComparable
 
     private int _Left = 0;
     private int _Top = 0;
-    private int _Width = 480;
-    private int _Height = 640;
-
+    private int _Width = 80;
+    private int _Height = 36;
     private bool HasToResize = false;
 
 #nullable disable
@@ -55,7 +54,7 @@ public class Control : IDisposable, IComparable
     public bool HasToDraw { get; set; } = true;
     public bool MouseOver { get; set; } = false;
     public bool Visible { get; set; } = true;
-    public IApplicationContext ApplicationContext => ApplicationForm.ApplicationContext;
+    public bool DragEntered { get; private set; }
 
     public Control()
     {
@@ -69,7 +68,7 @@ public class Control : IDisposable, IComparable
     public event EventHandler<KeyPressEventArgs>? KeyPress;
     public event EventHandler<KeyEventArgs>? KeyUp;
     public event EventHandler<KeyEventArgs>? KeyDown;
-    public event EventHandler<MouseEvent>? MouseClick;
+    public event EventHandler<MouseEvent>? Click;
     public event EventHandler<MouseEvent>? MouseDoubleClick;
     public event EventHandler<MouseEvent>? MouseUp;
     public event EventHandler<MouseEvent>? MouseDown;
@@ -151,24 +150,22 @@ public class Control : IDisposable, IComparable
     }
     public int AbsoluteBottom => AbsoluteTop + Height;
 
-    public bool DragEntered { get; private set; }
-
     public void Invalidate()
     {
         HasToDraw = true;
+        foreach (var control in Controls)
+        {
+            control.Invalidate();
+        }
     }
 
     public virtual void OnUpdate()
     {
-        if (!Loaded)
-        {
-            OnLoad();
-        }
+        if (!Visible) return;
 
-        if (HasToResize)
-        {
-            OnResize();
-        }
+        OnLoad();
+
+        if (HasToResize) OnResize();
 
         Update?.Invoke(this, EventArgs.Empty);
 
@@ -195,9 +192,12 @@ public class Control : IDisposable, IComparable
 
     public virtual void OnLoad()
     {
-        Load?.Invoke(this, EventArgs.Empty);
-        Loaded = true;
-        Invalidate();
+        if (!Loaded)
+        {
+            Load?.Invoke(this, EventArgs.Empty);
+            Loaded = true;
+            Invalidate();
+        }
     }
     public virtual void OnResize()
     {
@@ -205,6 +205,7 @@ public class Control : IDisposable, IComparable
         HasToResize = false;
         Invalidate();
     }
+
     public virtual void OnKeyPress(KeyPressEventArgs e)
     {
         foreach (var control in Controls)
@@ -261,7 +262,7 @@ public class Control : IDisposable, IComparable
         if (0 <= e.X && e.X <= Width &&
             0 <= e.Y && e.Y <= Height)
         {
-            MouseClick?.Invoke(this, e);
+            Click?.Invoke(this, e);
             foreach (var control in Controls)
             {
                 var newE = new MouseEvent(control, e);

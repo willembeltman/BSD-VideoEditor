@@ -21,7 +21,7 @@ public class MainForm : Form
     private bool IsMovingX;
     private bool IsMovingY;
 
-    public new ApplicationContext ApplicationContext { get; }
+    public ApplicationContext ApplicationContext { get; }
 
     public MainForm(ApplicationContext applicationContext) 
     {

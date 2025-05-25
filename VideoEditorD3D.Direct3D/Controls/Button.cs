@@ -6,12 +6,14 @@ namespace VideoEditorD3D.Direct3D.Controls;
 
 public class Button : Label
 {
-    public Button() 
+    public Button()
     {
         BorderSize = 2;
         MouseDown += Button_MouseDown;
         MouseUp += Button_MouseUp;
         MouseLeave += Button_MouseLeave;
+        BackColor = new RawColor4(0, 0, 0, 0.5f);
+        ForeColor = new RawColor4(1, 1, 1, 1);
     }
 
     private RawColor4 _MouseDownBackColor = new(1, 1, 1, 1);
@@ -43,13 +45,10 @@ public class Button : Label
 
     private void Button_MouseDown(object? sender, MouseEvent e)
     {
-        if (OriginalBackColor == null && OriginalForeColor == null)
-        {
-            OriginalBackColor = BackColor;
-            OriginalForeColor = ForeColor;
-            BackColor = MouseDownBackColor;
-            ForeColor = MouseDownForeColor;
-        }
+        OriginalBackColor = BackColor;
+        OriginalForeColor = ForeColor;
+        BackColor = MouseDownBackColor;
+        ForeColor = MouseDownForeColor;
     }
     private void Button_MouseUp(object? sender, MouseEvent e)
     {

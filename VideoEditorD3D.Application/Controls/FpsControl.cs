@@ -1,5 +1,6 @@
 ﻿using SharpDX.Mathematics.Interop;
 using VideoEditorD3D.Direct3D.Controls;
+using VideoEditorD3D.Direct3D.Drawing;
 using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Application.Controls;
@@ -22,5 +23,9 @@ public class FpsControl : Label
     private void FpsControl_Update(object? sender, EventArgs e)
     {
         Text = $"{ApplicationForm.Timers.FpsTimer.Fps}fps   {ApplicationForm.Timers.OnUpdateTimer.Time * 1000:F3}ms   {ApplicationForm.Timers.RenderToGpuTimer.Time * 1000:F3}ms";
+
+        var size = Foreground.MeasureText(Text, -1, -1, Font, FontSize, FontStyle, FontLetterSpacing, ForeColor);
+        Width = TextPaddingLeft + TextPaddingRight + size.Width;
+        Height = TextPaddingTop + TextPaddingBottom + size.Height;
     }
 }
