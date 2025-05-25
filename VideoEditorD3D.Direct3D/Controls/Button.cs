@@ -6,15 +6,8 @@ namespace VideoEditorD3D.Direct3D.Controls;
 
 public class Button : Label
 {
-    public Button()
-    {
-        BorderSize = 2;
-        MouseDown += Button_MouseDown;
-        MouseUp += Button_MouseUp;
-        MouseLeave += Button_MouseLeave;
-        BackColor = new RawColor4(0, 0, 0, 0.5f);
-        ForeColor = new RawColor4(1, 1, 1, 1);
-    }
+    private RawColor4? OriginalBackColor;
+    private RawColor4? OriginalForeColor;
 
     private RawColor4 _MouseDownBackColor = new(1, 1, 1, 1);
     public RawColor4 MouseDownBackColor
@@ -40,15 +33,44 @@ public class Button : Label
         }
     }
 
-    public RawColor4? OriginalBackColor { get; private set; }
-    public RawColor4? OriginalForeColor { get; private set; }
+    public override RawColor4 BackColor
+    {
+        get => base.BackColor;
+        set
+        {
+            base.BackColor = value;
+            if (!MouseIsDown)
+                OriginalBackColor = value;
+        }
+    }
+    public override RawColor4 ForeColor
+    {
+        get => base.ForeColor;
+        set
+        {
+            base.ForeColor = value;
+            if (!MouseIsDown)
+                OriginalForeColor = value;
+        }
+    }
+
+    public Button()
+    {
+        BorderSize = 2;
+        MouseDown += Button_MouseDown;
+        MouseUp += Button_MouseUp;
+        MouseLeave += Button_MouseLeave;
+        BackColor = new RawColor4(0, 0, 0, 0.5f);
+        ForeColor = new RawColor4(1, 1, 1, 1);
+    }
 
     private void Button_MouseDown(object? sender, MouseEvent e)
     {
-        OriginalBackColor = BackColor;
-        OriginalForeColor = ForeColor;
-        BackColor = MouseDownBackColor;
-        ForeColor = MouseDownForeColor;
+        if (OriginalBackColor != null && OriginalForeColor != null)
+        {
+            BackColor = MouseDownBackColor;
+            ForeColor = MouseDownForeColor;
+        }
     }
     private void Button_MouseUp(object? sender, MouseEvent e)
     {

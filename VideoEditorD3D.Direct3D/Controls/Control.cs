@@ -150,6 +150,8 @@ public class Control : IDisposable, IComparable
     }
     public int AbsoluteBottom => AbsoluteTop + Height;
 
+    public bool MouseIsDown { get; private set; }
+
     public void Invalidate()
     {
         HasToDraw = true;
@@ -163,11 +165,11 @@ public class Control : IDisposable, IComparable
     {
         if (!Visible) return;
 
-        OnLoad();
-
-        if (HasToResize) OnResize();
+        if (!Loaded) OnLoad();
 
         Update?.Invoke(this, EventArgs.Empty);
+
+        if (HasToResize) OnResize();
 
         foreach (var control in Controls)
         {
@@ -178,26 +180,23 @@ public class Control : IDisposable, IComparable
     {
         if (!Visible) return;
 
+        foreach (var control in Controls)
+        {
+            control.OnDraw();
+        }
+
         if (HasToDraw)
         {
             Draw?.Invoke(this, EventArgs.Empty);
             HasToDraw = false;
         }
-
-        foreach (var control in Controls)
-        {
-            control.OnDraw();
-        }
     }
 
     public virtual void OnLoad()
     {
-        if (!Loaded)
-        {
-            Load?.Invoke(this, EventArgs.Empty);
-            Loaded = true;
-            Invalidate();
-        }
+        Load?.Invoke(this, EventArgs.Empty);
+        Loaded = true;
+        Invalidate();
     }
     public virtual void OnResize()
     {
@@ -285,6 +284,8 @@ public class Control : IDisposable, IComparable
     }
     public virtual void OnMouseUp(MouseEvent e)
     {
+        MouseIsDown = false;
+
         if (0 <= e.X && e.X <= Width &&
             0 <= e.Y && e.Y <= Height)
         {
@@ -301,6 +302,7 @@ public class Control : IDisposable, IComparable
         if (0 <= e.X && e.X <= Width &&
             0 <= e.Y && e.Y <= Height)
         {
+            MouseIsDown = true;
             OnGotFocus(e);
             MouseDown?.Invoke(this, e);
             foreach (var control in Controls)
@@ -311,6 +313,7 @@ public class Control : IDisposable, IComparable
         }
         else
         {
+            MouseIsDown = false;
             OnLostFocus(e);
         }
     }
@@ -356,6 +359,8 @@ public class Control : IDisposable, IComparable
     }
     public virtual void OnMouseLeave(EventArgs e)
     {
+        MouseIsDown = false;
+
         if (MouseOver)
         {
             MouseOver = false;

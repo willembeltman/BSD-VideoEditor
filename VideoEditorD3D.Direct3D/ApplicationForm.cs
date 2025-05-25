@@ -97,7 +97,7 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
     {
         base.OnHandleCreated(e);
 
-        
+
 
         RecreateSwapChain();
     }
@@ -451,24 +451,10 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
         if (IsNotReadyToDraw)
             return;
 
-        try
-        {
-            var forms = _Forms!.CurrentArray;
-            if (forms.Length < 1)
-                return;
-            Draw(forms);
-        }
-        catch (Exception ex)
-        {
-            // Dit zou niet meer voor kunnen komen nu
-            ApplicationContext.Logger?.WriteException(ex);
-
-            // Checken omdat de KillSwitch inmiddels ook aangezet kan zijn
-            if (!IsNotReadyToDraw)
-            {
-                RecreateSwapChain();
-            }
-        }
+        var forms = _Forms!.CurrentArray;
+        if (forms.Length < 1)
+            return;
+        Draw(forms);
     }
     private void Draw(ImmutableArray<Forms.Form> forms)
     {
@@ -496,9 +482,23 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
         if (IsNotReadyToDraw)
             return;
 
-        lock (UILock)
+        try
         {
-            RenderToGpu(forms);
+            lock (UILock)
+            {
+                RenderToGpu(forms);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Dit zou niet meer voor kunnen komen nu
+            ApplicationContext.Logger?.WriteException(ex);
+
+            // Checken omdat de KillSwitch inmiddels ook aangezet kan zijn
+            if (IsNotReadyToDraw)
+                return;
+
+            RecreateSwapChain();
         }
     }
     private void RenderToGpu(ImmutableArray<Forms.Form> forms)

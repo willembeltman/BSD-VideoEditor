@@ -12,13 +12,17 @@ namespace VideoEditorD3D.Application.Controls.Controls
             BackColor = new SharpDX.Mathematics.Interop.RawColor4(0, 0, 0, 0.5f);
             PlayerControlsControl = new PlayerControlsControl();
             Controls.Add(PlayerControlsControl);
+            PlayerControlsControl.Resize += PlayerControlsControl_Resize;
             Resize += ControlsControl_Resize;
+        }
+
+        private void PlayerControlsControl_Resize(object? sender, EventArgs e)
+        {
+            Height = PlayerControlsControl.Height;
         }
 
         private void ControlsControl_Resize(object? sender, EventArgs e)
         {
-            PlayerControlsControl.Width = 36 * 3 + 10;
-            PlayerControlsControl.Height = Height;
         }
 
     }

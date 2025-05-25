@@ -11,16 +11,10 @@ public class BackControl : Control
     {
         BackgroundLayer = GraphicsLayers.CreateNewLayer();
         Draw += BackControl_Draw;
-        Resize += BackControl_Resize;
-    }
-
-    private void BackControl_Resize(object? sender, EventArgs e)
-    {
-        Invalidate();
     }
 
     private RawColor4 _BackColor = new(0, 0, 0, 0);
-    public RawColor4 BackColor
+    public virtual RawColor4 BackColor
     {
         get => _BackColor;
         set

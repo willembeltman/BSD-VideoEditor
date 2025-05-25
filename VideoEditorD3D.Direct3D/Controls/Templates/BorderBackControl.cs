@@ -1,6 +1,5 @@
 ﻿using SharpDX.Mathematics.Interop;
 using VideoEditorD3D.Direct3D.Drawing;
-using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Controls.Templates;
 
@@ -17,7 +16,7 @@ public class BorderBackControl : BackControl
     }
 
     public event EventHandler<RawColor4>? BorderColorChanged;
-    public RawColor4 BorderColor
+    public virtual RawColor4 BorderColor
     {
         get => _BorderColor;
         set
@@ -29,7 +28,7 @@ public class BorderBackControl : BackControl
         }
     }
     public event EventHandler<int>? BorderSizeChanged;
-    public int BorderSize
+    public virtual int BorderSize
     {
         get => _BorderSize;
         set

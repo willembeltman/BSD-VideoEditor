@@ -13,16 +13,19 @@ namespace VideoEditorD3D.Application.Controls.Controls
         {
             btnStop = new Button();
             btnStop.Click += BtnStop_Click;
+            btnStop.Resize += Btn_Resize;
             btnStop.Text = "||";
             Controls.Add(btnStop);
 
             btnForwardPlayback = new Button();
             btnForwardPlayback.Click += BtnForwardPlayback_Click;
+            btnForwardPlayback.Resize += Btn_Resize;
             btnForwardPlayback.Text = "|>";
             Controls.Add(btnForwardPlayback);
 
             btnBackwardPlayback = new Button();
             btnBackwardPlayback.Click += BtnBackwardPlayback_Click;
+            btnBackwardPlayback.Resize += Btn_Resize;
             btnBackwardPlayback.Text = "<|";
             Controls.Add(btnBackwardPlayback);
 
@@ -62,6 +65,19 @@ namespace VideoEditorD3D.Application.Controls.Controls
 
         private void PlayerControlsControl_Resize(object? sender, EventArgs e)
         {
+        }
+
+        private void Btn_Resize(object? sender, EventArgs e)
+        {
+            btnBackwardPlayback.Left = 1;
+            btnBackwardPlayback.Top = 1;
+            btnStop.Left = btnBackwardPlayback.Right + 5;
+            btnStop.Top = 1;
+            btnForwardPlayback.Left = btnStop.Right + 5;
+            btnForwardPlayback.Top = 1;
+
+            Width = btnForwardPlayback.Right + 1;
+            Height = btnForwardPlayback.Bottom + 1;
         }
     }
 }

@@ -29,20 +29,21 @@ public class MainForm : Form
         BackColor = new RawColor4(0.125f, 0.25f, 0.5f, 1);
 
         DisplayControl = new DisplayControl();
-        DisplayControl.BackColor = new RawColor4(0, 0, 0, 1);
         Controls.Add(DisplayControl);
+        DisplayControl.BackColor = new RawColor4(0, 0, 0, 1);
 
         ControlsControl = new ControlsControl();
-        DisplayControl.BackColor = new RawColor4(0, 0, 0, 1);
         Controls.Add(ControlsControl);
+        ControlsControl.BackColor = new RawColor4(0, 0, 0, 1);
+        ControlsControl.Resize += MainForm_Resize;
 
         PropertiesControl = new PropertiesControl();
-        PropertiesControl.BackColor = new RawColor4(0, 0, 0, 1);
         Controls.Add(PropertiesControl);
+        PropertiesControl.BackColor = new RawColor4(0, 0, 0, 1);
 
         TimelineControl = new TimelineControl();
-        TimelineControl.BackColor = new RawColor4(0, 0, 0, 1);
         Controls.Add(TimelineControl);
+        TimelineControl.BackColor = new RawColor4(0, 0, 0, 1);
 
         MenuStrip = new MenuStrip(this);
         Controls.Add(MenuStrip);

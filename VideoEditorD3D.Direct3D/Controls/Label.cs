@@ -11,7 +11,6 @@ public class Label : ForeBorderBackControl
     public Label()
     {
         Foreground = GraphicsLayers.CreateNewLayer();
-
         Draw += Label_Draw;
     }
 
@@ -30,10 +29,9 @@ public class Label : ForeBorderBackControl
     private void Label_Draw(object? sender, EventArgs e)
     {
         Foreground.StartDrawing();
-        //var size = 
-        Foreground.DrawText(Text, TextPaddingLeft, TextPaddingTop, -1, -1, Font, FontSize, FontStyle, FontLetterSpacing, ForeColor);
-        //Width = TextPaddingLeft + TextPaddingRight + size.Width;
-        //Height = TextPaddingTop + TextPaddingBottom + size.Height;
+        var size = Foreground.DrawText(Text, TextPaddingLeft, TextPaddingTop, -1, -1, Font, FontSize, FontStyle, FontLetterSpacing, ForeColor);
+        Width = TextPaddingLeft + TextPaddingRight + size.Width;
+        Height = TextPaddingTop + TextPaddingBottom + size.Height;
         Foreground.EndDrawing();
     }
 }

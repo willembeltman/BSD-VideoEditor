@@ -74,6 +74,7 @@ public class MenuStripItem : ForeBorderBackControl
         TextPaddingTop = MenuStrip.TextPaddingTop;
         TextPaddingRight = MenuStrip.TextPaddingRight;
         TextPaddingBottom = MenuStrip.TextPaddingBottom;
+
         MeasureSize();
     }
 

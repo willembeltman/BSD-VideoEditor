@@ -8,7 +8,7 @@ public class ForeBorderBackControl : BorderBackControl
 
     public event EventHandler<RawColor4>? ForeColorChanged;
     private RawColor4 _ForeColor = new RawColor4(0, 0, 0, 0);
-    public RawColor4 ForeColor
+    public virtual RawColor4 ForeColor
     {
         get => _ForeColor;
         set
@@ -22,7 +22,7 @@ public class ForeBorderBackControl : BorderBackControl
 
     public event EventHandler<string>? FontChanged;
     private string _Font = "Ebrima";
-    public string Font
+    public virtual string Font
     {
         get => _Font;
         set
@@ -36,7 +36,7 @@ public class ForeBorderBackControl : BorderBackControl
 
     public event EventHandler<float>? FontSizeChanged;
     private float _FontSize = 8;
-    public float FontSize
+    public virtual float FontSize
     {
         get => _FontSize;
         set
@@ -50,7 +50,7 @@ public class ForeBorderBackControl : BorderBackControl
 
     public event EventHandler<FontStyle>? FontStyleChanged;
     private FontStyle _FontStyle = FontStyle.Regular;
-    public FontStyle FontStyle
+    public virtual FontStyle FontStyle
     {
         get => _FontStyle;
         set
@@ -64,7 +64,7 @@ public class ForeBorderBackControl : BorderBackControl
 
     public event EventHandler<int>? FontLetterSpacingChanged;
     private int _FontLetterSpacing = -3;
-    public int FontLetterSpacing
+    public virtual int FontLetterSpacing
     {
         get => _FontLetterSpacing;
         set
@@ -78,7 +78,7 @@ public class ForeBorderBackControl : BorderBackControl
 
     public event EventHandler<int>? TextPaddingChanged;
     private int _TextPaddingTop = 4;
-    public int TextPaddingTop
+    public virtual int TextPaddingTop
     {
         get => _TextPaddingTop;
         set
@@ -92,7 +92,7 @@ public class ForeBorderBackControl : BorderBackControl
 
     public event EventHandler<int>? TextPaddingLeftChanged;
     private int _TextPaddingLeft = 6;
-    public int TextPaddingLeft
+    public virtual int TextPaddingLeft
     {
         get => _TextPaddingLeft;
         set
@@ -106,7 +106,7 @@ public class ForeBorderBackControl : BorderBackControl
 
     public event EventHandler<int>? TextPaddingBottomChanged;
     private int _TextPaddingBottom = 6;
-    public int TextPaddingBottom
+    public virtual int TextPaddingBottom
     {
         get => _TextPaddingBottom;
         set
@@ -120,7 +120,7 @@ public class ForeBorderBackControl : BorderBackControl
 
     public event EventHandler<int>? TextPaddingRightChanged;
     private int _TextPaddingRight = 12;
-    public int TextPaddingRight
+    public virtual int TextPaddingRight
     {
         get => _TextPaddingRight;
         set
@@ -132,7 +132,7 @@ public class ForeBorderBackControl : BorderBackControl
         }
     }
 
-    public int TextPadding
+    public virtual int TextPadding
     {
         get => TextPaddingTop;
         set

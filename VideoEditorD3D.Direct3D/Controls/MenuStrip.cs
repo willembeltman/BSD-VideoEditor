@@ -11,7 +11,7 @@ public class MenuStrip : ForeBorderBackControl
 
     public MenuStrip(Forms.Form parentForm)
     {
-        this.ParentForm = parentForm;
+        ParentForm = parentForm;
 
         Items = new ObservableArrayCollection<MenuStripItem>();
         Items.Added += (sender, item) =>
