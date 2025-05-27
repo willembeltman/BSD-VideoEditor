@@ -1,4 +1,5 @@
-﻿using System.Windows.Forms;
+﻿using System.Diagnostics;
+using System.Windows.Forms;
 using VideoEditorD3D.Direct3D.Collections;
 using VideoEditorD3D.Direct3D.Drawing;
 using VideoEditorD3D.Direct3D.Forms;
@@ -6,34 +7,33 @@ using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Controls;
 
-public class Control : IDisposable, IComparable
+public class Control : IDisposable //, IComparable
 {
-    private int OldLayer;
-    private int _Layer = 0;
-    public int Layer
-    {
-        get => _Layer;
-        set
-        {
-            if (_Layer == value) return;
-            _Layer = value;
-            ParentControl!.Controls.Sort();
-        }
-    }
-    public void BringToFront()
-    {
-        OldLayer = Layer;
-        Layer = ParentControl.Controls.Max(a => Layer) + 1;
-    }
-    public void RestoreFromFront()
-    {
-        Layer = OldLayer;
-    }
-    public int CompareTo(object? obj)
-    {
-        ArgumentNullException.ThrowIfNull(obj);
-        return ((Control)obj).Layer - Layer;
-    }
+    //private int OldLayer;
+    //private int _Layer = 0;
+    //public int Layer
+    //{
+    //    get => _Layer;
+    //    set
+    //    {
+    //        if (_Layer == value) return;
+    //        _Layer = value;
+    //    }
+    //}
+    //public void BringToFront()
+    //{
+    //    OldLayer = Layer;
+    //    Layer = ParentControl.Controls.Max(a => Layer) + 1;
+    //}
+    //public void RestoreFromFront()
+    //{
+    //    Layer = OldLayer;
+    //}
+    //public int CompareTo(object? obj)
+    //{
+    //    ArgumentNullException.ThrowIfNull(obj);
+    //    return ((Control)obj).Layer - Layer;
+    //}
 
     private int _Left = 0;
     private int _Top = 0;
@@ -47,7 +47,7 @@ public class Control : IDisposable, IComparable
     public Control ParentControl { get; internal set; }
 #nullable enable
     public ControlCollection Controls { get; protected set; }
-    public GraphicsLayerCollection GraphicsLayers { get; }
+    public GraphicsLayerCollection GraphicsLayers { get; protected set; }
 
     public bool HasFocus { get; set; }
     public bool Loaded { get; private set; } = false;
@@ -168,6 +168,7 @@ public class Control : IDisposable, IComparable
         if (!Loaded) OnLoad();
 
         Update?.Invoke(this, EventArgs.Empty);
+        //Debug.WriteLine($"OnUpdate {GetType().Name} {Left} {Top} {Width}x{Height}");
 
         if (HasToResize) OnResize();
 
@@ -178,28 +179,21 @@ public class Control : IDisposable, IComparable
     }
     public virtual void OnDraw()
     {
-        if (!Visible) return;
-
-        foreach (var control in Controls)
-        {
-            control.OnDraw();
-        }
-
-        if (HasToDraw)
-        {
-            Draw?.Invoke(this, EventArgs.Empty);
-            HasToDraw = false;
-        }
+        Draw?.Invoke(this, EventArgs.Empty);
+        //Debug.WriteLine($"OnDraw {GetType().Name} {Left} {Top} {Width}x{Height}");
+        HasToDraw = false;
     }
 
     public virtual void OnLoad()
     {
+        //Debug.WriteLine($"OnLoad {GetType().Name} {Left} {Top} {Width}x{Height}");
         Load?.Invoke(this, EventArgs.Empty);
         Loaded = true;
         Invalidate();
     }
     public virtual void OnResize()
     {
+        //Debug.WriteLine($"OnResize {GetType().Name} {Left} {Top} {Width}x{Height}");
         Resize?.Invoke(this, new EventArgs());
         HasToResize = false;
         Invalidate();
@@ -211,6 +205,7 @@ public class Control : IDisposable, IComparable
         {
             control.OnKeyPress(e);
         }
+        //Debug.WriteLine($"OnKeyPress {GetType().Name} {Left} {Top} {Width}x{Height} KeyChar: {e.KeyChar}");
         KeyPress?.Invoke(this, e);
     }
     public virtual void OnKeyUp(KeyEventArgs e)
@@ -219,6 +214,7 @@ public class Control : IDisposable, IComparable
         {
             control.OnKeyUp(e);
         }
+        //Debug.WriteLine($"OnKeyUp {GetType().Name} {Left} {Top} {Width}x{Height} KeyCode: {e.KeyCode}");
         KeyUp?.Invoke(this, e);
     }
     public virtual void OnKeyDown(KeyEventArgs e)
@@ -227,6 +223,7 @@ public class Control : IDisposable, IComparable
         {
             control.OnKeyDown(e);
         }
+        //Debug.WriteLine($"OnKeyDown {GetType().Name} {Left} {Top} {Width}x{Height} KeyCode: {e.KeyCode}");
         KeyDown?.Invoke(this, e);
     }
 
@@ -237,6 +234,7 @@ public class Control : IDisposable, IComparable
         {
             if (HasFocus == false)
             {
+                //Debug.WriteLine($"OnGotFocus {GetType().Name} {Left} {Top} {Width}x{Height} MouseOver: {MouseOver} MouseIsDown: {MouseIsDown} HasFocus: {HasFocus}");
                 HasFocus = true;
                 GotFocus?.Invoke(this, e);
             }
@@ -251,6 +249,7 @@ public class Control : IDisposable, IComparable
         }
         if (HasFocus)
         {
+            //Debug.WriteLine($"OnLostFocus {GetType().Name} {Left} {Top} {Width}x{Height} MouseOver: {MouseOver} MouseIsDown: {MouseIsDown} HasFocus: {HasFocus}");
             LostFocus?.Invoke(this, e);
             HasFocus = false;
         }
@@ -262,6 +261,7 @@ public class Control : IDisposable, IComparable
             0 <= e.Y && e.Y <= Height)
         {
             Click?.Invoke(this, e);
+            //Debug.WriteLine($"OnMouseClick {GetType().Name} {Left} {Top} {Width}x{Height} MouseOver: {MouseOver} MouseIsDown: {MouseIsDown} HasFocus: {HasFocus} X: {e.X} Y: {e.Y} Button: {e.Button} Clicks: {e.Clicks}");
             foreach (var control in Controls)
             {
                 var newE = new MouseEvent(control, e);
@@ -275,6 +275,7 @@ public class Control : IDisposable, IComparable
             0 <= e.Y && e.Y <= Height)
         {
             MouseDoubleClick?.Invoke(this, e);
+            //Debug.WriteLine($"OnMouseDoubleClick {GetType().Name} {Left} {Top} {Width}x{Height} MouseOver: {MouseOver} MouseIsDown: {MouseIsDown} HasFocus: {HasFocus} X: {e.X} Y: {e.Y} Button: {e.Button} Clicks: {e.Clicks}");
             foreach (var control in Controls)
             {
                 var newE = new MouseEvent(control, e);
@@ -290,6 +291,7 @@ public class Control : IDisposable, IComparable
             0 <= e.Y && e.Y <= Height)
         {
             MouseUp?.Invoke(this, e);
+            //Debug.WriteLine($"OnMouseUp {GetType().Name} {Left} {Top} {Width}x{Height} MouseOver: {MouseOver} MouseIsDown: {MouseIsDown} HasFocus: {HasFocus} X: {e.X} Y: {e.Y} Button: {e.Button} Clicks: {e.Clicks}");
             foreach (var control in Controls)
             {
                 var newE = new MouseEvent(control, e);
@@ -305,6 +307,7 @@ public class Control : IDisposable, IComparable
             MouseIsDown = true;
             OnGotFocus(e);
             MouseDown?.Invoke(this, e);
+            //Debug.WriteLine($"OnMouseDown {GetType().Name} {Left} {Top} {Width}x{Height} MouseOver: {MouseOver} MouseIsDown: {MouseIsDown} HasFocus: {HasFocus} X: {e.X} Y: {e.Y} Button: {e.Button} Clicks: {e.Clicks}");
             foreach (var control in Controls)
             {
                 var newE = new MouseEvent(control, e);
@@ -324,7 +327,7 @@ public class Control : IDisposable, IComparable
         {
             OnMouseEnter(e);
             MouseMove?.Invoke(this, e);
-
+            //Debug.WriteLine($"OnMouseMove {GetType().Name} {Left} {Top} {Width}x{Height} MouseOver: {MouseOver} MouseIsDown: {MouseIsDown} HasFocus: {HasFocus} X: {e.X} Y: {e.Y} Button: {e.Button} Clicks: {e.Clicks}");
             foreach (var control in Controls)
             {
                 var newE = new MouseEvent(control, e);
@@ -342,6 +345,7 @@ public class Control : IDisposable, IComparable
             0 <= e.Y && e.Y <= Height)
         {
             MouseWheel?.Invoke(this, e);
+            //Debug.WriteLine($"OnMouseWheel {GetType().Name} {Left} {Top} {Width}x{Height} MouseOver: {MouseOver} MouseIsDown: {MouseIsDown} HasFocus: {HasFocus} X: {e.X} Y: {e.Y} Button: {e.Button} Clicks: {e.Clicks} Delta: {e.Delta}");
             foreach (var control in Controls)
             {
                 var newE = new MouseEvent(control, e);
@@ -355,6 +359,7 @@ public class Control : IDisposable, IComparable
         {
             MouseOver = true;
             MouseEnter?.Invoke(this, e);
+            //Debug.WriteLine($"OnMouseEnter {GetType().Name} {Left} {Top} {Width}x{Height} MouseOver: {MouseOver} MouseIsDown: {MouseIsDown} HasFocus: {HasFocus}");
         }
     }
     public virtual void OnMouseLeave(EventArgs e)
@@ -374,6 +379,7 @@ public class Control : IDisposable, IComparable
             }
 
             MouseLeave?.Invoke(this, e);
+            //Debug.WriteLine($"OnMouseLeave {GetType().Name} {Left} {Top} {Width}x{Height} MouseOver: {MouseOver} MouseIsDown: {MouseIsDown} HasFocus: {HasFocus}");
         }
     }
 
@@ -384,6 +390,7 @@ public class Control : IDisposable, IComparable
         {
             DragEntered = true;
             DragEnter?.Invoke(this, e);
+            //Debug.WriteLine($"OnDragEnter {GetType().Name} {Left} {Top} {Width}x{Height} MouseOver: {MouseOver} MouseIsDown: {MouseIsDown} HasFocus: {HasFocus} X: {e.X} Y: {e.Y} Data: {e.Data?.GetType().Name ?? "null"}");
         }
     }
     public virtual void OnDragOver(DragEvent e)
@@ -414,6 +421,7 @@ public class Control : IDisposable, IComparable
             }
 
             DragOver?.Invoke(this, e);
+            //Debug.WriteLine($"OnDragOver {GetType().Name} {Left} {Top} {Width}x{Height} MouseOver: {MouseOver} MouseIsDown: {MouseIsDown} HasFocus: {HasFocus} X: {e.X} Y: {e.Y} Data: {e.Data?.GetType().Name ?? "null"}");
         }
     }
     public virtual void OnDragLeave(EventArgs e)
@@ -429,6 +437,7 @@ public class Control : IDisposable, IComparable
         }
 
         DragLeave?.Invoke(this, e);
+        //Debug.WriteLine($"OnDragLeave {GetType().Name} {Left} {Top} {Width}x{Height} MouseOver: {MouseOver} MouseIsDown: {MouseIsDown} HasFocus: {HasFocus}");
     }
     public virtual void OnDragDrop(DragEvent e)
     {
@@ -447,6 +456,7 @@ public class Control : IDisposable, IComparable
                 }
             }
             DragDrop?.Invoke(this, e);
+            //Debug.WriteLine($"OnDragDrop {GetType().Name} {Left} {Top} {Width}x{Height} MouseOver: {MouseOver} MouseIsDown: {MouseIsDown} HasFocus: {HasFocus} X: {e.X} Y: {e.Y} Data: {e.Data?.GetType().Name ?? "null"}");
         }
     }
 
@@ -457,6 +467,11 @@ public class Control : IDisposable, IComparable
     public IEnumerable<GraphicsLayer> GetAllCanvasLayers()
     {
         if (!Visible) yield break;
+
+        if (HasToDraw)
+        {
+            OnDraw();
+        }
 
         foreach (var layer in GraphicsLayers)
         {

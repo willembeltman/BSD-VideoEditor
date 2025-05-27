@@ -448,45 +448,41 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
 
     public void TryDraw()
     {
-        if (IsNotReadyToDraw)
+        if (IsNotReadyToDraw || _Forms == null || _Forms.Count < 1)
             return;
 
-        var forms = _Forms!.CurrentArray;
-        if (forms.Length < 1)
-            return;
-        Draw(forms);
+        Draw();
     }
-    private void Draw(ImmutableArray<Forms.Form> forms)
+    private void Draw()
     {
-        if (IsNotReadyToDraw)
+        if (IsNotReadyToDraw || _Forms == null || _Forms.Count < 1)
             return;
 
         using (Timers.OnUpdateTimer.DisposableObject)
         {
-            foreach (var form in forms)
+            foreach (var form in _Forms)
             {
                 form.OnUpdate();
-                form.OnDraw();
             }
         }
 
         using (Timers.RenderToGpuTimer.DisposableObject)
         {
-            LockAndRenderToGpu(forms);
+            LockAndRenderToGpu();
         }
 
         Timers.FpsTimer.CountFps();
     }
-    private void LockAndRenderToGpu(ImmutableArray<Forms.Form> forms)
+    private void LockAndRenderToGpu()
     {
-        if (IsNotReadyToDraw)
+        if (IsNotReadyToDraw || _Forms == null || _Forms.Count < 1)
             return;
 
         try
         {
             lock (UILock)
             {
-                RenderToGpu(forms);
+                RenderToGpu();
             }
         }
         catch (Exception ex)
@@ -501,12 +497,12 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
             RecreateSwapChain();
         }
     }
-    private void RenderToGpu(ImmutableArray<Forms.Form> forms)
+    private void RenderToGpu()
     {
-        if (IsNotReadyToDraw || _DeviceContext == null || _Device == null || _SwapChain == null)
+        if (IsNotReadyToDraw || _DeviceContext == null || _Device == null || _SwapChain == null || _Forms == null || _Forms.Count < 1)
             return;
 
-        foreach (var form in forms)
+        foreach (var form in _Forms)
         {
             foreach (var layer in form.GetAllCanvasLayers())
             {

@@ -1,6 +1,5 @@
 ﻿using VideoEditorD3D.Direct3D.Controls.Templates;
 using VideoEditorD3D.Direct3D.Drawing;
-using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Controls;
 

@@ -24,8 +24,8 @@ public class FpsControl : Label
     {
         Text = $"{ApplicationForm.Timers.FpsTimer.Fps}fps   {ApplicationForm.Timers.OnUpdateTimer.Time * 1000:F3}ms   {ApplicationForm.Timers.RenderToGpuTimer.Time * 1000:F3}ms";
 
-        var size = Foreground.MeasureText(Text, -1, -1, Font, FontSize, FontStyle, FontLetterSpacing, ForeColor);
-        Width = TextPaddingLeft + TextPaddingRight + size.Width;
-        Height = TextPaddingTop + TextPaddingBottom + size.Height;
+        //var size = Foreground.MeasureText(Text, -1, -1, Font, FontSize, FontStyle, FontLetterSpacing, ForeColor);
+        //Width = TextPaddingLeft + TextPaddingRight + size.Width;
+        //Height = TextPaddingTop + TextPaddingBottom + size.Height;
     }
 }
