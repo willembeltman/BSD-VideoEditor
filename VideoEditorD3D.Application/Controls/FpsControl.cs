@@ -1,7 +1,5 @@
 ﻿using SharpDX.Mathematics.Interop;
 using VideoEditorD3D.Direct3D.Controls;
-using VideoEditorD3D.Direct3D.Drawing;
-using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Application.Controls;
 

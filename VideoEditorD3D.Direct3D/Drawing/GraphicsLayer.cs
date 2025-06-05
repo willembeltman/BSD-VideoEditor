@@ -9,11 +9,10 @@ namespace VideoEditorD3D.Direct3D.Drawing;
 
 public class GraphicsLayer(Control control) : IDisposable
 {
-    private readonly Control Control = control;
     private IApplicationForm ApplicationForm => control.ApplicationForm;
 
-    public int AbsoluteLeft => Control.AbsoluteLeft;
-    public int AbsoluteTop => Control.AbsoluteTop;
+    public int AbsoluteLeft => control.AbsoluteLeft;
+    public int AbsoluteTop => control.AbsoluteTop;
     public int Width => ApplicationForm.Width;
     public int Height => ApplicationForm.Height;
     public Device Device => ApplicationForm.Device;

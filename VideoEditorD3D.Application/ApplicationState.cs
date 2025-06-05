@@ -1,13 +1,16 @@
 ﻿using Bsd.Logger;
-using VideoEditorD3D.Application.Forms;
+using System.Diagnostics;
+using VideoEditorD3D.Application.Controls.TimelineControl;
 using VideoEditorD3D.Application.Helpers;
+using VideoEditorD3D.Direct3D.Collections;
 using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Entities;
+using VideoEditorD3D.FFMpeg.Types;
 
 namespace VideoEditorD3D.Application;
 
-public class ApplicationContext : IApplicationContext
+public class ApplicationState : IApplicationContext
 {
     private VideoDrawerThread? _DrawerThread;
 
@@ -16,11 +19,24 @@ public class ApplicationContext : IApplicationContext
     public ApplicationDbContext Db { get; }
     public Project Project { get; }
     public Timeline Timeline { get; }
+    public ObservableArrayCollection<VideoBuffer> VideoBuffers { get; }
+    public ObservableArrayCollection<AudioBuffer> AudioBuffers { get; }
+    public Stopwatch PlaybackStopwatch { get; }
+    public bool PlaybackBackward { get; set; }
+    public double PlaybackStart { get; set; }
 
-    public ApplicationContext()
+    public ApplicationState()
     {
         Logger = new DebugLogger();
         Config = ApplicationSettings.Load();
+        PlaybackStopwatch = new Stopwatch();
+
+        VideoBuffers = [];
+        VideoBuffers.Added += VideoAdded;
+        VideoBuffers.Removed += VideoRemoved;
+        AudioBuffers = [];
+        AudioBuffers.Added += AudioAdded;
+        AudioBuffers.Removed += AudioRemoved;
 
         if (Config.LastDatabaseFullName == null)
         {
@@ -61,6 +77,26 @@ public class ApplicationContext : IApplicationContext
         Timeline = Project.CurrentTimeline.Value;
     }
 
+    private void AudioRemoved(object? sender, AudioBuffer e)
+    {
+        e.Dispose();
+    }
+
+    private void VideoRemoved(object? sender, VideoBuffer e)
+    {
+        e.Dispose();
+    }
+
+    private void AudioAdded(object? sender, AudioBuffer e)
+    {
+        e.StartThread();
+    }
+
+    private void VideoAdded(object? sender, VideoBuffer e)
+    {
+        e.StartThread();
+    }
+
     public IDrawerThread? OnCreateDrawerThread(IApplicationForm applicationForm)
     {
         return new VideoDrawerThread(this, applicationForm);
@@ -70,10 +106,30 @@ public class ApplicationContext : IApplicationContext
         return new MainForm(this);
     }
 
+    public bool UpdateCurrentTime()
+    {
+        if (PlaybackStopwatch.IsRunning)
+        {
+            Timeline.CurrentTime = PlaybackStart + PlaybackStopwatch.Elapsed.TotalSeconds * (PlaybackBackward ? -1 : 1);
+            return true;
+        }
+        return false;
+    }
+    public Frame[] GetCurrentFrames()
+    {
+        return VideoBuffers
+            .Where(a => 
+                a.TimelineStartTime <= Timeline.CurrentTime && Timeline.CurrentTime <= a.TimelineEndTime)
+            .OrderBy(a => a.Layer)
+            .Select(a => a.GetCurrentFrame())
+            .ToArray();
+    }
+
     public void Dispose()
     {
         Logger?.Dispose();
         _DrawerThread?.Dispose();
         GC.SuppressFinalize(this);
     }
+
 }

@@ -1,6 +1,6 @@
 ﻿using VideoEditorD3D.Direct3D.Forms;
 
-namespace VideoEditorD3D.Application.Controls.Timeline;
+namespace VideoEditorD3D.Application.Controls.TimelineControl;
 
 public class Scrolling
 {

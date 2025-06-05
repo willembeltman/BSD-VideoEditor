@@ -1,29 +1,29 @@
 ﻿using SharpDX.Mathematics.Interop;
 using VideoEditorD3D.Application.Controls;
 using VideoEditorD3D.Application.Controls.Controls;
-using VideoEditorD3D.Application.Controls.Timeline;
+using VideoEditorD3D.Application.Controls.TimelineControl;
 using VideoEditorD3D.Direct3D.Controls;
 using VideoEditorD3D.Direct3D.Forms;
 
-namespace VideoEditorD3D.Application.Forms;
+namespace VideoEditorD3D.Application;
 
 public class MainForm : Form
 {
-    private readonly MenuStrip MenuStrip;
-    private readonly DisplayControl DisplayControl;
-    private readonly TimelineControl TimelineControl;
-    private readonly ControlsControl ControlsControl;
-    private readonly PropertiesControl PropertiesControl;
-    private readonly FpsControl FpsControl;
+    public MenuStrip MenuStrip{ get; }
+    public DisplayControl DisplayControl { get; }
+    public TimelineControl TimelineControl{ get; }
+    public ControlsControl ControlsControl{ get; }
+    public PropertiesControl PropertiesControl{ get; }
+    public FpsControl FpsControl{ get; }
 
     private int TimelineHeight = 200;
     private int PropertiesWidth = 320;
     private bool IsMovingX;
     private bool IsMovingY;
 
-    public ApplicationContext ApplicationContext { get; }
+    public ApplicationState ApplicationContext { get; }
 
-    public MainForm(ApplicationContext applicationContext) 
+    public MainForm(ApplicationState applicationContext) 
     {
         ApplicationContext = applicationContext;
         BackColor = new RawColor4(0.125f, 0.25f, 0.5f, 1);

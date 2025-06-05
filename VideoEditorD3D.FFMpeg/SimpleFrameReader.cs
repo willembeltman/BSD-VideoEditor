@@ -87,7 +87,9 @@ public class SimpleFrameReader
 
     private bool Read(Stream stream, out Frame frame, ref long currentFrameIndex)
     {
-        frame = new Frame(Resolution, currentFrameIndex);
+        var currentTime = Fps.ConvertIndexToTime(currentFrameIndex);
+
+        frame = new Frame(Resolution, currentFrameIndex, currentTime);
 
         var endOfVideo = false;
         var read = 0;
@@ -104,7 +106,6 @@ public class SimpleFrameReader
             return false;
         }
 
-        frame.Index = currentFrameIndex;
         currentFrameIndex++;
         return true;
     }

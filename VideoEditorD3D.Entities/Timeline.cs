@@ -6,7 +6,7 @@ namespace VideoEditorD3D.Entities;
 public class Timeline : IEntity
 {
     public long Id { get; set; }
-    public long ProjectId { get; set; }
+    public long? ProjectId { get; set; }
 
     public Fps Fps { get; set; } = new Fps(1, 60);
     public Resolution Resolution { get; set; } = new Resolution(1920, 1080);
@@ -33,11 +33,12 @@ public class Timeline : IEntity
     public event EventHandler<double> CurrentTimeUpdated;
 
     [NotMapped]
-    public IEnumerable<TimelineClip> AllClips => VideoClips.Select(a => a as TimelineClip).Concat(AudioClips);
+    public IEnumerable<TimelineClip> AllClips => TimelineClipVideos.Select(a => a as TimelineClip).Concat(TimelineClipAudios);
     [NotMapped]
     public List<TimelineClip> SelectedClips { get; } = new List<TimelineClip>();
 
     public virtual ILazy<Project> Project { get; set; }
-    public virtual ICollection<TimelineClipVideo> VideoClips { get; set; }
-    public virtual ICollection<TimelineClipAudio> AudioClips { get; set; }
+    public virtual ICollection<TimelineClipVideo> TimelineClipVideos { get; set; }
+    public virtual ICollection<TimelineClipAudio> TimelineClipAudios { get; set; }
+    public virtual ICollection<TimelineClipGroup> TimelineClipGroups { get; set; }
 }

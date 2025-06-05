@@ -1,14 +1,14 @@
 ﻿using System.Diagnostics;
-using VideoEditorD3D.Direct3D.Controls.Templates;
+using System.Formats.Tar;
 using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Entities;
+using VideoEditorD3D.FFMpeg;
 using Point = System.Drawing.Point;
 
-namespace VideoEditorD3D.Application.Controls.Timeline;
+namespace VideoEditorD3D.Application.Controls.TimelineControl;
 
-public partial class TimelineControl : BackControl
+public partial class TimelineControl 
 {
-
     private void TimelineControl_Load(object? sender, EventArgs e)
     {
         SetupScrollbar();
@@ -92,8 +92,7 @@ public partial class TimelineControl : BackControl
             return;
         }
 
-        var formPoint = new Point(e.X, e.Y);
-        var timelinePosition = GetTimelinePosition(formPoint);
+        var timelinePosition = GetTimelinePosition(new Point(e.X, e.Y));
         if (timelinePosition == null)
         {
             DragAndDrop.Clear();
@@ -103,53 +102,53 @@ public partial class TimelineControl : BackControl
         e.Effect = System.Windows.Forms.DragDropEffects.Copy;
 
         var currentTime = timelinePosition.Value.CurrentTime;
-        var layerIndex = timelinePosition.Value.Layer;
+        var layerStartIndex = timelinePosition.Value.Layer;
         foreach (var fullName in fullNames)
         {
-            var file = VideoEditorD3D.FFMpeg.MediaContainer.Open(fullName);
-            if (file == null) continue;
-            if (file.Duration == null) continue;
+            var mediaContainer = MediaContainer.Open(fullName);
+            if (mediaContainer == null) continue;
+            if (mediaContainer.Duration == null) continue;
+            DragAndDrop.MediaContainers.Add(mediaContainer);
 
-            var group = new TimelineClipGroup();
             var start = currentTime;
-            currentTime += file.Duration.Value;
-            var layer = layerIndex;
-            foreach (var videoStream in file.VideoStreams.OrderBy(a => a.Index))
+            currentTime += mediaContainer.Duration.Value;
+            var layerIndex = layerStartIndex;
+            foreach (var videoStream in mediaContainer.VideoStreams.OrderBy(a => a.Index))
             {
                 var clip = new TimelineClipVideo()
                 {
                     TimelineId = Timeline.Id,
-                    TimelineClipGroupId = group.Id,
-                    StreamInfo = videoStream,
-                    Layer = layer,
-                    StartTime = start,
-                    LengthTime = file.Duration.Value,
+                    TempStreamInfo = videoStream,
+                    Layer = layerIndex,
+                    TimelineStartTime = start,
+                    TimelineLengthTime = mediaContainer.Duration.Value,
                     ClipStartTime = 0,
-                    ClipLengthTime = file.Duration.Value
+                    ClipLengthTime = mediaContainer.Duration.Value,
+                    TempMediaContainer = mediaContainer
                 };
                 DragAndDrop.VideoClips.Add(clip);
-                layer++;
+                layerIndex++;
             }
 
-            layer = 0;
-            foreach (var audioStream in file.AudioStreams.OrderBy(a => a.Index))
+            layerIndex = 0;
+            foreach (var audioStream in mediaContainer.AudioStreams.OrderBy(a => a.Index))
             {
                 var clip = new TimelineClipAudio()
                 {
                     TimelineId = Timeline.Id,
-                    TimelineClipGroupId = group.Id,
-                    StreamInfo = audioStream,
-                    Layer = layer,
-                    StartTime = start,
-                    EndTime = currentTime,
+                    TempStreamInfo = audioStream,
+                    Layer = layerIndex,
+                    TimelineStartTime = start,
+                    TimelineEndTime = currentTime,
                     ClipStartTime = 0,
-                    ClipEndTime = file.Duration.Value
+                    ClipEndTime = mediaContainer.Duration.Value,
+                    TempMediaContainer = mediaContainer
                 };
                 DragAndDrop.AudioClips.Add(clip);
-                layer++;
+                layerIndex++;
             }
 
-            DragAndDrop.MediaContainers.Add(file);
+            DragAndDrop.MediaContainers.Add(mediaContainer);
         }
 
         Invalidate();
@@ -185,13 +184,13 @@ public partial class TimelineControl : BackControl
             foreach (var videoStream in file.VideoStreams.OrderBy(a => a.Index))
             {
                 var cachedVideoStream = DragAndDrop.VideoClips
-                    .FirstOrDefault(a => a.StreamInfo.EqualTo(videoStream));
+                    .FirstOrDefault(a => a.TempStreamInfo.EqualTo(videoStream));
 
                 if (cachedVideoStream != null)
                 {
                     cachedVideoStream.Layer = layer;
-                    cachedVideoStream.StartTime = start;
-                    cachedVideoStream.EndTime = currentTime;
+                    cachedVideoStream.TimelineStartTime = start;
+                    cachedVideoStream.TimelineEndTime = currentTime;
                     layer++;
                 }
             }
@@ -200,20 +199,19 @@ public partial class TimelineControl : BackControl
             foreach (var audioStream in file.AudioStreams.OrderBy(a => a.Index))
             {
                 var cachedAudioStream = DragAndDrop.AudioClips
-                    .FirstOrDefault(a => a.StreamInfo.EqualTo(audioStream));
+                    .FirstOrDefault(a => a.TempStreamInfo.EqualTo(audioStream));
 
                 if (cachedAudioStream != null)
                 {
                     cachedAudioStream.Layer = layer;
-                    cachedAudioStream.StartTime = start;
-                    cachedAudioStream.EndTime = currentTime;
+                    cachedAudioStream.TimelineStartTime = start;
+                    cachedAudioStream.TimelineEndTime = currentTime;
                     layer++;
                 }
             }
         }
 
         SetupScrollbar();
-        Invalidate();
     }
     private void TimelineControl_DragDrop(object? sender, DragEvent e)
     {
@@ -221,13 +219,78 @@ public partial class TimelineControl : BackControl
         if (fullNames.Length == 0) return;
 
         foreach (var item in DragAndDrop.VideoClips)
-            Timeline.VideoClips.Add(item);
+        {
+            var mediaFile = GetMediaFile(item);
+            var timelineGroup = GetTimelineGroup(mediaFile);
+            var mediaStream = GetMediaStream(item, mediaFile);
+
+            item.MediaStreamId = mediaStream.Id;
+            item.TimelineClipGroupId = timelineGroup.Id;
+            Timeline.TimelineClipVideos.Add(item);
+
+            State.VideoBuffers.Add(new VideoBuffer(Timeline, item));
+        }
         foreach (var item in DragAndDrop.AudioClips)
-            Timeline.AudioClips.Add(item);
+        {
+            var mediaFile = GetMediaFile(item);
+            var timelineGroup = GetTimelineGroup(mediaFile);
+            var mediaStream = GetMediaStream(item, mediaFile);
+
+            item.MediaStreamId = mediaStream.Id;
+            item.TimelineClipGroupId = timelineGroup.Id;
+            Timeline.TimelineClipAudios.Add(item);
+
+            State.AudioBuffers.Add(new AudioBuffer(Timeline, item));
+        }
 
         TimelineControl_DragLeave(sender, e);
-        Invalidate();
     }
+
+    private TimelineClipGroup GetTimelineGroup(MediaFile mediaFile)
+    {
+        var group = Timeline.TimelineClipGroups.FirstOrDefault(a => a.MediaFileId == mediaFile.Id);
+        if (group == null)
+        {
+            group = new TimelineClipGroup()
+            {
+                MediaFileId = mediaFile.Id
+            };
+            Timeline.TimelineClipGroups.Add(group);
+        }
+        return group;
+    }
+
+    private static MediaStream GetMediaStream(TimelineClip item, MediaFile mediaFile)
+    {
+        var mediaStream = mediaFile.MediaStreams.FirstOrDefault(a => a.Index == item.TempStreamInfo.Index);
+        if (mediaStream == null)
+        {
+            mediaStream = new MediaStream()
+            {
+                Index = item.TempStreamInfo.Index,
+            };
+            mediaFile.MediaStreams.Add(mediaStream);
+        }
+        return mediaStream;
+    }
+
+    private MediaFile GetMediaFile(TimelineClip item)
+    {
+        var fullname = item.TempMediaContainer.FullName;
+        var duration = item.TempMediaContainer.Duration!.Value;
+        var file = Project.Files.FirstOrDefault(f => f.FullName == fullname);
+        if (file == null)
+        {
+            file = new MediaFile()
+            {
+                FullName = fullname,
+                Duration = duration,
+            };
+            Project.Files.Add(file);
+        }
+        return file;
+    }
+
     private void TimelineControl_DragLeave(object? sender, EventArgs e)
     {
         DragAndDrop.Clear();
@@ -240,7 +303,7 @@ public partial class TimelineControl : BackControl
         /// Er zijn 3 verschillende mogelijkheden:
         /// 1. Niets is geselecteerd en je selecteerd een clip/groep = Selecteren
         /// 2. Clip/groep is geselecteerd en daar klik je op = Dragging
-        /// 3. Je klikt op het midden
+        /// 3. Je klikt op het midden = currentTime veranderen
 
 
         var startpoint = new Point(e.X, e.Y);
@@ -263,7 +326,7 @@ public partial class TimelineControl : BackControl
             foreach (var clip in selectedClips)
             {
                 clip.OldLayer = clip.Layer;
-                clip.OldTimelineStartTime = clip.StartTime;
+                clip.OldTimelineStartTime = clip.TimelineStartTime;
             }
             return;
         }
@@ -296,7 +359,7 @@ public partial class TimelineControl : BackControl
             {
                 clip.Layer = clip.OldLayer + diff.Layer;
                 if (clip.Layer < 0) clip.Layer = 0;
-                clip.StartTime = clip.OldTimelineStartTime + diff.CurrentTime;
+                clip.TimelineStartTime = clip.OldTimelineStartTime + diff.CurrentTime;
                 //Debug.WriteLine($"Dragging {diff.CurrentTime}x{diff.Layer} {clip.OldTimelineStartTime}+{diff.CurrentTime.ToString("F3")}={clip.StartTime}");
             }
             Invalidate();

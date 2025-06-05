@@ -1,9 +1,8 @@
-﻿using VideoEditorD3D.Direct3D.Controls.Templates;
-using VideoEditorD3D.Direct3D.Drawing;
+﻿using VideoEditorD3D.Direct3D.Drawing;
 
 namespace VideoEditorD3D.Application.Controls;
 
-public class PropertiesControl : BackControl
+public class PropertiesControl : BaseControl
 {
     private readonly GraphicsLayer Foreground;
 

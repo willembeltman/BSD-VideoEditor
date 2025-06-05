@@ -6,21 +6,22 @@ namespace VideoEditorD3D.Entities;
 public abstract class TimelineClip : IEntity
 {
     public long Id { get; set; }
-    public long TimelineId { get; set; }
-    public long MediaStreamId { get; set; }
-    public long TimelineClipGroupId { get; set; }
-    public double StartTime { get; set; }
-    public double LengthTime { get; set; }
-    public double EndTime
+    public long? TimelineId { get; set; }
+    public long? MediaStreamId { get; set; }
+    public long? TimelineClipGroupId { get; set; }
+
+    public double TimelineStartTime { get; set; }
+    public double TimelineLengthTime { get; set; }
+    public double TimelineEndTime
     {
-        get => StartTime + LengthTime;
+        get => TimelineStartTime + TimelineLengthTime;
         set
         {
-            LengthTime = value - StartTime;
-            if (LengthTime < 0)
+            TimelineLengthTime = value - TimelineStartTime;
+            if (TimelineLengthTime < 0)
             {
-                LengthTime = 0;
-                StartTime = value;
+                TimelineLengthTime = 0;
+                TimelineStartTime = value;
             }
         }
     }
@@ -49,8 +50,11 @@ public abstract class TimelineClip : IEntity
     public abstract bool IsVideoClip { get; }
     [NotMapped]
     public abstract bool IsAudioClip { get; }
+
     [NotMapped]
-    public StreamInfo StreamInfo { get; set; }
+    public StreamInfo TempStreamInfo { get; set; }
+    [NotMapped]
+    public MediaContainer TempMediaContainer { get; set; }
     [NotMapped]
     public int OldLayer { get; set; }
     [NotMapped]

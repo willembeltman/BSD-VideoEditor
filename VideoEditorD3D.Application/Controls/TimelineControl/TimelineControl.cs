@@ -1,18 +1,16 @@
 ﻿using SharpDX.Mathematics.Interop;
 using System.Drawing;
-using VideoEditorD3D.Application.Forms;
 using VideoEditorD3D.Application.Types;
 using VideoEditorD3D.Direct3D.Controls;
-using VideoEditorD3D.Direct3D.Controls.Templates;
 using VideoEditorD3D.Direct3D.Drawing;
 using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Entities;
 using Point = System.Drawing.Point;
 using Rectangle = SharpDX.Rectangle;
 
-namespace VideoEditorD3D.Application.Controls.Timeline;
+namespace VideoEditorD3D.Application.Controls.TimelineControl;
 
-public partial class TimelineControl : BackControl
+public partial class TimelineControl : BaseControl
 {
     private readonly GraphicsLayer TimeMarkersBackLayer;
     private readonly GraphicsLayer TimeMarkersForeLayer;
@@ -28,9 +26,6 @@ public partial class TimelineControl : BackControl
     private readonly Scrolling Scrolling = new();
     private readonly List<System.Windows.Forms.Keys> Keys = new();
 
-    private MainForm MainForm => (MainForm)ParentForm;
-    private new ApplicationContext ApplicationContext => MainForm.ApplicationContext;
-    private Entities.Timeline Timeline => ApplicationContext.Timeline;
     private Rectangle TimelineRectangle => new(0, 0, Width, Height - HScrollBarControl.Height);
     private int MiddleOffset => HScrollBarControl.Height / 2;
 
@@ -128,7 +123,6 @@ public partial class TimelineControl : BackControl
         Resize += TimelineControl_Resize;
         Draw += TimelineControl_Draw;
     }
-
 
     private void DrawTimeMarkers(GraphicsLayer background, GraphicsLayer foreground)
     {
@@ -272,7 +266,7 @@ public partial class TimelineControl : BackControl
     }
     private void SetupScrollbar()
     {
-        var max = Timeline.AudioClips.Count > 0 ? Timeline.AudioClips.Max(a => a.EndTime) : Timeline.VisibleStart + VisibleWidth;
+        var max = Timeline.TimelineClipAudios.Count > 0 ? Timeline.TimelineClipAudios.Max(a => a.TimelineEndTime) : Timeline.VisibleStart + VisibleWidth;
         max = Math.Max(max, Timeline.VisibleStart + VisibleWidth);
         HScrollBarControl.Minimum = 0;
         HScrollBarControl.Maximum = Convert.ToInt32(Math.Ceiling(max));
@@ -352,8 +346,8 @@ public partial class TimelineControl : BackControl
         int videoBlockHeight = (middle - HScrollBarControl.Height / 2) / VisibleVideoLayers;
         int audioBlockHeight = (middle - MiddleOffset) / VisibleAudioLayers;
 
-        int x1 = Convert.ToInt32((clip.StartTime - VisibleStart) / VisibleWidth * TimelineRectangle.Width);
-        int x2 = Convert.ToInt32((clip.EndTime - VisibleStart) / VisibleWidth * TimelineRectangle.Width);
+        int x1 = Convert.ToInt32((clip.TimelineStartTime - VisibleStart) / VisibleWidth * TimelineRectangle.Width);
+        int x2 = Convert.ToInt32((clip.TimelineEndTime - VisibleStart) / VisibleWidth * TimelineRectangle.Width);
         int width = x2 - x1;
 
         if (clip.IsVideoClip)

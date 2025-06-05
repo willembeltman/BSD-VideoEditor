@@ -1,4 +1,4 @@
-﻿namespace VideoEditorD3D.Application.Controls.Timeline;
+﻿namespace VideoEditorD3D.Application.Controls.TimelineControl;
 
 public readonly struct TimelinePosition
 {

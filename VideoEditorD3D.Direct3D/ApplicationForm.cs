@@ -59,7 +59,7 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
     int IApplicationForm.Height => _PhysicalHeight!.Value;
     Stopwatch IApplicationForm.Stopwatch => Stopwatch;
     AllTimers IApplicationForm.Timers => Timers;
-    FormCollection IApplicationForm.Forms => _Forms;
+    FormCollection IApplicationForm.Forms => _Forms!;
     #endregion
 
     public ApplicationForm(IApplicationContext applicationContext)
@@ -271,7 +271,7 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
     }
     private void ResizeSwapChain()
     {
-        if (IsClosed || KillSwitch || Width == 0 || Height == 0 || _Device == null || _SwapChain == null || _Forms.Count < 1)
+        if (IsClosed || KillSwitch || Width == 0 || Height == 0 || _Device == null || _SwapChain == null || (_Forms?.Count ?? 0) < 1)
             return;
 
         if (IsMinimized)
@@ -311,8 +311,8 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
 
             // Then set the width and height of the current form, this will trigger
             // the OnResize event of the current form and force redraw on next frame
-            _Forms.First().Width = newWidth;
-            _Forms.First().Height = newHeight;
+            _Forms!.First().Width = newWidth;
+            _Forms!.First().Height = newHeight;
 
             // Then try to resize the swap chain
             try

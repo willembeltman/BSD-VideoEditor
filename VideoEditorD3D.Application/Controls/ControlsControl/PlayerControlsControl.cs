@@ -1,9 +1,8 @@
 ﻿using VideoEditorD3D.Direct3D.Controls;
-using VideoEditorD3D.Direct3D.Controls.Templates;
 
 namespace VideoEditorD3D.Application.Controls.Controls
 {
-    public class PlayerControlsControl : BackControl
+    public class PlayerControlsControl : BaseControl
     {
         private readonly Button btnStop;
         private readonly Button btnForwardPlayback;
@@ -30,7 +29,6 @@ namespace VideoEditorD3D.Application.Controls.Controls
             Controls.Add(btnBackwardPlayback);
 
             Load += PlayerControlsControl_Load;
-            Resize += PlayerControlsControl_Resize;
         }
 
         private void PlayerControlsControl_Load(object? sender, EventArgs e)
@@ -53,18 +51,21 @@ namespace VideoEditorD3D.Application.Controls.Controls
 
         private void BtnBackwardPlayback_Click(object? sender, Direct3D.Forms.MouseEvent e)
         {
+            State.PlaybackBackward = true;
+            State.PlaybackStart = Timeline.CurrentTime;
+            State.PlaybackStopwatch.Restart();
         }
 
         private void BtnForwardPlayback_Click(object? sender, Direct3D.Forms.MouseEvent e)
         {
+            State.PlaybackBackward = false;
+            State.PlaybackStart = Timeline.CurrentTime;
+            State.PlaybackStopwatch.Restart();
         }
 
         private void BtnStop_Click(object? sender, Direct3D.Forms.MouseEvent e)
         {
-        }
-
-        private void PlayerControlsControl_Resize(object? sender, EventArgs e)
-        {
+            State.PlaybackStopwatch.Stop();
         }
 
         private void Btn_Resize(object? sender, EventArgs e)
