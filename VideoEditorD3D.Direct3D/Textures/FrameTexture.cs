@@ -16,7 +16,7 @@ public class FrameTexture : IDisposableTexture
             Height = frameHeight,
             MipLevels = 1,
             ArraySize = 1,
-            Format = Format.B8G8R8A8_UNorm,
+            Format = Format.R8G8B8A8_UNorm,
             SampleDescription = new SampleDescription(1, 0),
             Usage = ResourceUsage.Immutable,
             BindFlags = BindFlags.ShaderResource,

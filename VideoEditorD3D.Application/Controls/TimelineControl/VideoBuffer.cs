@@ -16,21 +16,19 @@ public class VideoBuffer : IDisposable
     private readonly Thread Thread;
 
     public bool KillSwitch { get; private set; }
-    public double LastTime { get; private set; }
 
     public double TimelineStartTime => VideoClip.TimelineStartTime;
     public double TimelineEndTime => VideoClip.TimelineEndTime;
     public double ClipStartTime => VideoClip.ClipStartTime;
     public double ClipEndTime => VideoClip.ClipEndTime;
-    public int Layer => VideoClip.Layer;    
+    public int Layer => VideoClip.Layer;
 
     public VideoBuffer(Timeline timeline, TimelineClipVideo videoClip)
     {
         Timeline = timeline;
         Timeline.CurrentTimeUpdated += Timeline_CurrentTimeUpdated;
         VideoClip = videoClip;
-        LastTime = videoClip.ClipStartTime;
-        CurrentTimeUpdated = new AutoResetEvent(false); 
+        CurrentTimeUpdated = new AutoResetEvent(false);
         Buffer = new List<VideoBufferFrame>();
         Thread = new Thread(new ThreadStart(Kernel));
         BufferLock = new object();
@@ -58,61 +56,77 @@ public class VideoBuffer : IDisposable
             }
         }
     }
-
     private void UpdateBuffer()
     {
-        double bufferStart = Timeline.CurrentTime - 10;
-        double bufferEnd = Timeline.CurrentTime + 10;
-        if (bufferStart < 0)
-            bufferStart = 0;
-        if (bufferEnd > VideoClip.MediaStream.Value.Length) 
-            bufferEnd = VideoClip.MediaStream.Value.Length;
+        double currentTime = Timeline.CurrentTime;
+
+        double bufferStart = currentTime - 10;
+        double bufferEnd = currentTime + 10;
+
+        if (bufferStart < VideoClip.TimelineStartTime)
+            bufferStart = VideoClip.TimelineStartTime;
+        if (bufferEnd > VideoClip.TimelineEndTime)
+            bufferEnd = VideoClip.TimelineEndTime;
 
         // 1. Verwijder oude frames buiten de buffer window
-        Buffer.RemoveAll(f => f.TimelineTime < bufferStart || f.TimelineTime > bufferEnd);
-
-        // 2. Start reader indien nodig
-        if (Enumerator == null)
+        var lowest = 0d;
+        lock (BufferLock)
         {
+            Buffer.RemoveAll(f => f.TimelineTime < bufferStart || f.TimelineTime > bufferEnd);
+            if (Buffer.Count > 0)
+                lowest = Buffer.Min(a => a.TimelineTime);
+        }
+        var reload = lowest > currentTime;
+
+        // 2. Reset Enumerator als teruggescrubd is
+        if (Enumerator != null && reload)
+        {
+            Enumerator.Dispose();
+            Enumerator = null;
+        }
+
+        // 3. Start reader indien nodig
+        if (Enumerator == null || reload)
+        {
+            var startTime = (bufferStart - TimelineStartTime) * VideoClip.ClipLengthTime / VideoClip.TimelineLengthTime - VideoClip.ClipStartTime;
+
             var reader = new SimpleFrameReader(
                 VideoClip.MediaStream.Value.MediaFile.Value.FullName,
-                VideoClip.TempStreamInfo.Resolution!.Value,
-                VideoClip.TempStreamInfo.Fps!.Value,
-                LastTime);
+                VideoClip.MediaStream.Value.Resolution,
+                VideoClip.MediaStream.Value.Fps,
+                startTime);
 
             Enumerator = reader.GetEnumerable().GetEnumerator();
         }
 
-        // 3. Lees frames en vul buffer
+        // 4. Lees frames en vul buffer
         while (Enumerator.MoveNext())
         {
             var frame = Enumerator.Current;
-            var timelineTime = frame.ClipTime * VideoClip.TimelineLengthTime / VideoClip.ClipLengthTime;
-
-            LastTime = timelineTime;
+            var timelineTime = frame.ClipTime * VideoClip.TimelineLengthTime / VideoClip.ClipLengthTime + VideoClip.TimelineStartTime;
 
             if (timelineTime > bufferEnd)
-                break; // Stop, de rest is te ver in de toekomst
+                break;
 
-            if (timelineTime >= bufferStart && timelineTime <= bufferEnd)
+            if (bufferStart <= timelineTime && timelineTime <= bufferEnd)
             {
-                // Vermijd duplicaten
                 lock (BufferLock)
                 {
                     if (!Buffer.Any(f => f.Frame.Index == frame.Index))
                     {
                         Buffer.Add(new VideoBufferFrame(frame, timelineTime));
-                        FrameAvailable.Set(); // Signaleer dat een frame beschikbaar is
+                        if (currentTime <= timelineTime)
+                            FrameAvailable.Set();
                     }
                 }
             }
             else
             {
-                // Niet in buffer window, dispose meteen
-                frame.Dispose();
+                frame.Dispose(); // direct weggooien
             }
         }
     }
+
     public Frame GetCurrentFrame()
     {
         double targetTime = Timeline.CurrentTime;
@@ -122,7 +136,7 @@ public class VideoBuffer : IDisposable
             lock (BufferLock)
             {
                 VideoBufferFrame? lastFrame = null;
-                foreach (var item in Buffer)
+                foreach (var item in Buffer.OrderBy(a => a.TimelineTime))
                 {
                     if (item.TimelineTime > targetTime) break;
                     lastFrame = item;
@@ -133,7 +147,7 @@ public class VideoBuffer : IDisposable
             }
 
             // Geen frame gevonden, wacht max 100ms op nieuwe frame
-            FrameAvailable.Wait(100);
+            FrameAvailable.Wait(10000);
             FrameAvailable.Reset(); // Daarna resetten
         }
 
@@ -153,7 +167,7 @@ public class VideoBuffer : IDisposable
         {
             item.Dispose();
         }
-        Buffer.Clear(); 
+        Buffer.Clear();
         FrameAvailable.Dispose();
 
 

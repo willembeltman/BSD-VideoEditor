@@ -42,19 +42,19 @@ public abstract class TimelineClip : IEntity
     }
     public int Layer { get; set; }
 
-    public virtual ILazy<Timeline> Timeline { get; set; }
-    public virtual ILazy<MediaStream> MediaStream { get; set; }
-    public virtual ILazy<TimelineClipGroup> TimelineClipGroup { get; set; }
+    public virtual ILazy<Timeline> Timeline { get; set; } = new LazyStatic<Timeline>();
+    public virtual ILazy<MediaStream> MediaStream { get; set; } = new LazyStatic<MediaStream>();
+    public virtual ILazy<TimelineClipGroup> TimelineClipGroup { get; set; } = new LazyStatic<TimelineClipGroup>();
 
     [NotMapped]
     public abstract bool IsVideoClip { get; }
     [NotMapped]
     public abstract bool IsAudioClip { get; }
 
-    [NotMapped]
-    public StreamInfo TempStreamInfo { get; set; }
-    [NotMapped]
-    public MediaContainer TempMediaContainer { get; set; }
+    //[NotMapped]
+    //public StreamInfo TempStreamInfo { get; set; }
+    //[NotMapped]
+    //public MediaContainer TempMediaContainer { get; set; }
     [NotMapped]
     public int OldLayer { get; set; }
     [NotMapped]

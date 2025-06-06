@@ -9,36 +9,44 @@ public class DisplayControl : BaseControl
 {
     private readonly List<GraphicsLayer> Layers;
 
-    public DisplayControl() 
+    public DisplayControl()
     {
-        Layers = new List<GraphicsLayer>(); 
+        Layers = new List<GraphicsLayer>();
 
         Draw += DisplayControl_Draw;
         Update += DisplayControl_Update;
+        Load += DisplayControl_Load;
+    }
+
+    private void DisplayControl_Load(object? sender, EventArgs e)
+    {
+        State.Timeline.CurrentTimeUpdated += Timeline_CurrentTimeUpdated;
+    }
+
+    private void Timeline_CurrentTimeUpdated(object? sender, double e)
+    {
+        Invalidate();
     }
 
     private void DisplayControl_Update(object? sender, EventArgs e)
     {
-        if (State.UpdateCurrentTime())
+        var maxLayer = 0;
+        if (Timeline.TimelineClipVideos.Any())
         {
-            var maxLayer = 0;
-            if (Timeline.TimelineClipVideos.Any())
-            {
-                maxLayer = Timeline.TimelineClipVideos.Max(a => a.Layer);
-            }
-            if (Layers.Count < maxLayer)
-            {
-                var last = Layers[Layers.Count - 1];
-                Layers.Remove(last);
-                GraphicsLayers.Remove(last);
-            }
-            if (Layers.Count > maxLayer)
-            {
-                Layers.Add(GraphicsLayers.CreateNewLayer());
-            }
-
-            Invalidate();
+            maxLayer = Timeline.TimelineClipVideos.Max(a => a.Layer) + 1;
         }
+        if (Layers.Count > maxLayer)
+        {
+            var last = Layers[Layers.Count - 1];
+            Layers.Remove(last);
+            GraphicsLayers.Remove(last);
+        }
+        if (Layers.Count < maxLayer)
+        {
+            Layers.Add(GraphicsLayers.CreateNewLayer());
+        }
+
+        State.UpdateCurrentTime();
     }
 
 

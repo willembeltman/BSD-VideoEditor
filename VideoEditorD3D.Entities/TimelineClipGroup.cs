@@ -9,13 +9,8 @@ public class TimelineClipGroup : IEntity
 
     public long? MediaFileId { get; set; }
 
-    public virtual ILazy<Timeline> Timeline { get; set; }
+    public virtual ILazy<Timeline> Timeline { get; set; } = new LazyStatic<Timeline>();
 
-    public virtual ICollection<TimelineClipVideo> TimelineClipVideos { get; set; }
-    public virtual ICollection<TimelineClipAudio> TimelineClipAudios { get; set; }
-
-    public bool IsEqualTo(TimelineClipGroup group)
-    {
-        return this == group;
-    }
+    public virtual ICollection<TimelineClipVideo> TimelineClipVideos { get; set; } = new List<TimelineClipVideo>();
+    public virtual ICollection<TimelineClipAudio> TimelineClipAudios { get; set; } = new List<TimelineClipAudio>();
 }

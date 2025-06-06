@@ -7,7 +7,7 @@ using Point = System.Drawing.Point;
 
 namespace VideoEditorD3D.Application.Controls.TimelineControl;
 
-public partial class TimelineControl 
+public partial class TimelineControl
 {
     private void TimelineControl_Load(object? sender, EventArgs e)
     {
@@ -108,24 +108,47 @@ public partial class TimelineControl
             var mediaContainer = MediaContainer.Open(fullName);
             if (mediaContainer == null) continue;
             if (mediaContainer.Duration == null) continue;
-            DragAndDrop.MediaContainers.Add(mediaContainer);
+            var duration = mediaContainer.Duration.Value;
+
+            var mediaFile = DragAndDrop.MediaFiles.FirstOrDefault(a => a.FullName == fullName);
+            if (mediaFile == null)
+            {
+                mediaFile = new MediaFile
+                {
+                    Duration = duration,
+                    FullName = fullName
+                };
+                DragAndDrop.MediaFiles.Add(mediaFile);
+            }
 
             var start = currentTime;
-            currentTime += mediaContainer.Duration.Value;
             var layerIndex = layerStartIndex;
             foreach (var videoStream in mediaContainer.VideoStreams.OrderBy(a => a.Index))
             {
+                var mediaStream = new MediaStream()
+                {
+                    Index = videoStream.Index,
+                    IsVideo = true,
+                    Resolution = videoStream.Resolution!.Value,
+                    Fps = videoStream.Fps!.Value,
+                };
+                mediaStream.MediaFile.Value = mediaFile;
+                //mediaFile.MediaStreams.Add(mediaStream);
+
+                DragAndDrop.MediaStreams.Add(mediaStream);
+
                 var clip = new TimelineClipVideo()
                 {
-                    TimelineId = Timeline.Id,
-                    TempStreamInfo = videoStream,
                     Layer = layerIndex,
                     TimelineStartTime = start,
-                    TimelineLengthTime = mediaContainer.Duration.Value,
+                    TimelineLengthTime = duration,
                     ClipStartTime = 0,
-                    ClipLengthTime = mediaContainer.Duration.Value,
-                    TempMediaContainer = mediaContainer
+                    ClipLengthTime = duration,
                 };
+                clip.MediaStream.Value = mediaStream;
+                clip.Timeline.Value = Timeline;
+                //mediaStream.TimelineClipVideos.Add(clip);
+
                 DragAndDrop.VideoClips.Add(clip);
                 layerIndex++;
             }
@@ -133,22 +156,35 @@ public partial class TimelineControl
             layerIndex = 0;
             foreach (var audioStream in mediaContainer.AudioStreams.OrderBy(a => a.Index))
             {
+                var mediaStream = new MediaStream()
+                {
+                    Index = audioStream.Index,
+                    IsAudio = true,
+                    SampleRate = audioStream.SampleRate,
+                    Channels = audioStream.Channels
+                };
+                mediaStream.MediaFile.Value = mediaFile;
+                //mediaFile.MediaStreams.Add(mediaStream);
+
+                DragAndDrop.MediaStreams.Add(mediaStream);
+
                 var clip = new TimelineClipAudio()
                 {
-                    TimelineId = Timeline.Id,
-                    TempStreamInfo = audioStream,
                     Layer = layerIndex,
                     TimelineStartTime = start,
-                    TimelineEndTime = currentTime,
+                    TimelineLengthTime = duration,
                     ClipStartTime = 0,
-                    ClipEndTime = mediaContainer.Duration.Value,
-                    TempMediaContainer = mediaContainer
+                    ClipEndTime = duration,
                 };
+                clip.MediaStream.Value = mediaStream;
+                clip.Timeline.Value = Timeline;
+                //mediaStream.TimelineClipAudios.Add(clip);
+
                 DragAndDrop.AudioClips.Add(clip);
                 layerIndex++;
             }
 
-            DragAndDrop.MediaContainers.Add(mediaContainer);
+            currentTime += duration;
         }
 
         Invalidate();
@@ -174,41 +210,32 @@ public partial class TimelineControl
         var layerIndex = timelinePosition.Value.Layer;
         foreach (var fullName in fullNames)
         {
-            var file = DragAndDrop.MediaContainers.FirstOrDefault(a => a.FullName == fullName);
+            var file = DragAndDrop.MediaFiles.FirstOrDefault(a => a.FullName == fullName);
             if (file == null) continue;
-            if (file.Duration == null) continue;
 
-            var start = currentTime;
-            currentTime += file.Duration.Value;
             var layer = layerIndex;
-            foreach (var videoStream in file.VideoStreams.OrderBy(a => a.Index))
+            var videoClips = DragAndDrop.VideoClips
+                .Where(a => a.MediaStream.Value.MediaFile.Value.FullName == fullName)
+                .OrderBy(a => a.MediaStream.Value.Index);
+            foreach (var videoClip in videoClips)
             {
-                var cachedVideoStream = DragAndDrop.VideoClips
-                    .FirstOrDefault(a => a.TempStreamInfo.EqualTo(videoStream));
-
-                if (cachedVideoStream != null)
-                {
-                    cachedVideoStream.Layer = layer;
-                    cachedVideoStream.TimelineStartTime = start;
-                    cachedVideoStream.TimelineEndTime = currentTime;
-                    layer++;
-                }
+                videoClip.Layer = layer;
+                videoClip.TimelineStartTime = currentTime;
+                layer++;
             }
 
             layer = layerIndex;
-            foreach (var audioStream in file.AudioStreams.OrderBy(a => a.Index))
+            var audioClips = DragAndDrop.AudioClips
+                .Where(a => a.MediaStream.Value.MediaFile.Value.FullName == fullName)
+                .OrderBy(a => a.MediaStream.Value.Index);
+            foreach (var audioClip in audioClips)
             {
-                var cachedAudioStream = DragAndDrop.AudioClips
-                    .FirstOrDefault(a => a.TempStreamInfo.EqualTo(audioStream));
-
-                if (cachedAudioStream != null)
-                {
-                    cachedAudioStream.Layer = layer;
-                    cachedAudioStream.TimelineStartTime = start;
-                    cachedAudioStream.TimelineEndTime = currentTime;
-                    layer++;
-                }
+                audioClip.Layer = layer;
+                audioClip.TimelineStartTime = currentTime;
+                layer++;
             }
+
+            currentTime += file.Duration;
         }
 
         SetupScrollbar();
@@ -220,11 +247,8 @@ public partial class TimelineControl
 
         foreach (var item in DragAndDrop.VideoClips)
         {
-            var mediaFile = GetMediaFile(item);
-            var timelineGroup = GetTimelineGroup(mediaFile);
-            var mediaStream = GetMediaStream(item, mediaFile);
+            var timelineGroup = GetTimelineGroup(item.MediaStream.Value.MediaFile.Value);
 
-            item.MediaStreamId = mediaStream.Id;
             item.TimelineClipGroupId = timelineGroup.Id;
             Timeline.TimelineClipVideos.Add(item);
 
@@ -232,11 +256,8 @@ public partial class TimelineControl
         }
         foreach (var item in DragAndDrop.AudioClips)
         {
-            var mediaFile = GetMediaFile(item);
-            var timelineGroup = GetTimelineGroup(mediaFile);
-            var mediaStream = GetMediaStream(item, mediaFile);
+            var timelineGroup = GetTimelineGroup(item.MediaStream.Value.MediaFile.Value);
 
-            item.MediaStreamId = mediaStream.Id;
             item.TimelineClipGroupId = timelineGroup.Id;
             Timeline.TimelineClipAudios.Add(item);
 
@@ -260,36 +281,6 @@ public partial class TimelineControl
         return group;
     }
 
-    private static MediaStream GetMediaStream(TimelineClip item, MediaFile mediaFile)
-    {
-        var mediaStream = mediaFile.MediaStreams.FirstOrDefault(a => a.Index == item.TempStreamInfo.Index);
-        if (mediaStream == null)
-        {
-            mediaStream = new MediaStream()
-            {
-                Index = item.TempStreamInfo.Index,
-            };
-            mediaFile.MediaStreams.Add(mediaStream);
-        }
-        return mediaStream;
-    }
-
-    private MediaFile GetMediaFile(TimelineClip item)
-    {
-        var fullname = item.TempMediaContainer.FullName;
-        var duration = item.TempMediaContainer.Duration!.Value;
-        var file = Project.Files.FirstOrDefault(f => f.FullName == fullname);
-        if (file == null)
-        {
-            file = new MediaFile()
-            {
-                FullName = fullname,
-                Duration = duration,
-            };
-            Project.Files.Add(file);
-        }
-        return file;
-    }
 
     private void TimelineControl_DragLeave(object? sender, EventArgs e)
     {

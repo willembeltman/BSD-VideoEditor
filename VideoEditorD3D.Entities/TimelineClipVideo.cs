@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using VideoEditorD3D.FFMpeg.Types;
 
 namespace VideoEditorD3D.Entities;
 

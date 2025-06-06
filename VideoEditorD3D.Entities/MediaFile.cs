@@ -10,6 +10,6 @@ public class MediaFile : IEntity
     public string FullName { get; set; }
     public double Duration { get; set; }
 
-    public virtual ILazy<Project> Project { get; set; } 
-    public virtual ICollection<MediaStream> MediaStreams { get; set; }
+    public virtual ILazy<Project> Project { get; set; } = new LazyStatic<Project>();
+    public virtual ICollection<MediaStream> MediaStreams { get; set; } = new List<MediaStream>();
 }

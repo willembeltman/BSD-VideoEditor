@@ -1,11 +1,11 @@
 ﻿using VideoEditorD3D.Entities;
-using VideoEditorD3D.FFMpeg;
 
 namespace VideoEditorD3D.Application.Controls.TimelineControl;
 
 public class DragAndDrop
 {
-    public List<MediaContainer> MediaContainers { get; } = [];
+    public List<MediaFile> MediaFiles { get; } = [];
+    public List<MediaStream> MediaStreams { get; } = [];
     public List<TimelineClipVideo> VideoClips { get; } = [];
     public List<TimelineClipAudio> AudioClips { get; } = [];
     public IEnumerable<TimelineClip> AllClips =>
@@ -15,7 +15,8 @@ public class DragAndDrop
 
     public void Clear()
     {
-        MediaContainers.Clear();
+        MediaFiles.Clear();
+        MediaStreams.Clear();
         AudioClips.Clear();
         VideoClips.Clear();
     }
