@@ -1,6 +1,7 @@
 ﻿using VideoEditorD3D.Direct3D.Controls;
+using VideoEditorD3D.Direct3D.Events;
 
-namespace VideoEditorD3D.Application.Controls.Controls
+namespace VideoEditorD3D.Application.Controls.ControlsControl
 {
     public class PlayerControlsControl : BaseControl
     {
@@ -49,21 +50,21 @@ namespace VideoEditorD3D.Application.Controls.Controls
             btnForwardPlayback.Height = Height - 2;
         }
 
-        private void BtnBackwardPlayback_Click(object? sender, Direct3D.Forms.MouseEvent e)
+        private void BtnBackwardPlayback_Click(object? sender, MouseEvent e)
         {
             State.PlaybackBackward = true;
             State.PlaybackStart = Timeline.CurrentTime;
             State.PlaybackStopwatch.Restart();
         }
 
-        private void BtnForwardPlayback_Click(object? sender, Direct3D.Forms.MouseEvent e)
+        private void BtnForwardPlayback_Click(object? sender, MouseEvent e)
         {
             State.PlaybackBackward = false;
             State.PlaybackStart = Timeline.CurrentTime;
             State.PlaybackStopwatch.Restart();
         }
 
-        private void BtnStop_Click(object? sender, Direct3D.Forms.MouseEvent e)
+        private void BtnStop_Click(object? sender, MouseEvent e)
         {
             State.PlaybackStopwatch.Stop();
         }

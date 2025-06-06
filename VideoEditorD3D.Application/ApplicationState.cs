@@ -3,14 +3,14 @@ using System.Diagnostics;
 using VideoEditorD3D.Application.Buffers;
 using VideoEditorD3D.Application.Helpers;
 using VideoEditorD3D.Direct3D.Collections;
-using VideoEditorD3D.Direct3D.Forms;
+using VideoEditorD3D.Direct3D.Controls;
 using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Entities;
 using VideoEditorD3D.FFMpeg.Interfaces;
 
 namespace VideoEditorD3D.Application;
 
-public class ApplicationState : IApplicationContext
+public class ApplicationState : IApplicationState
 {
     private VideoDrawerThread? _DrawerThread;
 

@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Formats.Tar;
-using VideoEditorD3D.Direct3D.Forms;
+using VideoEditorD3D.Application.Buffers;
+using VideoEditorD3D.Direct3D.Events;
 using VideoEditorD3D.Entities;
 using VideoEditorD3D.FFMpeg.CLI;
 using Point = System.Drawing.Point;

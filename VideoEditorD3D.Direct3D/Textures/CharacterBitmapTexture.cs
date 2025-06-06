@@ -5,9 +5,9 @@ using VideoEditorD3D.Direct3D.SharpDXExtentions;
 
 namespace VideoEditorD3D.Direct3D.Textures;
 
-public class CharacterTexture : ICachedTexture
+public class CharacterBitmapTexture : ICachedTexture
 {
-    public CharacterTexture(
+    public CharacterBitmapTexture(
         char character,
         string fontName,
         float fontSize,

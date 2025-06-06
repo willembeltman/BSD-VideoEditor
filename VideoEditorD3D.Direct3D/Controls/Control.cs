@@ -1,39 +1,12 @@
-﻿using System.Diagnostics;
-using System.Windows.Forms;
-using VideoEditorD3D.Direct3D.Collections;
+﻿using VideoEditorD3D.Direct3D.Collections;
 using VideoEditorD3D.Direct3D.Drawing;
-using VideoEditorD3D.Direct3D.Forms;
+using VideoEditorD3D.Direct3D.Events;
 using VideoEditorD3D.Direct3D.Interfaces;
 
 namespace VideoEditorD3D.Direct3D.Controls;
 
-public class Control : IDisposable //, IComparable
+public class Control : IDisposable
 {
-    //private int OldLayer;
-    //private int _Layer = 0;
-    //public int Layer
-    //{
-    //    get => _Layer;
-    //    set
-    //    {
-    //        if (_Layer == value) return;
-    //        _Layer = value;
-    //    }
-    //}
-    //public void BringToFront()
-    //{
-    //    OldLayer = Layer;
-    //    Layer = ParentControl.Controls.Max(a => Layer) + 1;
-    //}
-    //public void RestoreFromFront()
-    //{
-    //    Layer = OldLayer;
-    //}
-    //public int CompareTo(object? obj)
-    //{
-    //    ArgumentNullException.ThrowIfNull(obj);
-    //    return ((Control)obj).Layer - Layer;
-    //}
 
     private int _Left = 0;
     private int _Top = 0;
@@ -41,11 +14,15 @@ public class Control : IDisposable //, IComparable
     private int _Height = 36;
     private bool HasToResize = false;
 
-#nullable disable
+    // Disable because properties are injected when control is added to parent control,
+    // this is solved by the: Constructor => Load => Update => Draw lifecycle.
+    // (ok, maybe nulleble would have been better but then I would have written ! everywhere) 
+#nullable disable 
     public IApplicationForm ApplicationForm { get; internal set; }
-    public Forms.Form ParentForm { get; internal set; }
+    public Form ParentForm { get; internal set; }
     public Control ParentControl { get; internal set; }
 #nullable enable
+
     public ControlCollection Controls { get; protected set; }
     public GraphicsLayerCollection GraphicsLayers { get; protected set; }
 

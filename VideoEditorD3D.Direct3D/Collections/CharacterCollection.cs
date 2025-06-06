@@ -4,11 +4,11 @@ using VideoEditorD3D.Direct3D.Textures;
 
 namespace VideoEditorD3D.Direct3D.Collections;
 
-public class CharacterCollection(IApplicationForm application) : ObservableArrayCollection<CharacterTexture>, IDisposable
+public class CharacterCollection(IApplicationForm application) : ObservableArrayCollection<CharacterBitmapTexture>, IDisposable
 {
     private readonly IApplicationForm Application = application;
 
-    public CharacterTexture GetOrCreate(char character, string font, float fontSize, FontStyle fontStyle, RawColor4 backColor, RawColor4 foreColor)
+    public CharacterBitmapTexture GetOrCreate(char character, string font, float fontSize, FontStyle fontStyle, RawColor4 backColor, RawColor4 foreColor)
     {
         var item = this
             .FirstOrDefault(a =>
@@ -20,7 +20,7 @@ public class CharacterCollection(IApplicationForm application) : ObservableArray
                 a.ForeColor.Equals(foreColor));
         if (item == null)
         {
-            item = new CharacterTexture(
+            item = new CharacterBitmapTexture(
                 character,
                 font,
                 fontSize,

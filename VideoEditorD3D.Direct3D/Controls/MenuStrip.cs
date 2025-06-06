@@ -9,7 +9,7 @@ public class MenuStrip : ForeBorderBackControl
     public ObservableArrayCollection<MenuStripItem> Items { get; }
     public bool Opened { get; internal set; }
 
-    public MenuStrip(Forms.Form parentForm)
+    public MenuStrip(Form parentForm)
     {
         ParentForm = parentForm;
 

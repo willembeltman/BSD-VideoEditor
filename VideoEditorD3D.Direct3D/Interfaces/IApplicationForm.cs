@@ -8,7 +8,7 @@ namespace VideoEditorD3D.Direct3D.Interfaces;
 
 public interface IApplicationForm
 {
-    IApplicationContext ApplicationContext { get; }
+    IApplicationState ApplicationContext { get; }
     Device Device { get; }
     bool KillSwitch { get; set; }
     int Width { get; }

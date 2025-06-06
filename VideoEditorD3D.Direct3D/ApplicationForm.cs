@@ -19,7 +19,7 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
 {
     #region Initilized at Constructor
     private bool KillSwitch;
-    private readonly IApplicationContext ApplicationContext;
+    private readonly IApplicationState ApplicationContext;
     private readonly ApplicationFormEvents ApplicationFormEvents;
     private readonly Lock UILock;
     private readonly Stopwatch Stopwatch;
@@ -52,7 +52,7 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
 
     #region (Private) IApplicationForm interface
     bool IApplicationForm.KillSwitch { get => KillSwitch; set => KillSwitch = value; }
-    IApplicationContext IApplicationForm.ApplicationContext => ApplicationContext;
+    IApplicationState IApplicationForm.ApplicationContext => ApplicationContext;
     Device IApplicationForm.Device => _Device!;
     CharacterCollection IApplicationForm.Characters => _Characters!;
     int IApplicationForm.Width => _PhysicalWidth!.Value;
@@ -62,7 +62,7 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
     FormCollection IApplicationForm.Forms => _Forms!;
     #endregion
 
-    public ApplicationForm(IApplicationContext applicationContext)
+    public ApplicationForm(IApplicationState applicationContext)
     {
         ApplicationContext = applicationContext;
         _Forms = new FormCollection(this);
@@ -526,7 +526,7 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
         _SwapChain.Present(0, PresentFlags.None);
     }
 
-    private void DrawImage(DeviceContext deviceContext, ITextureImage image)
+    private void DrawImage(DeviceContext deviceContext, ITextureWithVerticies image)
     {
         deviceContext.InputAssembler.InputLayout = _BitmapInputLayout;
         deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;

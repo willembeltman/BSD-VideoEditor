@@ -3,7 +3,7 @@ using System.Drawing;
 using VideoEditorD3D.Application.Types;
 using VideoEditorD3D.Direct3D.Controls;
 using VideoEditorD3D.Direct3D.Drawing;
-using VideoEditorD3D.Direct3D.Forms;
+using VideoEditorD3D.Direct3D.Events;
 using VideoEditorD3D.Entities;
 using Point = System.Drawing.Point;
 using Rectangle = SharpDX.Rectangle;

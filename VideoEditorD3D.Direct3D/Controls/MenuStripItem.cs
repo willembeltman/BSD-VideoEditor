@@ -2,9 +2,9 @@
 using VideoEditorD3D.Direct3D.Collections;
 using VideoEditorD3D.Direct3D.Controls.Templates;
 using VideoEditorD3D.Direct3D.Drawing;
-using VideoEditorD3D.Direct3D.Forms;
+using VideoEditorD3D.Direct3D.Events;
 using VideoEditorD3D.Direct3D.Interfaces;
-using Form = VideoEditorD3D.Direct3D.Forms.Form;
+using Form = VideoEditorD3D.Direct3D.Controls.Form;
 
 namespace VideoEditorD3D.Direct3D.Controls;
 

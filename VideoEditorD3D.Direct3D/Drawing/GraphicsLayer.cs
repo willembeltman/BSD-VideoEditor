@@ -22,7 +22,7 @@ public class GraphicsLayer(Control control) : IDisposable
     public Buffer? LineVerticesBuffer { get; set; }
     public List<Vertex> TriangleVertices { get; } = [];
     public Buffer? TriangleVerticesBuffer { get; set; }
-    public List<ITextureImage> TextureImages { get; } = [];
+    public List<ITextureWithVerticies> TextureImages { get; } = [];
 
     public void StartDrawing()
     {

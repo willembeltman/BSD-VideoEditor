@@ -1,5 +1,4 @@
-﻿
-namespace VideoEditorD3D.Direct3D.Forms;
+﻿namespace VideoEditorD3D.Direct3D.Events;
 
 public class MouseEvent : EventArgs
 {

@@ -1,6 +1,6 @@
 ﻿using VideoEditorD3D.Direct3D.Interfaces;
 using Control = VideoEditorD3D.Direct3D.Controls.Control;
-using Form = VideoEditorD3D.Direct3D.Forms.Form;
+using Form = VideoEditorD3D.Direct3D.Controls.Form;
 
 namespace VideoEditorD3D.Direct3D.Collections
 {

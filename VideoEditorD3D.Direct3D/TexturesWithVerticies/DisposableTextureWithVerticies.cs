@@ -4,12 +4,12 @@ using Buffer = SharpDX.Direct3D11.Buffer;
 
 namespace VideoEditorD3D.Direct3D.TexturesWithVerticies;
 
-public readonly struct DisposableTextureWithVerticies(TextureVertex[] vertices, Buffer verticesBuffer, IDisposableTexture texture) : ITextureImage
+public readonly struct DisposableTextureWithVerticies(TextureVertex[] vertices, Buffer verticesBuffer, IDisposableTexture texture) : ITextureWithVerticies
 {
     public TextureVertex[] Vertices { get; } = vertices;
     public Buffer VerticesBuffer { get; } = verticesBuffer;
     public IDisposableTexture Texture { get; } = texture;
-    readonly ITexture ITextureImage.Texture => Texture;
+    readonly ITexture ITextureWithVerticies.Texture => Texture;
 
     public void Dispose()
     {

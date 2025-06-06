@@ -1,6 +1,6 @@
 ﻿using VideoEditorD3D.Direct3D.Drawing;
 
-namespace VideoEditorD3D.Application.Controls;
+namespace VideoEditorD3D.Application.Controls.PropertiesControl;
 
 public class PropertiesControl : BaseControl
 {

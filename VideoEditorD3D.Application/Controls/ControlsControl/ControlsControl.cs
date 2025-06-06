@@ -1,6 +1,6 @@
 ﻿using VideoEditorD3D.Direct3D.Controls.Templates;
 
-namespace VideoEditorD3D.Application.Controls.Controls
+namespace VideoEditorD3D.Application.Controls.ControlsControl
 {
     public class ControlsControl : BackControl
     {

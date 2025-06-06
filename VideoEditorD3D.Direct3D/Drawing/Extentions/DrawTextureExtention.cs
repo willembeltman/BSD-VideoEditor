@@ -13,7 +13,7 @@ public static class DrawTextureExtention
         var absoluteTop = top + graphicsLayer.AbsoluteTop;
         var vertices = graphicsLayer.CreateTextureVerticesForRectangle(absoluteLeft, absoluteTop, width, height);
         var verticesBuffer = Buffer.Create(graphicsLayer.Device, BindFlags.VertexBuffer, vertices);
-        var texture = new GpuFrameTexture(graphicsLayer.Device, texture2D);
+        var texture = new Texture2DTexture(graphicsLayer.Device, texture2D);
         var image = new DisposableTextureWithVerticies(vertices, verticesBuffer, texture);
         graphicsLayer.TextureImages.Add(image);
     }

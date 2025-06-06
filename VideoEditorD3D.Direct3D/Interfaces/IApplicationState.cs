@@ -2,7 +2,7 @@
 
 namespace VideoEditorD3D.Direct3D.Interfaces;
 
-public interface IApplicationContext : IDisposable
+public interface IApplicationState : IDisposable
 {
     /// <summary>
     /// The main logger for the application. Does not need to be set for application to work.
@@ -23,7 +23,7 @@ public interface IApplicationContext : IDisposable
     /// <returns>
     /// The default / start form of the application.
     /// </returns>
-    Forms.Form OnCreateMainForm(IApplicationForm applicationForm);
+    Controls.Form OnCreateMainForm(IApplicationForm applicationForm);
 
     /// <summary>
     /// Retreives the application's drawer thread, if there is one. Some applications 

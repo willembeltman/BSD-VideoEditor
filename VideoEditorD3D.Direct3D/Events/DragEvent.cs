@@ -1,4 +1,4 @@
-﻿namespace VideoEditorD3D.Direct3D.Forms;
+﻿namespace VideoEditorD3D.Direct3D.Events;
 
 using Control = Controls.Control;
 

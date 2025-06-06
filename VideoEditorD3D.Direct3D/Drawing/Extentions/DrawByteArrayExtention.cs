@@ -13,7 +13,7 @@ public static class DrawByteArrayExtention
         var absoluteTop = top + graphicsLayer.AbsoluteTop;
         var vertices = graphicsLayer.CreateTextureVerticesForRectangle(absoluteLeft, absoluteTop, width, height);
         var verticesBuffer = Buffer.Create(graphicsLayer.Device, BindFlags.VertexBuffer, vertices);
-        var texture = new FrameTexture(graphicsLayer.Device, buffer, bufferWidth, bufferHeight);
+        var texture = new ByteArrayTexture(graphicsLayer.Device, buffer, bufferWidth, bufferHeight);
         var image = new DisposableTextureWithVerticies(vertices, verticesBuffer, texture);
         graphicsLayer.TextureImages.Add(image);
     }
