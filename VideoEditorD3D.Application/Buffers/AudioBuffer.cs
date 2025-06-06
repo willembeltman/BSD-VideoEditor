@@ -1,16 +1,16 @@
 ﻿using VideoEditorD3D.Entities;
 
-namespace VideoEditorD3D.Application.Controls.TimelineControl;
+namespace VideoEditorD3D.Application.Buffers;
 
 public class AudioBuffer : IDisposable
 {
-    private readonly Entities.Timeline Timeline;
+    private readonly Timeline Timeline;
     private readonly TimelineClipAudio AudioClip;
     private readonly Thread Thread;
 
     public bool KillSwitch { get; private set; }
 
-    public AudioBuffer(Entities.Timeline timeline, TimelineClipAudio audioClip)
+    public AudioBuffer(Timeline timeline, TimelineClipAudio audioClip)
     {
         Timeline = timeline;
         Timeline.CurrentTimeUpdated += Timeline_CurrentTimeUpdated;

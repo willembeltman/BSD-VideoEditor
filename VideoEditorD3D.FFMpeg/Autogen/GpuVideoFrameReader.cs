@@ -2,13 +2,12 @@
 using SharpDX;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
-using VideoEditorD3D.FFMpeg.CLI;
 using VideoEditorD3D.FFMpeg.Types;
 using Device = SharpDX.Direct3D11.Device;
 
 namespace VideoEditorD3D.FFMpeg.Autogen;
 
-public unsafe class GpuFrameReader : IDisposable
+public unsafe class GpuVideoFrameReader : IDisposable
 {
     private readonly AVFormatContext* FormatContext;
     private readonly AVCodecContext* CodecContext;
@@ -22,7 +21,7 @@ public unsafe class GpuFrameReader : IDisposable
     private int VideoStreamIndex;
     private AVStream* VideoStream;
 
-    public GpuFrameReader(string filename, Device d3dDevice, long startFrame = 0)
+    public GpuVideoFrameReader(string filename, Device d3dDevice, long startFrame = 0)
     {
         D3dDevice = d3dDevice;
         D3dContext = d3dDevice.ImmediateContext;
@@ -82,14 +81,14 @@ public unsafe class GpuFrameReader : IDisposable
         }
     }
 
-    public IEnumerable<GpuFrame> ReadFrames()
+    public IEnumerable<GpuVideoFrame> ReadFrames()
     {
         var frameIndex = 0L;
         while (ReadFrame(out var gpuFrame, ref frameIndex))
             if (gpuFrame != null)
                 yield return gpuFrame;
     }
-    public bool ReadFrame(out GpuFrame? gpuFrame, ref long frameIndex)
+    public bool ReadFrame(out GpuVideoFrame? gpuFrame, ref long frameIndex)
     {
         gpuFrame = null;
 
@@ -155,51 +154,7 @@ public unsafe class GpuFrameReader : IDisposable
         }
     }
 
-
-
-    public bool ReadFrameOld(out GpuFrame? gpuFrame, ref long frameIndex)
-    {
-        gpuFrame = null;
-        if (ffmpeg.av_read_frame(FormatContext, Packet) >= 0)
-        {
-            try
-            {
-                if (Packet->stream_index == VideoStreamIndex)
-                {
-                    if (ffmpeg.avcodec_send_packet(CodecContext, Packet) < 0)
-                        return true;
-
-                    if (ffmpeg.avcodec_receive_frame(CodecContext, Frame) == 0)
-                    {
-                        var isKeyFrame = (Frame->flags & ffmpeg.AV_FRAME_FLAG_KEY) != 0;
-                        var clipTime = Frame->best_effort_timestamp * ffmpeg.av_q2d(VideoStream->time_base);
-                        var resolution = new Resolution(Frame->width, Frame->height);
-
-                        if (Frame->format == (int)AVPixelFormat.AV_PIX_FMT_D3D11)
-                        {
-                            // D3D11 frame: Kopieren naar eigen texture op GPU
-                            gpuFrame = CopyFrameD3D11(ref frameIndex, isKeyFrame, clipTime, resolution);
-                        }
-                        else
-                        {
-                            // Software frame: converteer en upload naar GPU
-                            gpuFrame = CopyFrameSoftware(ref frameIndex, isKeyFrame, clipTime, resolution);
-                        }
-
-                        return true;
-                    }
-                }
-            }
-            finally
-            {
-                ffmpeg.av_packet_unref(Packet);
-            }
-        }
-
-        return false;
-    }
-
-    private GpuFrame CopyFrameSoftware(ref long frameIndex, bool isKeyFrame, double clipTime, Resolution resolution)
+    private GpuVideoFrame CopyFrameSoftware(ref long frameIndex, bool isKeyFrame, double clipTime, Resolution resolution)
     {
         // Maak nieuw frame aan voor RGB data
         AVFrame* rgbFrame = ffmpeg.av_frame_alloc();
@@ -256,7 +211,7 @@ public unsafe class GpuFrameReader : IDisposable
         // 3. Upload data naar texture
         D3dContext.UpdateSubresource(new DataBox((IntPtr)rgbFrame->data[0], rgbFrame->linesize[0], 0), texture, 0);
 
-        var gpuFrame = new GpuFrame(resolution, texture, frameIndex++, clipTime, isKeyFrame);
+        var gpuFrame = new GpuVideoFrame(resolution, texture, frameIndex++, clipTime, isKeyFrame);
 
         // Vergeet rgbFrame niet te free'en
         ffmpeg.av_frame_free(&rgbFrame);
@@ -264,9 +219,9 @@ public unsafe class GpuFrameReader : IDisposable
         return gpuFrame;
     }
 
-    private GpuFrame CopyFrameD3D11(ref long frameIndex, bool isKeyFrame, double clipTime, Resolution resolution)
+    private GpuVideoFrame CopyFrameD3D11(ref long frameIndex, bool isKeyFrame, double clipTime, Resolution resolution)
     {
-        GpuFrame gpuFrame;
+        GpuVideoFrame gpuFrame;
         var resourcePtr = (IntPtr)(*(void**)&Frame->data);
         var wrappedResource = new Texture2D(resourcePtr);
 
@@ -275,7 +230,7 @@ public unsafe class GpuFrameReader : IDisposable
         var copiedTexture = new Texture2D(D3dDevice, desc);
         D3dContext.CopyResource(wrappedResource, copiedTexture);
 
-        gpuFrame = new GpuFrame(resolution, copiedTexture, frameIndex++, clipTime, isKeyFrame);
+        gpuFrame = new GpuVideoFrame(resolution, copiedTexture, frameIndex++, clipTime, isKeyFrame);
         return gpuFrame;
     }
 

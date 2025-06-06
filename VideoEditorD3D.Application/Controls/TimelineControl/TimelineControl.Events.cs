@@ -139,7 +139,7 @@ public partial class TimelineControl
 
                 var clip = new TimelineClipVideo()
                 {
-                    Layer = layerIndex,
+                    TimelineLayer = layerIndex,
                     TimelineStartTime = start,
                     TimelineLengthTime = duration,
                     ClipStartTime = 0,
@@ -170,7 +170,7 @@ public partial class TimelineControl
 
                 var clip = new TimelineClipAudio()
                 {
-                    Layer = layerIndex,
+                    TimelineLayer = layerIndex,
                     TimelineStartTime = start,
                     TimelineLengthTime = duration,
                     ClipStartTime = 0,
@@ -219,7 +219,7 @@ public partial class TimelineControl
                 .OrderBy(a => a.MediaStream.Value.Index);
             foreach (var videoClip in videoClips)
             {
-                videoClip.Layer = layer;
+                videoClip.TimelineLayer = layer;
                 videoClip.TimelineStartTime = currentTime;
                 layer++;
             }
@@ -230,7 +230,7 @@ public partial class TimelineControl
                 .OrderBy(a => a.MediaStream.Value.Index);
             foreach (var audioClip in audioClips)
             {
-                audioClip.Layer = layer;
+                audioClip.TimelineLayer = layer;
                 audioClip.TimelineStartTime = currentTime;
                 layer++;
             }
@@ -252,7 +252,7 @@ public partial class TimelineControl
             item.TimelineClipGroupId = timelineGroup.Id;
             Timeline.TimelineClipVideos.Add(item);
 
-            State.VideoBuffers.Add(new VideoBuffer(Timeline, item));
+            State.VideoBuffers.Add(new SoftwareVideoBuffer(Timeline, item));
         }
         foreach (var item in DragAndDrop.AudioClips)
         {
@@ -316,7 +316,7 @@ public partial class TimelineControl
             SelectedClipsDragging.Set(startpoint, startposition);
             foreach (var clip in selectedClips)
             {
-                clip.OldLayer = clip.Layer;
+                clip.OldLayer = clip.TimelineLayer;
                 clip.OldTimelineStartTime = clip.TimelineStartTime;
             }
             return;
@@ -348,8 +348,8 @@ public partial class TimelineControl
             var diff = endPosition.Value - SelectedClipsDragging.StartPosition;
             foreach (var clip in Timeline.SelectedClips)
             {
-                clip.Layer = clip.OldLayer + diff.Layer;
-                if (clip.Layer < 0) clip.Layer = 0;
+                clip.TimelineLayer = clip.OldLayer + diff.Layer;
+                if (clip.TimelineLayer < 0) clip.TimelineLayer = 0;
                 clip.TimelineStartTime = clip.OldTimelineStartTime + diff.CurrentTime;
                 //Debug.WriteLine($"Dragging {diff.CurrentTime}x{diff.Layer} {clip.OldTimelineStartTime}+{diff.CurrentTime.ToString("F3")}={clip.StartTime}");
             }

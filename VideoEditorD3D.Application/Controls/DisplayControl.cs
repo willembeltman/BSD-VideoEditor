@@ -1,7 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using VideoEditorD3D.Direct3D.Drawing;
+﻿using VideoEditorD3D.Direct3D.Drawing;
+using VideoEditorD3D.FFMpeg.Autogen;
 using VideoEditorD3D.FFMpeg.CLI;
+using VideoEditorD3D.FFMpeg.Interfaces;
 
 namespace VideoEditorD3D.Application.Controls;
 
@@ -33,7 +33,7 @@ public class DisplayControl : BaseControl
         var maxLayer = 0;
         if (Timeline.TimelineClipVideos.Any())
         {
-            maxLayer = Timeline.TimelineClipVideos.Max(a => a.Layer) + 1;
+            maxLayer = Timeline.TimelineClipVideos.Max(a => a.TimelineLayer) + 1;
         }
         if (Layers.Count > maxLayer)
         {
@@ -52,7 +52,7 @@ public class DisplayControl : BaseControl
 
     private void DisplayControl_Draw(object? sender, EventArgs e)
     {
-        Frame[] frames = State.GetCurrentFrames();
+        var frames = State.GetCurrentFrames();
 
         foreach (var layer in Layers) layer.StartDrawing();
 
@@ -60,7 +60,14 @@ public class DisplayControl : BaseControl
         {
             var layer = Layers[i];
             var frame = frames[i];
-            layer.DrawByteArrayImage(0, 0, Width, Height, frame.Buffer, frame.Resolution.Width, frame.Resolution.Height);
+            if (frame is VideoFrame)
+            {
+                layer.DrawByteArray(0, 0, Width, Height, (frame as VideoFrame).Buffer, frame.Resolution.Width, frame.Resolution.Height);
+            }
+            else if (frame is GpuVideoFrame)
+            {
+                layer.DrawTexture2D(0, 0, Width, Height, (frame as GpuVideoFrame).Texture);
+            }
         }
 
         foreach (var layer in Layers) layer.EndDrawing();

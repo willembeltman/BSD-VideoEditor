@@ -25,6 +25,8 @@ public abstract class TimelineClip : IEntity
             }
         }
     }
+    public int TimelineLayer { get; set; }
+
     public double ClipStartTime { get; set; }
     public double ClipLengthTime { get; set; }
     public double ClipEndTime
@@ -40,7 +42,6 @@ public abstract class TimelineClip : IEntity
             }
         }
     }
-    public int Layer { get; set; }
 
     public virtual ILazy<Timeline> Timeline { get; set; } = new LazyStatic<Timeline>();
     public virtual ILazy<MediaStream> MediaStream { get; set; } = new LazyStatic<MediaStream>();

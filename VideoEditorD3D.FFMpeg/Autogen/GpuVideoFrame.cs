@@ -1,15 +1,17 @@
 ﻿using SharpDX.Direct3D11;
+using VideoEditorD3D.FFMpeg.Interfaces;
 using VideoEditorD3D.FFMpeg.Types;
 
 namespace VideoEditorD3D.FFMpeg.Autogen;
 
-public class GpuFrame(Resolution resolution, Texture2D texture, long frameIndex, double clipTime, bool isKeyFrame) : IDisposable
+public class GpuVideoFrame(Resolution resolution, Texture2D texture, long index, double clipTime, bool isKeyFrame) : IVideoFrame
 {
     public Resolution Resolution { get; } = resolution;
-    public long FrameIndex { get; } = frameIndex;
+    public long Index { get; } = index;
     public double ClipTime { get; } = clipTime;
-    public Texture2D Texture { get; } = texture;
     public bool IsKeyFrame { get; } = isKeyFrame;
+
+    public Texture2D Texture { get; } = texture;
 
     public void Dispose()
     {

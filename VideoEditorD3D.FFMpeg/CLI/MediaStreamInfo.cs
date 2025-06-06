@@ -1,6 +1,6 @@
 ﻿using VideoEditorD3D.FFMpeg.CLI.Enums;
 using VideoEditorD3D.FFMpeg.CLI.Helpers;
-using VideoEditorD3D.FFMpeg.CLI.Json;
+using VideoEditorD3D.FFMpeg.CLI.FFProbeJson;
 using VideoEditorD3D.FFMpeg.Types;
 
 namespace VideoEditorD3D.FFMpeg.CLI;
@@ -37,6 +37,30 @@ public class MediaStreamInfo
 
     public int? SampleRate { get; }
     public int? Channels { get; }
+
+    public VideoFrameReader OpenFrameReader(double startTime = 0)
+    {
+        if (CodecType != CodecType.Video)
+            throw new InvalidOperationException("Reading of video frames is not permitted on a audio stream.");
+        if (Fps == null)
+            throw new InvalidOperationException("Fps value is not known for this stream. Unable to read.");
+        if (Resolution == null)
+            throw new InvalidOperationException("Resolution is not known for this stream. Unable to read.");
+
+        return new VideoFrameReader(File.FullName, Resolution.Value, Fps.Value, startTime);
+    }
+
+    public AudioFrameReader OpenAudioFrameReader(double startTime = 0)
+    {
+        if (CodecType != CodecType.Audio)
+            throw new InvalidOperationException("Reading of audio frames is not permitted on a video stream.");
+        if (SampleRate == null)
+            throw new InvalidOperationException("SampleRate value is not known for this audio stream. Unable to read.");
+        if (Channels == null)
+            throw new InvalidOperationException("The amount of channels is not known for this audio stream. Unable to read.");
+
+        return new AudioFrameReader(File.FullName, SampleRate.Value, Channels.Value, startTime);
+    }
 
     public override string ToString()
     {

@@ -1,27 +1,29 @@
-﻿using System.Diagnostics;
-using System.IO;
+﻿using System.Collections;
+using System.Diagnostics;
 using VideoEditorD3D.FFMpeg.CLI.Helpers;
 using VideoEditorD3D.FFMpeg.Types;
 
 namespace VideoEditorD3D.FFMpeg.CLI;
 
-public class FrameReader
+public class VideoFrameReader : IEnumerable<VideoFrame>
 {
     /// <summary>
     /// Important: The fps is used solely for calculating the timestamp. 
     /// You cannot use a different fps than the one the video was recorded at! 
     /// You should either know the fps in advance or extract it using ffprobe.
     /// </summary>
-    public FrameReader(string fullName, Resolution requestedResolution, Fps fpsOfVideo, double startTime = 0)
+    public VideoFrameReader(string fullName, Resolution requestedResolution, Fps fpsOfVideo, double startTime = 0)
     {
         FullName = fullName;
         Resolution = requestedResolution;
         Fps = fpsOfVideo;
         _StartTime = startTime;
+        _StartTimeStamp = new FFTimestamp(startTime);
+        _StartFrameIndex = Fps.ConvertTimeToIndex(startTime);
     }
 
     private double _StartTime;
-    private TimeStamp _StartTimeStamp;
+    private FFTimestamp _StartTimeStamp;
     private long _StartFrameIndex;
 
     public string FullName { get; }
@@ -31,35 +33,35 @@ public class FrameReader
     public double StartTime
     {
         get => _StartTime;
-        //set
-        //{
-        //    _StartTime = value;
-        //    _StartTimeStamp = new TimeStamp(value);
-        //    _StartFrameIndex = Fps.ConvertTimeToIndex(value);
-        //}
+        set
+        {
+            _StartTime = value;
+            _StartTimeStamp = new FFTimestamp(value);
+            _StartFrameIndex = Fps.ConvertTimeToIndex(value);
+        }
     }
-    public TimeStamp StartTimeStamp
+    public FFTimestamp StartTimeStamp
     {
         get => _StartTimeStamp;
-        //set
-        //{
-        //    _StartTimeStamp = value;
-        //    _StartTime = value.ConvertToTime();
-        //    _StartFrameIndex = Fps.ConvertTimeToIndex(_StartTime);
-        //}
+        set
+        {
+            _StartTimeStamp = value;
+            _StartTime = value.ConvertToTime();
+            _StartFrameIndex = Fps.ConvertTimeToIndex(_StartTime);
+        }
     }
     public long StartFrameIndex
     {
         get => _StartFrameIndex;
-        //set
-        //{
-        //    _StartFrameIndex = value;
-        //    _StartTime = Fps.ConvertIndexToTime(value);
-        //    _StartTimeStamp = new TimeStamp(_StartTime);
-        //}
+        set
+        {
+            _StartFrameIndex = value;
+            _StartTime = Fps.ConvertIndexToTime(value);
+            _StartTimeStamp = new FFTimestamp(_StartTime);
+        }
     }
 
-    public IEnumerable<Frame> GetEnumerable()
+    public IEnumerable<VideoFrame> GetEnumerable()
     {
         var arguments = $"-i \"{FullName}\" " +
                         $"-ss {StartTimeStamp} " +
@@ -85,12 +87,11 @@ public class FrameReader
             yield return frame;
         }
     }
-
-    private bool Read(Stream stream, out Frame frame, ref long currentFrameIndex)
+    private bool Read(Stream stream, out VideoFrame frame, ref long currentFrameIndex)
     {
         var currentTime = Fps.ConvertIndexToTime(currentFrameIndex);
 
-        frame = new Frame(Resolution, currentFrameIndex, currentTime);
+        frame = new VideoFrame(Resolution, currentFrameIndex, currentTime);
 
         var endOfVideo = false;
         var read = 0;
@@ -110,4 +111,7 @@ public class FrameReader
         currentFrameIndex++;
         return true;
     }
+
+    public IEnumerator<VideoFrame> GetEnumerator() => GetEnumerable().GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

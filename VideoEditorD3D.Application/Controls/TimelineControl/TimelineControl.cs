@@ -180,8 +180,8 @@ public partial class TimelineControl : BaseControl
         var clips = Timeline.AllClips.Concat(DragAndDrop.AllClips);
         foreach (var clip in clips)
         {
-            if (clip.IsVideoClip && FirstVisibleVideoLayer <= clip.Layer ||
-                clip.IsAudioClip && FirstVisibleAudioLayer <= clip.Layer)
+            if (clip.IsVideoClip && FirstVisibleVideoLayer <= clip.TimelineLayer ||
+                clip.IsAudioClip && FirstVisibleAudioLayer <= clip.TimelineLayer)
             {
                 var rect = CalculateRectangle(clip);
 
@@ -352,15 +352,15 @@ public partial class TimelineControl : BaseControl
 
         if (clip.IsVideoClip)
         {
-            var layer = clip.Layer - FirstVisibleVideoLayer;
+            var layer = clip.TimelineLayer - FirstVisibleVideoLayer;
             var y = middle - MiddleOffset - videoBlockHeight - layer * videoBlockHeight;
             var rect = new RawRectangleF(x1, y + ApplicationConstants.Margin / 2, x1 + width, y + ApplicationConstants.Margin / 2 + videoBlockHeight - ApplicationConstants.Margin);
             return rect;
         }
         else
         {
-            var layer = clip.Layer - FirstVisibleAudioLayer;
-            var y = middle + MiddleOffset + (clip.Layer - FirstVisibleAudioLayer) * audioBlockHeight;
+            var layer = clip.TimelineLayer - FirstVisibleAudioLayer;
+            var y = middle + MiddleOffset + (clip.TimelineLayer - FirstVisibleAudioLayer) * audioBlockHeight;
             var rect = new RawRectangleF(x1, y + ApplicationConstants.Margin / 2, x1 + width, y + ApplicationConstants.Margin / 2 + audioBlockHeight - ApplicationConstants.Margin);
             return rect;
         }

@@ -1,12 +1,12 @@
 ﻿using Bsd.Logger;
 using System.Diagnostics;
-using VideoEditorD3D.Application.Controls.TimelineControl;
+using VideoEditorD3D.Application.Buffers;
 using VideoEditorD3D.Application.Helpers;
 using VideoEditorD3D.Direct3D.Collections;
 using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Entities;
-using VideoEditorD3D.FFMpeg.CLI;
+using VideoEditorD3D.FFMpeg.Interfaces;
 
 namespace VideoEditorD3D.Application;
 
@@ -19,7 +19,7 @@ public class ApplicationState : IApplicationContext
     public ApplicationDbContext Db { get; }
     public Project Project { get; }
     public Timeline Timeline { get; }
-    public ObservableArrayCollection<VideoBuffer> VideoBuffers { get; }
+    public ObservableArrayCollection<SoftwareVideoBuffer> VideoBuffers { get; }
     public ObservableArrayCollection<AudioBuffer> AudioBuffers { get; }
     public Stopwatch PlaybackStopwatch { get; }
     public bool PlaybackBackward { get; set; }
@@ -82,7 +82,7 @@ public class ApplicationState : IApplicationContext
         e.Dispose();
     }
 
-    private void VideoRemoved(object? sender, VideoBuffer e)
+    private void VideoRemoved(object? sender, SoftwareVideoBuffer e)
     {
         e.Dispose();
     }
@@ -92,7 +92,7 @@ public class ApplicationState : IApplicationContext
         e.StartThread();
     }
 
-    private void VideoAdded(object? sender, VideoBuffer e)
+    private void VideoAdded(object? sender, SoftwareVideoBuffer e)
     {
         e.StartThread();
     }
@@ -115,12 +115,12 @@ public class ApplicationState : IApplicationContext
         }
         return false;
     }
-    public Frame[] GetCurrentFrames()
+    public IVideoFrame[] GetCurrentFrames()
     {
         return VideoBuffers
             .Where(a => 
                 a.TimelineStartTime <= Timeline.CurrentTime && Timeline.CurrentTime <= a.TimelineEndTime)
-            .OrderBy(a => a.Layer)
+            .OrderBy(a => a.TimelineLayer)
             .Select(a => a.GetCurrentFrame())
             .ToArray();
     }

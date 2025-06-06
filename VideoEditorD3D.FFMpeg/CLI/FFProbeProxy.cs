@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
 using VideoEditorD3D.FFMpeg.CLI.Helpers;
-using VideoEditorD3D.FFMpeg.CLI.Json;
+using VideoEditorD3D.FFMpeg.CLI.FFProbeJson;
 
 namespace VideoEditorD3D.FFMpeg.CLI;
 

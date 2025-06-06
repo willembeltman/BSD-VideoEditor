@@ -32,6 +32,30 @@ public class FrameTexture : IDisposableTexture
             TextureView = new ShaderResourceView(device, Texture);
         }
     }
+    //public FrameTexture(Device device, Texture2D texture, int frameWidth, int frameHeight)
+    //{
+    //    var texDesc = new Texture2DDescription
+    //    {
+    //        Width = frameWidth,
+    //        Height = frameHeight,
+    //        MipLevels = 1,
+    //        ArraySize = 1,
+    //        Format = Format.R8G8B8A8_UNorm,
+    //        SampleDescription = new SampleDescription(1, 0),
+    //        Usage = ResourceUsage.Immutable,
+    //        BindFlags = BindFlags.ShaderResource,
+    //        CpuAccessFlags = CpuAccessFlags.None,
+    //        OptionFlags = ResourceOptionFlags.None
+    //    };
+
+    //    using (var reader = new FrameDataPointer(frameBuffer))
+    //    {
+    //        var stride = frameWidth * 4;
+    //        var dataBox = new DataBox(reader.DataPointer, stride, 0);
+    //        Texture = new Texture2D(device, texDesc, [dataBox]);
+    //        TextureView = new ShaderResourceView(device, Texture);
+    //    }
+    //}
 
     public Texture2D Texture { get; }
     public ShaderResourceView TextureView { get; }

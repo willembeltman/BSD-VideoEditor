@@ -1,4 +1,4 @@
-﻿namespace VideoEditorD3D.FFMpeg.CLI.Json;
+﻿namespace VideoEditorD3D.FFMpeg.CLI.FFProbeJson;
 
 public class FFProbeFormat
 {

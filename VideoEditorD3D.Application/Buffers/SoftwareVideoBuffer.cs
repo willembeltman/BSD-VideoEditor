@@ -1,34 +1,32 @@
 ﻿using VideoEditorD3D.Entities;
 using VideoEditorD3D.FFMpeg.CLI;
+using VideoEditorD3D.FFMpeg.Interfaces;
 
-namespace VideoEditorD3D.Application.Controls.TimelineControl;
+namespace VideoEditorD3D.Application.Buffers;
 
-public class VideoBuffer : IDisposable
+public class SoftwareVideoBuffer : IVideoBuffer
 {
     private readonly ManualResetEventSlim FrameAvailable;
     private readonly object BufferLock;
     private readonly Timeline Timeline;
     private readonly TimelineClipVideo VideoClip;
     private readonly AutoResetEvent CurrentTimeUpdated;
-    private List<VideoBufferFrame> Buffer;
-    private IEnumerator<Frame>? Enumerator;
+    private List<SoftwareVideoBufferFrame> Buffer;
+    private IEnumerator<IVideoFrame>? Enumerator;
     private readonly Thread Thread;
-
-    public bool KillSwitch { get; private set; }
+    private bool KillSwitch;
 
     public double TimelineStartTime => VideoClip.TimelineStartTime;
     public double TimelineEndTime => VideoClip.TimelineEndTime;
-    public double ClipStartTime => VideoClip.ClipStartTime;
-    public double ClipEndTime => VideoClip.ClipEndTime;
-    public int Layer => VideoClip.Layer;
+    public int TimelineLayer => VideoClip.TimelineLayer;
 
-    public VideoBuffer(Timeline timeline, TimelineClipVideo videoClip)
+    public SoftwareVideoBuffer(Timeline timeline, TimelineClipVideo videoClip)
     {
         Timeline = timeline;
         Timeline.CurrentTimeUpdated += Timeline_CurrentTimeUpdated;
         VideoClip = videoClip;
         CurrentTimeUpdated = new AutoResetEvent(false);
-        Buffer = new List<VideoBufferFrame>();
+        Buffer = new List<SoftwareVideoBufferFrame>();
         Thread = new Thread(new ThreadStart(Kernel));
         BufferLock = new object();
         FrameAvailable = new ManualResetEventSlim(false);
@@ -89,7 +87,7 @@ public class VideoBuffer : IDisposable
         {
             var startTime = (bufferStart - TimelineStartTime) * VideoClip.ClipLengthTime / VideoClip.TimelineLengthTime - VideoClip.ClipStartTime;
 
-            var reader = new FrameReader(
+            var reader = new VideoFrameReader(
                 VideoClip.MediaStream.Value.MediaFile.Value.FullName,
                 VideoClip.MediaStream.Value.Resolution,
                 VideoClip.MediaStream.Value.Fps,
@@ -113,7 +111,7 @@ public class VideoBuffer : IDisposable
                 {
                     if (!Buffer.Any(f => f.Frame.Index == frame.Index))
                     {
-                        Buffer.Add(new VideoBufferFrame(frame, timelineTime));
+                        Buffer.Add(new SoftwareVideoBufferFrame(frame, timelineTime));
                         if (currentTime <= timelineTime)
                             FrameAvailable.Set();
                     }
@@ -126,7 +124,7 @@ public class VideoBuffer : IDisposable
         }
     }
 
-    public Frame GetCurrentFrame()
+    public IVideoFrame GetCurrentFrame()
     {
         double targetTime = Timeline.CurrentTime;
 
@@ -134,7 +132,7 @@ public class VideoBuffer : IDisposable
         {
             lock (BufferLock)
             {
-                VideoBufferFrame? lastFrame = null;
+                SoftwareVideoBufferFrame? lastFrame = null;
                 foreach (var item in Buffer.OrderBy(a => a.TimelineTime))
                 {
                     if (item.TimelineTime > targetTime) break;
@@ -152,8 +150,6 @@ public class VideoBuffer : IDisposable
 
         throw new Exception("No frame available for current time");
     }
-
-
 
     public void Dispose()
     {
@@ -174,11 +170,11 @@ public class VideoBuffer : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    public class VideoBufferFrame : IDisposable
+    public class SoftwareVideoBufferFrame : IDisposable
     {
-        public Frame Frame { get; }
+        public IVideoFrame Frame { get; }
         public double TimelineTime { get; }
-        public VideoBufferFrame(Frame frame, double timelineTime)
+        public SoftwareVideoBufferFrame(IVideoFrame frame, double timelineTime)
         {
             Frame = frame;
             TimelineTime = timelineTime;

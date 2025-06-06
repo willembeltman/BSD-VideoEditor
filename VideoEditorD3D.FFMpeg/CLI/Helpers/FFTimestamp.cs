@@ -1,14 +1,14 @@
 ﻿using VideoEditorD3D.FFMpeg.Types;
 
-namespace VideoEditorD3D.FFMpeg.CLI;
+namespace VideoEditorD3D.FFMpeg.CLI.Helpers;
 
-public readonly struct TimeStamp
+public readonly struct FFTimestamp
 {
-    public TimeStamp()
+    public FFTimestamp()
     {
         TimeSpan = new TimeSpan(0, 0, 0, 0);
     }
-    public TimeStamp(string time)
+    public FFTimestamp(string time)
     {
         if (string.IsNullOrWhiteSpace(time))
             throw new ArgumentException("Invalid timestamp format", nameof(time));
@@ -35,20 +35,20 @@ public readonly struct TimeStamp
             throw new FormatException("Invalid timestamp format. Expected HH:mm:ss.SSS or mm:ss.SSS");
         }
     }
-    public TimeStamp(int hours, int minutes, int seconds, int milliseconds)
+    public FFTimestamp(int hours, int minutes, int seconds, int milliseconds)
     {
         TimeSpan = new TimeSpan(hours, minutes, seconds, milliseconds);
     }
-    public TimeStamp(TimeSpan time)
+    public FFTimestamp(TimeSpan time)
     {
         TimeSpan = time;
     }
-    public TimeStamp(long frameIndex, Fps fps)
+    public FFTimestamp(long frameIndex, Fps fps)
     {
         double timeInSeconds = frameIndex * fps.Base / fps.Divider;
         TimeSpan = TimeSpan.FromSeconds(timeInSeconds);
     }
-    public TimeStamp(double timeInSeconds)
+    public FFTimestamp(double timeInSeconds)
     {
         TimeSpan = TimeSpan.FromSeconds(timeInSeconds);
     }
@@ -64,20 +64,20 @@ public readonly struct TimeStamp
         return TimeSpan.TotalSeconds;
     }
 
-    public static bool operator ==(TimeStamp p1, TimeStamp p2)
+    public static bool operator ==(FFTimestamp p1, FFTimestamp p2)
     {
         return p1.Equals(p2);
     }
-    public static bool operator !=(TimeStamp p1, TimeStamp p2)
+    public static bool operator !=(FFTimestamp p1, FFTimestamp p2)
     {
         return !p1.Equals(p2);
     }
     public override bool Equals(object? obj)
     {
         if (obj == null) return false;
-        if (!(obj is TimeStamp)) return false;
+        if (!(obj is FFTimestamp)) return false;
 
-        var other = obj as TimeStamp?;
+        var other = obj as FFTimestamp?;
         if (other == null) return false;
         if (Hours != other.Value.Hours) return false;
         if (Minutes != other.Value.Minutes) return false;
