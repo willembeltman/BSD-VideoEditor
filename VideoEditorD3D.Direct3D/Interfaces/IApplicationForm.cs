@@ -21,6 +21,4 @@ public interface IApplicationForm
     Cursor Cursor { get; set; }
 
     void TryDraw();
-    void CloseForm();
-    Point PointToClient(Point formPoint);
 }

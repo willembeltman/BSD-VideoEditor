@@ -18,16 +18,4 @@
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="ApplicationForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Update="Controls\Templates\BorderBackControl.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Update="Controls\Templates\ForeBorderBackControl.cs">
-      <SubType>Component</SubType>
-    </Compile>
-  </ItemGroup>
-
 </Project>

@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using VideoEditorD3D.Direct3D.Collections;
 using VideoEditorD3D.Direct3D.Drawing;
+using VideoEditorD3D.Direct3D.Events;
 using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Direct3D.Timers;
 using VideoEditorD3D.Direct3D.Vertices;
@@ -15,12 +16,11 @@ using FormCollection = VideoEditorD3D.Direct3D.Collections.FormCollection;
 
 namespace VideoEditorD3D.Direct3D;
 
-public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
+public partial class ApplicationForm : System.Windows.Forms.Form
 {
     #region Initilized at Constructor
     private bool KillSwitch;
     private readonly IApplicationState ApplicationContext;
-    private readonly ApplicationFormEvents ApplicationFormEvents;
     private readonly Lock UILock;
     private readonly Stopwatch Stopwatch;
     private readonly AllTimers Timers;
@@ -50,26 +50,12 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
     private int? _PhysicalHeight;
     #endregion
 
-    #region (Private) IApplicationForm interface
-    bool IApplicationForm.KillSwitch { get => KillSwitch; set => KillSwitch = value; }
-    IApplicationState IApplicationForm.ApplicationContext => ApplicationContext;
-    Device IApplicationForm.Device => _Device!;
-    CharacterCollection IApplicationForm.Characters => _Characters!;
-    int IApplicationForm.Width => _PhysicalWidth!.Value;
-    int IApplicationForm.Height => _PhysicalHeight!.Value;
-    Stopwatch IApplicationForm.Stopwatch => Stopwatch;
-    AllTimers IApplicationForm.Timers => Timers;
-    FormCollection IApplicationForm.Forms => _Forms!;
-    #endregion
-
     public ApplicationForm(IApplicationState applicationContext)
     {
         ApplicationContext = applicationContext;
-        _Forms = new FormCollection(this);
         UILock = new Lock();
         Stopwatch = new Stopwatch();
         Timers = new AllTimers(Stopwatch);
-        ApplicationFormEvents = new ApplicationFormEvents(this);
 
         InitializeComponents();
     }
@@ -92,13 +78,9 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
     }
     private bool IsNotReadyToDraw => !Initialized || IsClosed || KillSwitch || Width == 0 || Height == 0;
 
-
     protected override void OnHandleCreated(EventArgs e)
     {
         base.OnHandleCreated(e);
-
-
-
         RecreateSwapChain();
     }
     protected override void OnLoad(EventArgs e)
@@ -149,21 +131,21 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
         this.Text = "Video editor";
         this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.Opaque, true);
         this.AllowDrop = true;
-        this.MouseMove += ApplicationFormEvents.OnMouseMove;
-        this.MouseDown += ApplicationFormEvents.OnMouseDown;
-        this.MouseUp += ApplicationFormEvents.OnMouseUp;
-        this.MouseClick += ApplicationFormEvents.OnMouseClick;
-        this.MouseDoubleClick += ApplicationFormEvents.OnMouseDoubleClick;
-        this.MouseWheel += ApplicationFormEvents.OnMouseWheel;
-        this.MouseEnter += ApplicationFormEvents.OnMouseEnter;
-        this.MouseLeave += ApplicationFormEvents.OnMouseLeave;
-        this.KeyDown += ApplicationFormEvents.OnKeyDown;
-        this.KeyUp += ApplicationFormEvents.OnKeyUp;
-        this.KeyPress += ApplicationFormEvents.OnKeyPress;
-        this.DragDrop += ApplicationFormEvents.OnDragDrop;
-        this.DragEnter += ApplicationFormEvents.OnDragEnter;
-        this.DragOver += ApplicationFormEvents.OnDragOver;
-        this.DragLeave += ApplicationFormEvents.OnDragLeave;
+        this.MouseMove += OnMouseMove;
+        this.MouseDown += OnMouseDown;
+        this.MouseUp += OnMouseUp;
+        this.MouseClick += OnMouseClick;
+        this.MouseDoubleClick += OnMouseDoubleClick;
+        this.MouseWheel += OnMouseWheel;
+        this.MouseEnter += OnMouseEnter;
+        this.MouseLeave += OnMouseLeave;
+        this.KeyDown += OnKeyDown;
+        this.KeyUp += OnKeyUp;
+        this.KeyPress += OnKeyPress;
+        this.DragDrop += OnDragDrop;
+        this.DragEnter += OnDragEnter;
+        this.DragOver += OnDragOver;
+        this.DragLeave += OnDragLeave;
         this.ResumeLayout(false);
 
         Thread.CurrentThread.Name = "Form Kernel";
@@ -445,128 +427,4 @@ public class ApplicationForm : System.Windows.Forms.Form, IApplicationForm
                 new InputElement("TEXCOORD", 0, Format.R32G32_Float, 8, 0)
             ]);
     }
-
-    public void TryDraw()
-    {
-        if (IsNotReadyToDraw || _Forms == null || _Forms.Count < 1)
-            return;
-
-        Draw();
-    }
-    private void Draw()
-    {
-        if (IsNotReadyToDraw || _Forms == null || _Forms.Count < 1)
-            return;
-
-        using (Timers.OnUpdateTimer.DisposableObject)
-        {
-            foreach (var form in _Forms)
-            {
-                form.OnUpdate();
-            }
-        }
-
-        using (Timers.RenderToGpuTimer.DisposableObject)
-        {
-            LockAndRenderToGpu();
-        }
-
-        Timers.FpsTimer.CountFps();
-    }
-    private void LockAndRenderToGpu()
-    {
-        if (IsNotReadyToDraw || _Forms == null || _Forms.Count < 1)
-            return;
-
-        try
-        {
-            lock (UILock)
-            {
-                RenderToGpu();
-            }
-        }
-        catch (Exception ex)
-        {
-            // Dit zou niet meer voor kunnen komen nu
-            ApplicationContext.Logger?.WriteException(ex);
-
-            // Checken omdat de KillSwitch inmiddels ook aangezet kan zijn
-            if (IsNotReadyToDraw)
-                return;
-
-            RecreateSwapChain();
-        }
-    }
-    private void RenderToGpu()
-    {
-        if (IsNotReadyToDraw || _DeviceContext == null || _Device == null || _SwapChain == null || _Forms == null || _Forms.Count < 1)
-            return;
-
-        foreach (var form in _Forms)
-        {
-            foreach (var layer in form.GetAllCanvasLayers())
-            {
-                if (layer.TriangleVerticesBuffer != null)
-                {
-                    DrawTriangle(_DeviceContext, layer);
-                }
-
-                if (layer.LineVerticesBuffer != null)
-                {
-                    DrawLine(_DeviceContext, layer);
-                }
-
-                foreach (var image in layer.TextureImages)
-                {
-                    DrawImage(_DeviceContext, image);
-                }
-            }
-        }
-
-        _SwapChain.Present(0, PresentFlags.None);
-    }
-
-    private void DrawImage(DeviceContext deviceContext, ITextureWithVerticies image)
-    {
-        deviceContext.InputAssembler.InputLayout = _BitmapInputLayout;
-        deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
-        deviceContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(image.VerticesBuffer, Utilities.SizeOf<TextureVertex>(), 0));
-        deviceContext.VertexShader.Set(_BitmapVertexShader);
-        deviceContext.PixelShader.Set(_BitmapPixelShader);
-        deviceContext.PixelShader.SetShaderResource(0, image.Texture.TextureView);
-        deviceContext.Draw(image.Vertices.Length, 0);
-    }
-    private void DrawLine(DeviceContext deviceContext, GraphicsLayer layer)
-    {
-        deviceContext.InputAssembler.InputLayout = _NormalInputLayout;
-        deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.LineList;
-        deviceContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(layer.LineVerticesBuffer, Utilities.SizeOf<Vertex>(), 0));
-        deviceContext.VertexShader.Set(_NormalVertexShader);
-        deviceContext.PixelShader.Set(_NormalPixelShader);
-        deviceContext.Draw(layer.LineVertices.Count, 0);
-    }
-    private void DrawTriangle(DeviceContext deviceContext, GraphicsLayer layer)
-    {
-        deviceContext.InputAssembler.InputLayout = _NormalInputLayout;
-        deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
-        deviceContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(layer.TriangleVerticesBuffer, Utilities.SizeOf<Vertex>(), 0));
-        deviceContext.VertexShader.Set(_NormalVertexShader);
-        deviceContext.PixelShader.Set(_NormalPixelShader);
-        deviceContext.Draw(layer.TriangleVertices.Count, 0);
-    }
-
-    public void CloseForm()
-    {
-        if (IsClosed)
-            return;
-
-        if (InvokeRequired)
-        {
-            Invoke(new Action(CloseForm));
-            return;
-        }
-
-        Close();
-    }
-
 }
