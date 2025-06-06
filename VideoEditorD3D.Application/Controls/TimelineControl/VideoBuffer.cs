@@ -1,6 +1,5 @@
 ﻿using VideoEditorD3D.Entities;
-using VideoEditorD3D.FFMpeg;
-using VideoEditorD3D.FFMpeg.Types;
+using VideoEditorD3D.FFMpeg.CLI;
 
 namespace VideoEditorD3D.Application.Controls.TimelineControl;
 
@@ -90,7 +89,7 @@ public class VideoBuffer : IDisposable
         {
             var startTime = (bufferStart - TimelineStartTime) * VideoClip.ClipLengthTime / VideoClip.TimelineLengthTime - VideoClip.ClipStartTime;
 
-            var reader = new SimpleFrameReader(
+            var reader = new FrameReader(
                 VideoClip.MediaStream.Value.MediaFile.Value.FullName,
                 VideoClip.MediaStream.Value.Resolution,
                 VideoClip.MediaStream.Value.Fps,

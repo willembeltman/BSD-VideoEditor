@@ -1,4 +1,6 @@
-﻿namespace VideoEditorD3D.FFMpeg.Types;
+﻿using VideoEditorD3D.FFMpeg.Types;
+
+namespace VideoEditorD3D.FFMpeg.CLI;
 
 public readonly struct TimeStamp
 {

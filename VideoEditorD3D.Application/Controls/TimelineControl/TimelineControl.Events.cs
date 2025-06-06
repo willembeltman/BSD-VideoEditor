@@ -2,7 +2,7 @@
 using System.Formats.Tar;
 using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Entities;
-using VideoEditorD3D.FFMpeg;
+using VideoEditorD3D.FFMpeg.CLI;
 using Point = System.Drawing.Point;
 
 namespace VideoEditorD3D.Application.Controls.TimelineControl;
@@ -105,7 +105,7 @@ public partial class TimelineControl
         var layerStartIndex = timelinePosition.Value.Layer;
         foreach (var fullName in fullNames)
         {
-            var mediaContainer = MediaContainer.Open(fullName);
+            var mediaContainer = MediaContainerInfo.Open(fullName);
             if (mediaContainer == null) continue;
             if (mediaContainer.Duration == null) continue;
             var duration = mediaContainer.Duration.Value;

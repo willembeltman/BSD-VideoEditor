@@ -1,12 +1,12 @@
-﻿using VideoEditorD3D.FFMpeg.Enums;
-using VideoEditorD3D.FFMpeg.Helpers;
-using VideoEditorD3D.FFMpeg.Json;
+﻿using VideoEditorD3D.FFMpeg.CLI.Enums;
+using VideoEditorD3D.FFMpeg.CLI.Helpers;
+using VideoEditorD3D.FFMpeg.CLI.Json;
 
-namespace VideoEditorD3D.FFMpeg;
+namespace VideoEditorD3D.FFMpeg.CLI;
 
-public class MediaContainer
+public class MediaContainerInfo
 {
-    private MediaContainer(string fullName, FFProbeRapport rapport)
+    private MediaContainerInfo(string fullName, FFProbeRapport rapport)
     {
         if (rapport.streams == null) throw new Exception("Media container rapport has no 'streams'");
         if (rapport.format == null) throw new Exception("Media container rapport has no 'format'");
@@ -15,7 +15,7 @@ public class MediaContainer
         AllStreams =
             rapport.streams
                 .Where(a => a.codec_type == "video" || a.codec_type == "audio")
-                .Select(a => new StreamInfo(this, a))
+                .Select(a => new MediaStreamInfo(this, a))
                 .ToArray();
         VideoStreams =
             AllStreams
@@ -29,29 +29,29 @@ public class MediaContainer
     }
 
     public string FullName { get; }
-    public StreamInfo[] AllStreams { get; }
-    public StreamInfo[] VideoStreams { get; }
-    public StreamInfo[] AudioStreams { get; }
+    public MediaStreamInfo[] AllStreams { get; }
+    public MediaStreamInfo[] VideoStreams { get; }
+    public MediaStreamInfo[] AudioStreams { get; }
     public double? Duration { get; }
 
-    public static IEnumerable<MediaContainer> OpenMultiple(IEnumerable<string> files)
+    public static IEnumerable<MediaContainerInfo> OpenMultiple(IEnumerable<string> files)
     {
         return files
             .Select(Open)
             .Where(a => a != null)
             .Select(a => a!);
     }
-    public static MediaContainer? Open(string fullName)
+    public static MediaContainerInfo? Open(string fullName)
     {
         var rapport = FFProbeProxy.GetRapport(fullName);
         if (rapport == null) return null;
-        return new MediaContainer(fullName, rapport);
+        return new MediaContainerInfo(fullName, rapport);
     }
 
     public bool EqualTo(object? obj)
     {
-        if (!(obj is MediaContainer)) return false;
-        var other = obj as MediaContainer;
+        if (!(obj is MediaContainerInfo)) return false;
+        var other = obj as MediaContainerInfo;
         if (other == null) return false;
         if (FullName != other.FullName) return false;
         return true;

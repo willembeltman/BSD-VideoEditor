@@ -1,13 +1,13 @@
-﻿using VideoEditorD3D.FFMpeg.Enums;
-using VideoEditorD3D.FFMpeg.Helpers;
-using VideoEditorD3D.FFMpeg.Json;
+﻿using VideoEditorD3D.FFMpeg.CLI.Enums;
+using VideoEditorD3D.FFMpeg.CLI.Helpers;
+using VideoEditorD3D.FFMpeg.CLI.Json;
 using VideoEditorD3D.FFMpeg.Types;
 
-namespace VideoEditorD3D.FFMpeg;
+namespace VideoEditorD3D.FFMpeg.CLI;
 
-public class StreamInfo
+public class MediaStreamInfo
 {
-    public StreamInfo(MediaContainer file, FFProbeStream stream)
+    public MediaStreamInfo(MediaContainerInfo file, FFProbeStream stream)
     {
         File = file;
         Index = stream.index;
@@ -17,15 +17,15 @@ public class StreamInfo
         Title = stream.tags?.title;
 
         // Video
-        Resolution = VideoEditorD3D.FFMpeg.Types.Resolution.TryParse(stream.width, stream.height, out Resolution resolution) ? resolution : null;
-        Fps = VideoEditorD3D.FFMpeg.Types.Fps.TryParse(stream.avg_frame_rate, out Fps fps) ? fps : null;
+        Resolution = Types.Resolution.TryParse(stream.width, stream.height, out Resolution resolution) ? resolution : null;
+        Fps = Types.Fps.TryParse(stream.avg_frame_rate, out Fps fps) ? fps : null;
 
         // Audio
         Channels = stream.channels;
         SampleRate = FFInt.TryParse(stream.sample_rate, out int sampleRate) ? sampleRate : null;
     }
 
-    public MediaContainer File { get; }
+    public MediaContainerInfo File { get; }
     public int Index { get; }
     public string? Title { get; }
     public string? CodecName { get; }
@@ -53,9 +53,9 @@ public class StreamInfo
 
     public bool EqualTo(object? obj)
     {
-        if (!(obj is StreamInfo)) return false;
+        if (!(obj is MediaStreamInfo)) return false;
 
-        var other = obj as StreamInfo;
+        var other = obj as MediaStreamInfo;
         if (other == null) return false;
         if (File.FullName != other.File.FullName) return false;
         if (Index != other.Index) return false;

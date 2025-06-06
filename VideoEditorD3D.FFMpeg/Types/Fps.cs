@@ -31,7 +31,7 @@ public struct Fps
     }
     public double ConvertIndexToTime(long index)
     {
-        return ((double)index) / Base * Divider;
+        return (double)index / Base * Divider;
     }
 
     public static bool operator ==(Fps p1, Fps p2)

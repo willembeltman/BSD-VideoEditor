@@ -1,4 +1,4 @@
-﻿namespace VideoEditorD3D.FFMpeg.Helpers;
+﻿namespace VideoEditorD3D.FFMpeg.CLI.Helpers;
 
 public static class FFDouble
 {

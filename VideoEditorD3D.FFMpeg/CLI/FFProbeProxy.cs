@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
-using VideoEditorD3D.FFMpeg.Helpers;
-using VideoEditorD3D.FFMpeg.Json;
+using VideoEditorD3D.FFMpeg.CLI.Helpers;
+using VideoEditorD3D.FFMpeg.CLI.Json;
 
-namespace VideoEditorD3D.FFMpeg;
+namespace VideoEditorD3D.FFMpeg.CLI;
 
 public static class FFProbeProxy
 {

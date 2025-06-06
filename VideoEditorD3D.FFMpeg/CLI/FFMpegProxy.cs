@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics;
-using VideoEditorD3D.FFMpeg.Enums;
-using VideoEditorD3D.FFMpeg.Helpers;
+using VideoEditorD3D.FFMpeg.CLI.Enums;
+using VideoEditorD3D.FFMpeg.CLI.Helpers;
 using VideoEditorD3D.FFMpeg.Types;
 
-namespace VideoEditorD3D.FFMpeg;
+namespace VideoEditorD3D.FFMpeg.CLI;
 
 public static class FFMpegProxy
 {

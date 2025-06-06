@@ -1,4 +1,4 @@
-﻿namespace VideoEditorD3D.FFMpeg.Json;
+﻿namespace VideoEditorD3D.FFMpeg.CLI.Json;
 
 public class FFProbeTags
 {

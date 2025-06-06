@@ -1,23 +1,23 @@
 ﻿using System.Diagnostics;
 using System.IO;
-using VideoEditorD3D.FFMpeg.Helpers;
+using VideoEditorD3D.FFMpeg.CLI.Helpers;
 using VideoEditorD3D.FFMpeg.Types;
 
-namespace VideoEditorD3D.FFMpeg;
+namespace VideoEditorD3D.FFMpeg.CLI;
 
-public class SimpleFrameReader
+public class FrameReader
 {
     /// <summary>
     /// Important: The fps is used solely for calculating the timestamp. 
     /// You cannot use a different fps than the one the video was recorded at! 
     /// You should either know the fps in advance or extract it using ffprobe.
     /// </summary>
-    public SimpleFrameReader(string fullName, Resolution resolution, Fps fps, double startTime = 0)
+    public FrameReader(string fullName, Resolution requestedResolution, Fps fpsOfVideo, double startTime = 0)
     {
         FullName = fullName;
-        Resolution = resolution;
-        Fps = fps;
-        StartTime = startTime;
+        Resolution = requestedResolution;
+        Fps = fpsOfVideo;
+        _StartTime = startTime;
     }
 
     private double _StartTime;
@@ -26,37 +26,37 @@ public class SimpleFrameReader
 
     public string FullName { get; }
     public Fps Fps { get; }
-    public Resolution Resolution { get; set; }
+    public Resolution Resolution { get; }
 
     public double StartTime
     {
         get => _StartTime;
-        set
-        {
-            _StartTime = value;
-            _StartTimeStamp = new TimeStamp(value);
-            _StartFrameIndex = Fps.ConvertTimeToIndex(value);
-        }
+        //set
+        //{
+        //    _StartTime = value;
+        //    _StartTimeStamp = new TimeStamp(value);
+        //    _StartFrameIndex = Fps.ConvertTimeToIndex(value);
+        //}
     }
     public TimeStamp StartTimeStamp
     {
         get => _StartTimeStamp;
-        set
-        {
-            _StartTimeStamp = value;
-            _StartTime = value.ConvertToTime();
-            _StartFrameIndex = Fps.ConvertTimeToIndex(_StartTime);
-        }
+        //set
+        //{
+        //    _StartTimeStamp = value;
+        //    _StartTime = value.ConvertToTime();
+        //    _StartFrameIndex = Fps.ConvertTimeToIndex(_StartTime);
+        //}
     }
     public long StartFrameIndex
     {
         get => _StartFrameIndex;
-        set
-        {
-            _StartFrameIndex = value;
-            _StartTime = Fps.ConvertIndexToTime(value);
-            _StartTimeStamp = new TimeStamp(_StartTime);
-        }
+        //set
+        //{
+        //    _StartFrameIndex = value;
+        //    _StartTime = Fps.ConvertIndexToTime(value);
+        //    _StartTimeStamp = new TimeStamp(_StartTime);
+        //}
     }
 
     public IEnumerable<Frame> GetEnumerable()
@@ -111,6 +111,3 @@ public class SimpleFrameReader
         return true;
     }
 }
-
-
-

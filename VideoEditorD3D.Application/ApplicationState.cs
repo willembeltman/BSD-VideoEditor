@@ -6,7 +6,7 @@ using VideoEditorD3D.Direct3D.Collections;
 using VideoEditorD3D.Direct3D.Forms;
 using VideoEditorD3D.Direct3D.Interfaces;
 using VideoEditorD3D.Entities;
-using VideoEditorD3D.FFMpeg.Types;
+using VideoEditorD3D.FFMpeg.CLI;
 
 namespace VideoEditorD3D.Application;
 

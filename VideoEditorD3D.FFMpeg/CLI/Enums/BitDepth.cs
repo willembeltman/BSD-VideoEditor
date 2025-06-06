@@ -1,4 +1,4 @@
-﻿namespace VideoEditorD3D.FFMpeg.Enums;
+﻿namespace VideoEditorD3D.FFMpeg.CLI.Enums;
 
 public enum BitDepth
 {

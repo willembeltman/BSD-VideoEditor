@@ -1,4 +1,4 @@
-﻿namespace VideoEditorD3D.FFMpeg.Helpers
+﻿namespace VideoEditorD3D.FFMpeg.CLI.Helpers
 {
     public static class FFExecutebles
     {
@@ -44,6 +44,7 @@
             var executeblesDirInfo = new DirectoryInfo(executeblesPath);
             if (executeblesDirInfo.Exists == false)
                 throw new Exception("ExecuteblesPath does not exist");
+
             return executeblesDirInfo;
         }
     }

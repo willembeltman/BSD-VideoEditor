@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using VideoEditorD3D.Direct3D.Drawing;
-using VideoEditorD3D.FFMpeg.Types;
+using VideoEditorD3D.FFMpeg.CLI;
 
 namespace VideoEditorD3D.Application.Controls;
 
