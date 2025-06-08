@@ -1,4 +1,5 @@
-﻿using VideoEditorD3D.Entities;
+﻿using System.Collections.Concurrent;
+using VideoEditorD3D.Entities;
 using VideoEditorD3D.FFMpeg.CLI;
 using VideoEditorD3D.FFMpeg.Interfaces;
 
@@ -11,7 +12,7 @@ public class SoftwareVideoBuffer : IVideoBuffer
     private readonly Timeline Timeline;
     private readonly TimelineClipVideo VideoClip;
     private readonly AutoResetEvent CurrentTimeUpdated;
-    private List<SoftwareVideoBufferFrame> Buffer;
+    private ConcurrentDictionary<long, SoftwareVideoBufferFrame> Buffer;
     private IEnumerator<IVideoFrame>? Enumerator;
     private readonly Thread Thread;
     private bool KillSwitch;
@@ -23,13 +24,14 @@ public class SoftwareVideoBuffer : IVideoBuffer
     public SoftwareVideoBuffer(Timeline timeline, TimelineClipVideo videoClip)
     {
         Timeline = timeline;
-        Timeline.CurrentTimeUpdated += Timeline_CurrentTimeUpdated;
         VideoClip = videoClip;
-        CurrentTimeUpdated = new AutoResetEvent(false);
-        Buffer = new List<SoftwareVideoBufferFrame>();
+        Buffer = new ConcurrentDictionary<long, SoftwareVideoBufferFrame>();
         Thread = new Thread(new ThreadStart(Kernel));
         BufferLock = new object();
+        CurrentTimeUpdated = new AutoResetEvent(false);
         FrameAvailable = new ManualResetEventSlim(false);
+
+        Timeline.CurrentTimeUpdated += Timeline_CurrentTimeUpdated;
     }
 
     private void Timeline_CurrentTimeUpdated(object? sender, double e)
@@ -67,12 +69,12 @@ public class SoftwareVideoBuffer : IVideoBuffer
 
         // 1. Verwijder oude frames buiten de buffer window
         var lowest = 0d;
-        lock (BufferLock)
-        {
+
+
+
             Buffer.RemoveAll(f => f.TimelineTime < bufferStart || f.TimelineTime > bufferEnd);
             if (Buffer.Count > 0)
                 lowest = Buffer.Min(a => a.TimelineTime);
-        }
         var reload = lowest > currentTime;
 
         // 2. Reset Enumerator als teruggescrubd is
@@ -128,8 +130,6 @@ public class SoftwareVideoBuffer : IVideoBuffer
     {
         double targetTime = Timeline.CurrentTime;
 
-        for (int i = 0; i < 10; i++)
-        {
             lock (BufferLock)
             {
                 SoftwareVideoBufferFrame? lastFrame = null;
@@ -146,9 +146,6 @@ public class SoftwareVideoBuffer : IVideoBuffer
             // Geen frame gevonden, wacht max 100ms op nieuwe frame
             FrameAvailable.Wait(10000);
             FrameAvailable.Reset(); // Daarna resetten
-        }
-
-        throw new Exception("No frame available for current time");
     }
 
     public void Dispose()

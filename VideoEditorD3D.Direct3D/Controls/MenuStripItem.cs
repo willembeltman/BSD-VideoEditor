@@ -14,6 +14,8 @@ public class MenuStripItem : ForeBorderBackControl
     private readonly GraphicsLayer Foreground;
     public readonly string Text;
 
+    public Action? OnClick { get; }
+
     public event EventHandler<MouseEvent>? Clicked;
     public ObservableArrayCollection<MenuStripItem> Items { get; }
     public MenuStripItem? ParentItem { get; private set; }
@@ -23,9 +25,10 @@ public class MenuStripItem : ForeBorderBackControl
     public bool Opened { get; private set; }
 #nullable enable
 
-    public MenuStripItem(string text)
+    public MenuStripItem(string text, Action? onClick = null)
     {
         Text = text;
+        OnClick = onClick;
 
         Foreground = GraphicsLayers.CreateNewLayer();
 
@@ -97,6 +100,7 @@ public class MenuStripItem : ForeBorderBackControl
         else
         {
             Clicked?.Invoke(this, e);
+            OnClick?.Invoke();
         }
     }
     private void MenuStripItem_MouseEnter(object? sender, EventArgs e)

@@ -18,5 +18,6 @@ namespace VideoEditorD3D.Direct3D
         Stopwatch IApplicationForm.Stopwatch => Stopwatch;
         AllTimers IApplicationForm.Timers => Timers;
         FormCollection IApplicationForm.Forms => _Forms!;
+
     }
 }

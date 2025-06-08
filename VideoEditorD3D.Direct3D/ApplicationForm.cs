@@ -427,4 +427,19 @@ public partial class ApplicationForm : System.Windows.Forms.Form
                 new InputElement("TEXCOORD", 0, Format.R32G32_Float, 8, 0)
             ]);
     }
+
+    public void CloseForm()
+    {
+        if (IsClosed)
+            return;
+
+        if (InvokeRequired)
+        {
+            Invoke(new Action(CloseForm));
+            return;
+        }
+
+        Close();
+    }
+
 }

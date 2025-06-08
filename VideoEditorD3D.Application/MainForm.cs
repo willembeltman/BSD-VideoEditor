@@ -55,7 +55,7 @@ public class MainForm : Form
         fileMenu.Items.Add(new MenuStripItem("Open"));
         fileMenu.Items.Add(new MenuStripItem("Save"));
         fileMenu.Items.Add(new MenuStripItem("Save As"));
-        fileMenu.Items.Add(new MenuStripItem("Exit"));
+        fileMenu.Items.Add(new MenuStripItem("Exit", OnExit));
 
         var editMenu = new MenuStripItem("Edit");
         MenuStrip.Items.Add(editMenu);
@@ -86,6 +86,11 @@ public class MainForm : Form
         MouseDown += MainForm_MouseDown;
         MouseUp += MainForm_MouseUp;
         MouseLeave += MainForm_MouseLeave;
+    }
+
+    private void OnExit()
+    {
+        ApplicationForm.CloseForm();
     }
 
     public void MainForm_Update(object? sender, EventArgs e)

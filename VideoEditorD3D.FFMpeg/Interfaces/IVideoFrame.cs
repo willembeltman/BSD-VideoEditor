@@ -6,7 +6,6 @@ namespace VideoEditorD3D.FFMpeg.Interfaces
     {
         Resolution Resolution { get; }
         long Index { get; }
-        double ClipTime { get; }
         bool IsKeyFrame { get; }
     }
 }

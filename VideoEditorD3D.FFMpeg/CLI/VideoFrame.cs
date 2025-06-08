@@ -6,16 +6,14 @@ namespace VideoEditorD3D.FFMpeg.CLI;
 
 public class VideoFrame : IVideoFrame
 {
-    public VideoFrame(Resolution resolution, long index, double clipTime)
+    public VideoFrame(Resolution resolution, long index)
     {
         Resolution = resolution;
         Index = index;
-        ClipTime = clipTime;
         Buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
     }
     public Resolution Resolution { get; }
     public long Index { get; }
-    public double ClipTime { get; } 
     public bool IsKeyFrame { get; } = true;
 
     public byte[] Buffer { get; }

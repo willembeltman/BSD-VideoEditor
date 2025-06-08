@@ -21,4 +21,5 @@ public interface IApplicationForm
     Cursor Cursor { get; set; }
 
     void TryDraw();
+    void CloseForm();
 }
