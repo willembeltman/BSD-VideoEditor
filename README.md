@@ -28,4 +28,4 @@ Playback works (as long as you don’t scroll too aggressively 😉)
 ## 💡 Why?
 
     “There’s a bug in DaVinci Resolve. I thought — how hard can it be?”
-    — Me, just before building a whole rendering engine and embedded database format.
+— Me, just before building a whole rendering engine and embedded database format.
