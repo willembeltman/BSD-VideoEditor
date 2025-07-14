@@ -1,4 +1,4 @@
-﻿# 🔧 GitHub Project Description – BSD-VideoEditor
+﻿# BSD-VideoEditor
 BSD-VideoEditor – A custom video editor written in C# using FFmpeg, SharpDX, and EntityFrameworkZip.
 
 BSD-VideoEditor (BSD = Beltman Software Design) is a work-in-progress personal project born out of frustration with a bug in DaVinci Resolve. The goal: build a no-nonsense video editor that just works, using powerful low-level libraries like FFmpeg and DirectX.
