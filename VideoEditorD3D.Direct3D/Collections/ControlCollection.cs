@@ -7,40 +7,36 @@ namespace VideoEditorD3D.Direct3D.Collections
     public class ControlCollection : ObservableArrayCollection<Control>, IDisposable
     {
         private readonly Control ParentControl;
-        private readonly Form ParentForm;
 
         public ControlCollection(Control control)
         {
             ParentControl = control;
-            ParentForm = control.ParentForm;
             Added += OnAdded;
             Removed += OnRemoved;
         }
 
-        public ControlCollection(Form form)
-        {
-            ParentControl = form;
-            ParentForm = form;
-            Added += OnAdded;
-            Removed += OnRemoved;
-        }
+        //public ControlCollection(Form form)
+        //{
+        //    ParentControl = form;
+        //    ParentForm = form;
+        //    Added += OnAdded;
+        //    Removed += OnRemoved;
+        //}
 
         public void OnAdded(object? sender, Control item)
         {
-            item.ParentForm = ParentForm;
             item.ParentControl = ParentControl;
-            if (ParentForm?.ApplicationForm != null)
-            {
-                Set(item);
-            }
+            Set(item);
             ParentControl.Invalidate();
         }
         private void Set(Control control)
         {
-            control.ApplicationForm = ParentForm.ApplicationForm;
+            control.ParentForm = ParentControl.ParentForm;
+            control.ApplicationForm = ParentControl.ApplicationForm;
 
             foreach (var subcontrol in control.Controls)
             {
+                subcontrol.ParentControl = control;
                 Set(subcontrol);
             }
         }

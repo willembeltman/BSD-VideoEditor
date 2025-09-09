@@ -61,37 +61,44 @@ public class VideoFrameReader : IEnumerable<VideoFrame>
         }
     }
 
+    public bool Disposed { get; private set; }
+
     public IEnumerable<VideoFrame> GetEnumerable()
     {
-        var arguments = $"-i \"{FullName}\" " +
-                        $"-ss {StartTimeStamp} " +
-                        $"-s {Resolution.Width}x{Resolution.Height} " +
-                        $"-pix_fmt rgba -f rawvideo -";
-
-        var processStartInfo = new ProcessStartInfo
+        try
         {
-            FileName = FFExecutebles.FFMpeg.FullName,
-            WorkingDirectory = FFExecutebles.FFMpeg.Directory!.FullName,
-            Arguments = arguments,
-            RedirectStandardOutput = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
+            var arguments = $"-i \"{FullName}\" " +
+                            $"-ss {StartTimeStamp} " +
+                            $"-s {Resolution.Width}x{Resolution.Height} " +
+                            $"-pix_fmt rgba -f rawvideo -";
 
-        using var process = Process.Start(processStartInfo) ?? throw new Exception("Cannot create process");
-        using var stream = process.StandardOutput.BaseStream;
+            var processStartInfo = new ProcessStartInfo
+            {
+                FileName = FFExecutebles.FFMpeg.FullName,
+                WorkingDirectory = FFExecutebles.FFMpeg.Directory!.FullName,
+                Arguments = arguments,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
 
-        var currentFrameIndex = StartFrameIndex;
-        while (Read(stream, out var frame, ref currentFrameIndex))
+            using var process = Process.Start(processStartInfo) ?? throw new Exception("Cannot create process");
+            using var stream = process.StandardOutput.BaseStream;
+
+            var currentFrameIndex = StartFrameIndex;
+            while (Read(stream, out var frame, ref currentFrameIndex))
+            {
+                yield return frame;
+            }
+        }
+        finally
         {
-            yield return frame;
+            Disposed = true;
         }
     }
     private bool Read(Stream stream, out VideoFrame frame, ref long currentFrameIndex)
     {
-        var currentTime = Fps.ConvertIndexToTime(currentFrameIndex);
-
-        frame = new VideoFrame(Resolution, currentFrameIndex, currentTime);
+        frame = new VideoFrame(Resolution, currentFrameIndex);
 
         var endOfVideo = false;
         var read = 0;

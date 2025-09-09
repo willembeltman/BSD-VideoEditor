@@ -2,6 +2,7 @@
 using VideoEditorD3D.Entities;
 using VideoEditorD3D.FFMpeg.CLI;
 using VideoEditorD3D.FFMpeg.Interfaces;
+using VideoEditorD3D.FFMpeg.Types;
 
 namespace VideoEditorD3D.Application.Buffers;
 
@@ -68,13 +69,26 @@ public class SoftwareVideoBuffer : IVideoBuffer
             bufferEnd = VideoClip.TimelineEndTime;
 
         // 1. Verwijder oude frames buiten de buffer window
-        var lowest = 0d;
+        var lowest = double.MaxValue;
 
-
-
-            Buffer.RemoveAll(f => f.TimelineTime < bufferStart || f.TimelineTime > bufferEnd);
-            if (Buffer.Count > 0)
-                lowest = Buffer.Min(a => a.TimelineTime);
+        var removeBuffers = new List<KeyValuePair<long, SoftwareVideoBufferFrame>>();
+        foreach (var buffer in Buffer)
+        {
+            var timelineTime = buffer.Value.TimelineTime;
+            if (timelineTime < bufferStart || timelineTime > bufferEnd)
+            {
+                removeBuffers.Add(buffer);
+            }
+            else if (timelineTime < lowest)
+            {
+                lowest = timelineTime;
+            }
+        }
+        foreach (var buffer in removeBuffers)
+        {
+            Buffer.TryRemove(buffer);
+            buffer.Value.Dispose();
+        }
         var reload = lowest > currentTime;
 
         // 2. Reset Enumerator als teruggescrubd is
@@ -85,7 +99,7 @@ public class SoftwareVideoBuffer : IVideoBuffer
         }
 
         // 3. Start reader indien nodig
-        if (Enumerator == null || reload)
+        if (Enumerator == null)
         {
             var startTime = (bufferStart - TimelineStartTime) * VideoClip.ClipLengthTime / VideoClip.TimelineLengthTime - VideoClip.ClipStartTime;
 
@@ -102,7 +116,9 @@ public class SoftwareVideoBuffer : IVideoBuffer
         while (Enumerator.MoveNext())
         {
             var frame = Enumerator.Current;
-            var timelineTime = frame.ClipTime * VideoClip.TimelineLengthTime / VideoClip.ClipLengthTime + VideoClip.TimelineStartTime;
+
+            var frameClipTime = VideoClip.MediaStream.Value.Fps.ConvertIndexToTime(frame.Index);
+            var timelineTime = frameClipTime * VideoClip.TimelineLengthTime / VideoClip.ClipLengthTime + VideoClip.TimelineStartTime;
 
             if (timelineTime > bufferEnd)
                 break;
@@ -111,9 +127,9 @@ public class SoftwareVideoBuffer : IVideoBuffer
             {
                 lock (BufferLock)
                 {
-                    if (!Buffer.Any(f => f.Frame.Index == frame.Index))
+                    if (!Buffer.Any(f => f.Value.Frame.Index == frame.Index))
                     {
-                        Buffer.Add(new SoftwareVideoBufferFrame(frame, timelineTime));
+                        Buffer[frame.Index] = new SoftwareVideoBufferFrame(frame, timelineTime);
                         if (currentTime <= timelineTime)
                             FrameAvailable.Set();
                     }
@@ -126,26 +142,26 @@ public class SoftwareVideoBuffer : IVideoBuffer
         }
     }
 
-    public IVideoFrame GetCurrentFrame()
+    public IVideoFrame GetCurrentFrame(double targetTime)
     {
-        double targetTime = Timeline.CurrentTime;
-
-            lock (BufferLock)
+        //for (var i = 0; i < 3; i++)
+        while (true) 
+        {
+            SoftwareVideoBufferFrame? lastFrame = null;
+            foreach (var item in Buffer.Values.OrderBy(a => a.TimelineTime))
             {
-                SoftwareVideoBufferFrame? lastFrame = null;
-                foreach (var item in Buffer.OrderBy(a => a.TimelineTime))
-                {
-                    if (item.TimelineTime > targetTime) break;
-                    lastFrame = item;
-                }
-
-                if (lastFrame != null)
-                    return lastFrame.Frame;
+                if (item.TimelineTime > targetTime) break;
+                lastFrame = item;
             }
+
+            if (lastFrame != null)
+                return lastFrame.Frame;
 
             // Geen frame gevonden, wacht max 100ms op nieuwe frame
             FrameAvailable.Wait(10000);
             FrameAvailable.Reset(); // Daarna resetten
+        }
+        throw new NotImplementedException();
     }
 
     public void Dispose()
@@ -157,7 +173,7 @@ public class SoftwareVideoBuffer : IVideoBuffer
         }
         foreach (var item in Buffer)
         {
-            item.Dispose();
+            item.Value.Dispose();
         }
         Buffer.Clear();
         FrameAvailable.Dispose();

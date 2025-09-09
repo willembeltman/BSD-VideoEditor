@@ -9,6 +9,6 @@ namespace VideoEditorD3D.Application.Buffers
         int TimelineLayer { get; }
 
         void StartThread();
-        IVideoFrame GetCurrentFrame();
+        IVideoFrame GetCurrentFrame(double timelineTime);
     }
 }

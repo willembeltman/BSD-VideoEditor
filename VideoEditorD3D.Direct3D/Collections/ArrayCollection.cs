@@ -53,7 +53,7 @@ public class ArrayCollection<T> : ICollection<T>
         return true;
     }
 
-    private virtual int IndexOf(T item)
+    public virtual int IndexOf(T item)
     {
         var comparer = EqualityComparer<T>.Default;
         for (int i = 0; i < Count; i++)

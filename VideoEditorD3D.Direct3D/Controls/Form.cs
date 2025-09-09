@@ -8,5 +8,6 @@ public class Form : BackControl
     public Form()
     {
         Controls = new ControlCollection(this);
+        ParentForm = this;
     }
 }

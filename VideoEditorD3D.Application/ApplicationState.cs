@@ -121,7 +121,7 @@ public class ApplicationState : IApplicationState
             .Where(a => 
                 a.TimelineStartTime <= Timeline.CurrentTime && Timeline.CurrentTime <= a.TimelineEndTime)
             .OrderBy(a => a.TimelineLayer)
-            .Select(a => a.GetCurrentFrame())
+            .Select(a => a.GetCurrentFrame(Timeline.CurrentTime))
             .ToArray();
     }
 
